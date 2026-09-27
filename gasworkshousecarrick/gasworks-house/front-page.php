@@ -13,7 +13,7 @@ $gwh_gallery  = gwh_gallery_items();
 $gwh_status   = isset( $_GET['enquiry'] ) ? sanitize_key( wp_unslash( $_GET['enquiry'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
 
 $gwh_facts = array_filter( array(
-	__( 'Guests', 'gasworks-house' )     => gwh_mod( 'sleeps' ),
+	__( 'Sleeps up to', 'gasworks-house' ) => gwh_mod( 'sleeps' ),
 	__( 'Bedrooms', 'gasworks-house' )   => gwh_mod( 'bedrooms' ),
 	__( 'Bathrooms', 'gasworks-house' )  => gwh_mod( 'bathrooms' ),
 	__( 'Min. nights', 'gasworks-house' ) => gwh_mod( 'min_nights' ),

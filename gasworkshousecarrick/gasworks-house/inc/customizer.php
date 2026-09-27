@@ -44,7 +44,7 @@ function gwh_customize_register( $wp_customize ) {
 		'gwh_house'   => array(
 			'title'  => __( 'The house', 'gasworks-house' ),
 			'fields' => array(
-				'sleeps'        => array( 'text', __( 'Sleeps (guests)', 'gasworks-house' ) ),
+				'sleeps'        => array( 'text', __( 'Sleeps up to (guests)', 'gasworks-house' ) ),
 				'bedrooms'      => array( 'text', __( 'Bedrooms', 'gasworks-house' ) ),
 				'bathrooms'     => array( 'text', __( 'Bathrooms', 'gasworks-house' ) ),
 				'min_nights'    => array( 'text', __( 'Minimum nights', 'gasworks-house' ) ),

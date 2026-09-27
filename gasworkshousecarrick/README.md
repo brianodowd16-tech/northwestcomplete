@@ -35,7 +35,7 @@ A custom one-page WordPress theme for **Gasworks House**, a boutique hen and sta
 
 The site comes filled with starter copy. **Update anything that isn't accurate for your property:**
 
-- Sleeps 12, 5 bedrooms, 3 bathrooms, 2-night minimum
+- 5 bedrooms, 3 bathrooms, 2-night minimum (sleeps up to 30 is confirmed)
 - The feature list. I wrote it from your photos, so add anything else you offer, like Wi-Fi, parking or a speaker
 - The FAQ answers and house rules (confetti policy, noise and so on)
 

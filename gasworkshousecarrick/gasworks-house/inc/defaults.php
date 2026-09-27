@@ -16,8 +16,8 @@ function gwh_defaults() {
 		'hero_image'       => '',
 		'hero_eyebrow'     => 'Carrick-on-Shannon · Co. Leitrim',
 		'hero_heading'     => 'The party house for hens & stags on the Shannon.',
-		'hero_text'        => 'A boutique, whole-house stay minutes from Carrick\'s pubs, boats and late bars. Bring the crew — we\'ve got the space, the style and the local know-how.',
-		'meta_description' => 'Gasworks House is a boutique hen and stag party house in Carrick-on-Shannon, Co. Leitrim. Whole-house stays for groups, a short stroll from the town\'s pubs, bars and river.',
+		'hero_text'        => 'A whole-house stay for groups of up to 30, minutes from Carrick\'s pubs, boats and late bars. Bring the whole crew. We\'ve got the space and the local know-how.',
+		'meta_description' => 'Gasworks House is a hen and stag party house in Carrick-on-Shannon, Co. Leitrim, sleeping up to 30. Whole-house stays for big groups, a short stroll from the town\'s pubs and river.',
 
 		// Booking & contact.
 		'airbnb_url'       => '',
@@ -29,7 +29,7 @@ function gwh_defaults() {
 		'tiktok_url'       => '',
 
 		// Key facts.
-		'sleeps'           => '12',
+		'sleeps'           => '30',
 		'bedrooms'         => '5',
 		'bathrooms'        => '3',
 		'min_nights'       => '2',
