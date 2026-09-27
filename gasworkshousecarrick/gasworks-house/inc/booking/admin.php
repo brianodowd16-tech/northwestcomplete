@@ -293,9 +293,10 @@ function gwh_sanitize_booking_settings( $in ) {
 		}
 	}
 	$out['ical_import'] = implode( "\n", $urls );
-	foreach ( array( 'nightly_rate', 'weekend_rate', 'cleaning_fee', 'damage_deposit' ) as $k ) {
+	foreach ( array( 'weekday_rate', 'weekend_rate', 'weekday_extra', 'weekend_extra', 'cleaning_fee', 'damage_deposit' ) as $k ) {
 		$out[ $k ] = '' === trim( (string) ( $in[ $k ] ?? '' ) ) ? '' : (string) max( 0, (float) $in[ $k ] );
 	}
+	$out['base_guests']          = (string) max( 1, absint( $in['base_guests'] ?? 12 ) );
 	$out['min_nights']           = (string) max( 1, absint( $in['min_nights'] ?? 1 ) );
 	$out['hold_days']            = (string) max( 1, absint( $in['hold_days'] ?? 3 ) );
 	$out['notify_email']         = sanitize_email( $in['notify_email'] ?? '' );
@@ -369,10 +370,13 @@ function gwh_render_booking_settings() {
 			<table class="form-table" role="presentation"><tbody>
 				<?php
 				$fields = array(
-					'nightly_rate'   => array( __( 'Price per night (€)', 'gasworks-house' ), __( 'For the whole house. Leave blank to hide prices and just take requests.', 'gasworks-house' ) ),
-					'weekend_rate'   => array( __( 'Friday & Saturday night price (€)', 'gasworks-house' ), __( 'Optional. Leave blank to use the normal price.', 'gasworks-house' ) ),
-					'cleaning_fee'   => array( __( 'Cleaning fee (€)', 'gasworks-house' ), '' ),
-					'damage_deposit' => array( __( 'Refundable damage deposit (€)', 'gasworks-house' ), __( 'Shown to guests; not added to the total.', 'gasworks-house' ) ),
+					'base_guests'    => array( __( 'Guests included in the base price', 'gasworks-house' ), '' ),
+					'weekday_rate'   => array( __( 'Midweek night price (€)', 'gasworks-house' ), __( 'Sunday to Thursday nights, whole house, up to the included guests.', 'gasworks-house' ) ),
+					'weekday_extra'  => array( __( 'Midweek extra guest (€ per person per night)', 'gasworks-house' ), '' ),
+					'weekend_rate'   => array( __( 'Weekend night price (€)', 'gasworks-house' ), __( 'Friday and Saturday nights, whole house, up to the included guests.', 'gasworks-house' ) ),
+					'weekend_extra'  => array( __( 'Weekend extra guest (€ per person per night)', 'gasworks-house' ), '' ),
+					'cleaning_fee'   => array( __( 'Cleaning fee (€, once per stay)', 'gasworks-house' ), '' ),
+					'damage_deposit' => array( __( 'Damage deposit pre-authorisation (€)', 'gasworks-house' ), __( 'A card hold, not a charge. Shown to guests but not added to the total. Place the hold yourself (e.g. in Stripe) before arrival.', 'gasworks-house' ) ),
 					'min_nights'     => array( __( 'Minimum nights', 'gasworks-house' ), '' ),
 					'hold_days'      => array( __( 'Hold requested dates for (days)', 'gasworks-house' ), __( 'Requests block the dates for this long. If you don\'t confirm in time they expire and the dates free up.', 'gasworks-house' ) ),
 				);
@@ -381,7 +385,7 @@ function gwh_render_booking_settings() {
 					<tr>
 						<th scope="row"><label for="gwh-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $f[0] ); ?></label></th>
 						<td>
-							<input id="gwh-<?php echo esc_attr( $key ); ?>" type="number" min="0" step="<?php echo in_array( $key, array( 'min_nights', 'hold_days' ), true ) ? '1' : '0.01'; ?>" name="gwh_booking[<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( $val( $key ) ); ?>" class="small-text" style="width:120px">
+							<input id="gwh-<?php echo esc_attr( $key ); ?>" type="number" min="0" step="<?php echo in_array( $key, array( 'min_nights', 'hold_days', 'base_guests' ), true ) ? '1' : '0.01'; ?>" name="gwh_booking[<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( $val( $key ) ); ?>" class="small-text" style="width:120px">
 							<?php if ( $f[1] ) : ?><p class="description"><?php echo esc_html( $f[1] ); ?></p><?php endif; ?>
 						</td>
 					</tr>

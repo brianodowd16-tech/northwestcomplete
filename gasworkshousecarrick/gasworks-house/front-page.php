@@ -176,6 +176,23 @@ $gwh_facts = array_filter( array(
 			<p class="kicker"><?php esc_html_e( 'Book direct', 'gasworks-house' ); ?></p>
 			<h2 class="section-title"><?php esc_html_e( 'Pick your dates.', 'gasworks-house' ); ?></h2>
 			<p class="muted book-lead"><?php esc_html_e( 'Book directly with us and skip the booking-site fees. Choose your dates, send a request, and we\'ll confirm within 24 hours. Your dates are held while we check.', 'gasworks-house' ); ?></p>
+			<?php $gwh_p = gwh_pricing(); ?>
+			<?php if ( $gwh_p['weekday'] > 0 || $gwh_p['weekend'] > 0 ) : ?>
+				<ul class="rates">
+					<?php if ( $gwh_p['weekday'] > 0 ) : ?>
+						<li><span><?php esc_html_e( 'Midweek (Sun–Thu)', 'gasworks-house' ); ?></span><strong><?php echo esc_html( gwh_money( $gwh_p['weekday'] ) ); ?></strong><em><?php esc_html_e( 'per night', 'gasworks-house' ); ?></em></li>
+					<?php endif; ?>
+					<?php if ( $gwh_p['weekend'] > 0 ) : ?>
+						<li><span><?php esc_html_e( 'Weekend (Fri & Sat)', 'gasworks-house' ); ?></span><strong><?php echo esc_html( gwh_money( $gwh_p['weekend'] ) ); ?></strong><em><?php esc_html_e( 'per night', 'gasworks-house' ); ?></em></li>
+					<?php endif; ?>
+					<li class="rates-note">
+						<?php
+						/* translators: 1: included guests, 2: weekend extra, 3: midweek extra, 4: cleaning fee */
+						echo esc_html( sprintf( __( 'Whole house for up to %1$d guests. Each extra guest is %2$s per night at weekends, %3$s midweek. %4$s cleaning fee per stay.', 'gasworks-house' ), $gwh_p['baseGuests'], gwh_money( $gwh_p['weekendExtra'] ), gwh_money( $gwh_p['weekdayExtra'] ), gwh_money( $gwh_p['cleaning'] ) ) );
+						?>
+					</li>
+				</ul>
+			<?php endif; ?>
 
 			<div class="book-grid">
 				<div class="book-cal">

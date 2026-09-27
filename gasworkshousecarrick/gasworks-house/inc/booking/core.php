@@ -17,10 +17,13 @@ const GWH_BLOCKING_STATUSES = array( 'pending', 'confirmed' );
 function gwh_booking_defaults() {
 	return array(
 		'ical_import'          => '',
-		'nightly_rate'         => '',
-		'weekend_rate'         => '',
-		'cleaning_fee'         => '',
-		'damage_deposit'       => '',
+		'weekday_rate'         => '500',
+		'weekend_rate'         => '700',
+		'base_guests'          => '12',
+		'weekday_extra'        => '60',
+		'weekend_extra'        => '70',
+		'cleaning_fee'         => '60',
+		'damage_deposit'       => '300',
 		'min_nights'           => '2',
 		'hold_days'            => '3',
 		'notify_email'         => '',
@@ -98,28 +101,54 @@ function gwh_overlaps( $a_start, $a_end, $b_start, $b_end ) {
 
 /* ---------- Pricing ---------- */
 
+function gwh_pricing() {
+	return array(
+		'weekday'    => (float) gwh_bset( 'weekday_rate' ),
+		'weekend'    => (float) gwh_bset( 'weekend_rate' ),
+		'baseGuests'   => max( 1, absint( gwh_bset( 'base_guests' ) ) ),
+		'weekdayExtra' => (float) gwh_bset( 'weekday_extra' ),
+		'weekendExtra' => (float) gwh_bset( 'weekend_extra' ),
+		'cleaning'   => (float) gwh_bset( 'cleaning_fee' ),
+		'deposit'    => (float) gwh_bset( 'damage_deposit' ),
+	);
+}
+
 /**
- * Price for a stay. Friday and Saturday nights use the weekend rate when one is set.
+ * Price for a stay, per night:
+ *   base price for up to the base number of guests
+ *   + a per-person fee for each guest over that number,
+ * with Friday & Saturday nights at weekend prices and Sunday–Thursday at midweek prices,
+ * plus a one-off cleaning fee. If any night has no price set, the stay is unpriced and
+ * the guest is told we'll confirm the price.
  */
-function gwh_quote( $arrival, $departure ) {
-	$nightly = (float) gwh_bset( 'nightly_rate' );
-	$weekend = (float) gwh_bset( 'weekend_rate' );
-	$stay    = 0;
-	$nights  = gwh_nights( $arrival, $departure );
+function gwh_quote( $arrival, $departure, $guests = 0 ) {
+	$p      = gwh_pricing();
+	$nights = gwh_nights( $arrival, $departure );
+	$extra  = max( 0, (int) $guests - $p['baseGuests'] );
+	$base   = 0;
+	$extras = 0;
+	$priced = count( $nights ) > 0;
 
 	foreach ( $nights as $night ) {
-		$dow   = (int) gmdate( 'N', strtotime( $night . ' 00:00:00 UTC' ) );
-		$stay += ( $weekend && ( 5 === $dow || 6 === $dow ) ) ? $weekend : $nightly;
+		$dow     = (int) gmdate( 'N', strtotime( $night . ' 00:00:00 UTC' ) );
+		$weekend = 5 === $dow || 6 === $dow;
+		$rate    = $weekend ? $p['weekend'] : $p['weekday'];
+		if ( $rate <= 0 ) {
+			$priced = false;
+		}
+		$base   += $rate;
+		$extras += $extra * ( $weekend ? $p['weekendExtra'] : $p['weekdayExtra'] );
 	}
-	$cleaning = (float) gwh_bset( 'cleaning_fee' );
 
 	return array(
-		'nights'    => count( $nights ),
-		'priced'    => $nightly > 0,
-		'stay'      => $stay,
-		'cleaning'  => $cleaning,
-		'total'     => $nightly > 0 ? $stay + $cleaning : 0,
-		'deposit'   => (float) gwh_bset( 'damage_deposit' ),
+		'nights'       => count( $nights ),
+		'priced'       => $priced,
+		'base'         => $base,
+		'extra_guests' => $extra,
+		'extras'       => $extras,
+		'cleaning'     => $p['cleaning'],
+		'total'        => $priced ? $base + $extras + $p['cleaning'] : 0,
+		'deposit'      => $p['deposit'],
 	);
 }
 
@@ -389,7 +418,7 @@ add_action( 'init', 'gwh_serve_ical', 1 );
 /* ---------- Emails ---------- */
 
 function gwh_booking_summary( $b ) {
-	$q     = gwh_quote( $b['arrival'], $b['departure'] );
+	$q     = gwh_quote( $b['arrival'], $b['departure'], (int) $b['guests'] );
 	$lines = array(
 		'Arrival:    ' . gwh_nice_date( $b['arrival'] ) . ' (check-in from ' . gwh_bset( 'checkin_time' ) . ')',
 		'Departure:  ' . gwh_nice_date( $b['departure'] ) . ' (check-out by ' . gwh_bset( 'checkout_time' ) . ')',
@@ -398,10 +427,12 @@ function gwh_booking_summary( $b ) {
 		'Occasion:   ' . $b['party'],
 	);
 	if ( (float) $b['total'] > 0 ) {
-		$lines[] = 'Total:      ' . gwh_money( $b['total'] );
+		$lines[] = 'Total:      ' . gwh_money( $b['total'] ) . ' (incl. ' . gwh_money( $q['cleaning'] ) . ' cleaning)';
+	} else {
+		$lines[] = 'Total:      to be confirmed';
 	}
 	if ( $q['deposit'] > 0 ) {
-		$lines[] = 'Refundable damage deposit: ' . gwh_money( $q['deposit'] );
+		$lines[] = 'Damage deposit: ' . gwh_money( $q['deposit'] ) . ' card pre-authorisation (a hold, not a charge), released after the stay';
 	}
 	return implode( "\n", $lines );
 }

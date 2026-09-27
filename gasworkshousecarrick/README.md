@@ -52,7 +52,18 @@ Airbnb only re-reads imported calendars every few hours, so there's a small wind
 
 You can also add phone or email bookings, or block dates for maintenance, with **Bookings → Add booking or block dates**. There's no card payment built in; guests pay using your payment instructions.
 
-**Prices:** set a nightly price for the whole house, an optional Friday/Saturday price, a cleaning fee and a refundable damage deposit. Leave the price blank to take requests without showing prices.
+**Prices** (already set as the defaults; change them in the settings page):
+
+| | Midweek (Sun–Thu nights) | Weekend (Fri & Sat nights) |
+|---|---|---|
+| Whole house, up to 12 guests | €500 per night | €700 per night |
+| Each guest over 12 | €60 per person per night | €70 per person per night |
+
+Plus a €60 cleaning fee per stay. Example: 20 guests, Friday to Sunday = €1,400 + (8 × €70 × 2) + €60 = **€2,580**.
+
+The €300 damage deposit is a **card pre-authorisation** (a hold, not a charge). It's shown to guests and in emails but isn't added to the total, and the site doesn't place the hold for you: do it yourself before arrival, e.g. in your Stripe dashboard. Card holds usually expire after about 7 days, so place it close to check-in.
+
+Prices can't be pulled from Airbnb automatically (Airbnb's calendar link only contains dates), so keep your Airbnb prices in step by hand.
 
 ## ⚠️ Check the default wording before going live
 

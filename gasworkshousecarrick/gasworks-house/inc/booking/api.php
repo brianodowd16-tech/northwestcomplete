@@ -39,10 +39,7 @@ function gwh_calendar_config() {
 		'blocked'      => gwh_blocked_ranges(),
 		'minNights'    => max( 1, absint( gwh_bset( 'min_nights' ) ) ),
 		'maxGuests'    => gwh_max_guests(),
-		'nightly'      => (float) gwh_bset( 'nightly_rate' ),
-		'weekend'      => (float) gwh_bset( 'weekend_rate' ),
-		'cleaning'     => (float) gwh_bset( 'cleaning_fee' ),
-		'deposit'      => (float) gwh_bset( 'damage_deposit' ),
+		'pricing'      => gwh_pricing(),
 		'checkin'      => gwh_bset( 'checkin_time' ),
 		'checkout'     => gwh_bset( 'checkout_time' ),
 		'availability' => rest_url( 'gwh/v1/availability' ),
@@ -120,7 +117,7 @@ function gwh_rest_request( WP_REST_Request $req ) {
 		return gwh_rest_error( __( 'Sorry, those dates have just been booked. Please choose different dates.', 'gasworks-house' ), 409 );
 	}
 
-	$quote = gwh_quote( $arrival, $departure );
+	$quote = gwh_quote( $arrival, $departure, $guests );
 	$title = sprintf( '%s – %s (%s → %s)', $party, $name, $arrival, $departure );
 	$id    = wp_insert_post( array(
 		'post_type'   => 'gwh_booking',

@@ -12,6 +12,7 @@
 	var submitBtn = form.querySelector('[data-book-submit]');
 	var arrivalInput = form.querySelector('[data-arrival]');
 	var departureInput = form.querySelector('[data-departure]');
+	var guestsInput = form.querySelector('input[name="guests"]');
 
 	var DAY = 86400000;
 	var blocked = {};
@@ -45,14 +46,27 @@
 		return true;
 	}
 
-	/* ---------- Pricing (mirrors the server) ---------- */
-	function quote(a, d) {
-		var stay = 0;
+	/* ---------- Pricing (mirrors gwh_quote() on the server) ---------- */
+	function quote(a, d, guests) {
+		var p = cfg.pricing;
+		var extra = Math.max(0, guests - p.baseGuests);
+		var base = 0, extras = 0, priced = true;
 		for (var n = a; n < d; n = add(n, 1)) {
 			var dow = new Date(parse(n)).getUTCDay();
-			stay += (cfg.weekend && (dow === 5 || dow === 6)) ? cfg.weekend : cfg.nightly;
+			var weekend = dow === 5 || dow === 6;
+			var rate = weekend ? p.weekend : p.weekday;
+			if (!(rate > 0)) priced = false;
+			base += rate;
+			extras += extra * (weekend ? p.weekendExtra : p.weekdayExtra);
 		}
-		return { nights: nightsBetween(a, d), stay: stay, total: cfg.nightly ? stay + cfg.cleaning : 0 };
+		return {
+			nights: nightsBetween(a, d), extraGuests: extra, base: base, extras: extras, priced: priced,
+			total: priced ? base + extras + p.cleaning : 0
+		};
+	}
+	function guestCount() {
+		var g = parseInt(guestsInput.value, 10);
+		return g > 0 ? Math.min(g, cfg.maxGuests) : 0;
 	}
 
 	/* ---------- Selection ---------- */
@@ -168,17 +182,27 @@
 				'<p class="summary-empty">Minimum stay ' + cfg.minNights + ' nights. Check-in from ' + cfg.checkin + '.</p>';
 			return;
 		}
-		var q = quote(arrival, departure);
+		var p = cfg.pricing;
+		var guests = guestCount();
+		var q = quote(arrival, departure, guests);
+		var plural = function (n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); };
 		var html = '<p class="summary-dates">' + nice(arrival) + ' → ' + nice(departure, { year: 'numeric' }) +
-			' <span>· ' + q.nights + ' night' + (q.nights === 1 ? '' : 's') + '</span></p>';
-		if (cfg.nightly) {
+			' <span>· ' + plural(q.nights, 'night') + '</span></p>';
+		if (q.priced) {
 			html += '<dl class="summary-price">' +
-				'<div><dt>' + q.nights + ' nights, whole house</dt><dd>' + money(q.stay) + '</dd></div>' +
-				(cfg.cleaning ? '<div><dt>Cleaning</dt><dd>' + money(cfg.cleaning) + '</dd></div>' : '') +
-				'<div class="summary-total"><dt>Total</dt><dd>' + money(q.total) + '</dd></div></dl>';
-			if (cfg.deposit) html += '<p class="summary-note">Plus a ' + money(cfg.deposit) + ' refundable damage deposit.</p>';
+				'<div><dt>' + plural(q.nights, 'night') + ', up to ' + p.baseGuests + ' guests</dt><dd>' + money(q.base) + '</dd></div>' +
+				(q.extras ? '<div><dt>' + plural(q.extraGuests, 'extra guest') + ' × ' + plural(q.nights, 'night') + '</dt><dd>' + money(q.extras) + '</dd></div>' : '') +
+				(p.cleaning ? '<div><dt>Cleaning</dt><dd>' + money(p.cleaning) + '</dd></div>' : '') +
+				'<div class="summary-total"><dt>Total' + (guests ? ' for ' + guests + ' guests' : '') + '</dt><dd>' + money(q.total) + '</dd></div></dl>';
+			if (!guests) {
+				html += '<p class="summary-note">Enter your group size below. Over ' + p.baseGuests + ' guests: +' + money(p.weekendExtra) +
+					' per extra person per night at weekends, +' + money(p.weekdayExtra) + ' midweek.</p>';
+			}
 		} else {
-			html += '<p class="summary-note">We\'ll send your price when we confirm.</p>';
+			html += '<p class="summary-note">We\'ll confirm your price by email.</p>';
+		}
+		if (p.deposit) {
+			html += '<p class="summary-note">' + money(p.deposit) + ' damage deposit taken as a card pre-authorisation (a hold, not a charge), released after your stay.</p>';
 		}
 		html += '<button type="button" class="summary-clear" data-clear>Clear dates</button>';
 		summaryEl.innerHTML = html;
@@ -208,6 +232,7 @@
 		render();
 		renderSummary();
 	}
+	guestsInput.addEventListener('input', renderSummary);
 	arrivalInput.addEventListener('change', fromInputs);
 	departureInput.addEventListener('change', fromInputs);
 	arrivalInput.min = departureInput.min = cfg.today;
