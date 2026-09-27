@@ -14,7 +14,7 @@
 		if (mobileCta && hero) {
 			var pastHero = y > hero.offsetHeight - 200;
 			var nearForm = false;
-			var form = document.getElementById('enquire');
+			var form = document.getElementById('book');
 			if (form) {
 				var r = form.getBoundingClientRect();
 				nearForm = r.top < window.innerHeight && r.bottom > 0;
@@ -70,31 +70,6 @@
 			if (partySelect) partySelect.value = btn.getAttribute('data-party');
 		});
 	});
-
-	// Departure can't be before arrival.
-	var arrival = document.querySelector('input[name="arrival"]');
-	var departure = document.querySelector('input[name="departure"]');
-	if (arrival && departure) {
-		var today = new Date().toISOString().slice(0, 10);
-		arrival.min = today;
-		departure.min = today;
-		arrival.addEventListener('change', function () {
-			departure.min = arrival.value || today;
-			if (departure.value && departure.value < arrival.value) departure.value = '';
-		});
-	}
-
-	// Refresh the form's nonce so cached pages still submit.
-	var enquiry = document.querySelector('[data-nonce-url]');
-	if (enquiry && window.fetch) {
-		fetch(enquiry.getAttribute('data-nonce-url'), { credentials: 'same-origin', cache: 'no-store' })
-			.then(function (r) { return r.json(); })
-			.then(function (res) {
-				var field = enquiry.querySelector('input[name="gwh_nonce"]');
-				if (res && res.success && field) field.value = res.data;
-			})
-			.catch(function () {});
-	}
 
 	// Simple gallery lightbox.
 	document.querySelectorAll('[data-lightbox]').forEach(function (link) {

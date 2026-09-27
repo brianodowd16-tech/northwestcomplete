@@ -13,7 +13,7 @@ A custom one-page WordPress theme for **Gasworks House**, a boutique hen and sta
 - **Carrick-on-Shannon**: things to do, directions and a Google Map
 - **Reviews**: hidden until you add real guest reviews
 - **FAQ**
-- **Enquiry form**: each enquiry is emailed to you and also saved under **Dashboard → Enquiries**, so none are lost if an email doesn't arrive
+- **Direct booking**: a live availability calendar synced with Airbnb, price breakdown and request-to-book (see below)
 - A sticky "Book" button on mobile, SEO meta tags and Google structured data (LodgingBusiness)
 
 ## Install on Hostinger WordPress
@@ -29,13 +29,36 @@ A custom one-page WordPress theme for **Gasworks House**, a boutique hen and sta
    - **Reviews & FAQ**
 4. Optional: add a logo under **Customize → Site Identity**, and set the site title to "Gasworks House Carrick".
 5. If Hostinger's **LiteSpeed Cache** is on, purge the cache after each change (**LiteSpeed Cache → Toolbox → Purge All**).
-6. Send yourself a test enquiry from the form. If the email doesn't arrive, it's still saved under **Enquiries**. For reliable email, set up Hostinger email and an SMTP plugin such as WP Mail SMTP.
+6. Set up bookings (next section), then send yourself a test request. If the email doesn't arrive, the request is still saved under **Bookings**. For reliable email, set up Hostinger email and an SMTP plugin such as WP Mail SMTP.
+7. Under **Settings → General**, set the timezone to **Dublin** so "today" is correct on the calendar.
+
+## Direct booking & Airbnb sync
+
+Everything is under **Bookings → Settings & Airbnb sync** in WordPress.
+
+**Connect Airbnb (two-way calendar sync):**
+
+1. **Airbnb → website:** in Airbnb, open your listing's **Calendar → Availability → Sync calendars → Export calendar**. Copy the link (it looks like `https://www.airbnb.ie/calendar/ical/50016674.ics?s=…`) and paste it into the settings page. Airbnb bookings then block those dates on your website. The site checks every hour, and again just before accepting a request.
+2. **Website → Airbnb:** copy the **export link** shown on the settings page. In Airbnb go to **Sync calendars → Import calendar**, paste it and name it "Website". Airbnb then blocks dates booked on your site. Only the dates are shared, never guest details.
+
+Airbnb only re-reads imported calendars every few hours, so there's a small window where someone could book the same dates on Airbnb. Requests are held rather than auto-confirmed, so you'll always spot a clash before confirming, and the Confirm button refuses if the dates now clash.
+
+**How a booking works:**
+
+1. The guest picks dates on the calendar (booked nights are greyed out, and the minimum stay is enforced) and sees the price.
+2. They send a request. The dates are **held** (default 3 days) and blocked on your site and on Airbnb, and both of you get an email.
+3. In **Bookings**, click **Confirm & email guest**. The guest gets your payment instructions (bank details or a Stripe/Revolut payment link). Or click **Decline**, and they get a polite email.
+4. Requests you don't act on expire after the hold period, and the dates free up again.
+
+You can also add phone or email bookings, or block dates for maintenance, with **Bookings → Add booking or block dates**. There's no card payment built in; guests pay using your payment instructions.
+
+**Prices:** set a nightly price for the whole house, an optional Friday/Saturday price, a cleaning fee and a refundable damage deposit. Leave the price blank to take requests without showing prices.
 
 ## ⚠️ Check the default wording before going live
 
 The site comes filled with starter copy. **Update anything that isn't accurate for your property:**
 
-- 5 bedrooms, 3 bathrooms, 2-night minimum (sleeps up to 30 is confirmed)
+- 5 bedrooms and 3 bathrooms (sleeps up to 30 is confirmed; the minimum stay is set in the booking settings)
 - The feature list. I wrote it from your photos, so add anything else you offer, like Wi-Fi, parking or a speaker
 - The FAQ answers and house rules (confetti policy, noise and so on)
 
@@ -51,7 +74,10 @@ gasworks-house/
   header.php, footer.php, index.php, 404.php
   inc/defaults.php     starter copy (you can override all of it in the Customizer)
   inc/customizer.php   Customizer panel
-  inc/enquiry.php      enquiry form handler and Enquiries admin screen
+  inc/booking/core.php   availability, pricing, calendar sync (import/export)
+  inc/booking/api.php    public API used by the calendar
+  inc/booking/admin.php  Bookings screen, confirm/decline, settings page
   assets/css/main.css
-  assets/js/main.js    mobile menu, tabs, lightbox, date checks and form token refresh
+  assets/js/main.js    mobile menu, tabs, lightbox
+  assets/js/booking.js availability calendar and booking form
 ```

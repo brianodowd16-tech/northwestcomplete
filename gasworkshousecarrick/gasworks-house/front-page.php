@@ -1,6 +1,6 @@
 <?php
 /**
- * One-page home: hero, the house, gallery, hens & stags, Carrick, reviews, FAQ, enquiry.
+ * One-page home: hero, the house, gallery, hens & stags, Carrick, reviews, FAQ, booking.
  *
  * @package gasworks-house
  */
@@ -10,13 +10,12 @@ get_header();
 $gwh_airbnb   = gwh_mod( 'airbnb_url' );
 $gwh_hero_url = gwh_hero_url();
 $gwh_gallery  = gwh_gallery_items();
-$gwh_status   = isset( $_GET['enquiry'] ) ? sanitize_key( wp_unslash( $_GET['enquiry'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
 
 $gwh_facts = array_filter( array(
 	__( 'Sleeps up to', 'gasworks-house' ) => gwh_mod( 'sleeps' ),
 	__( 'Bedrooms', 'gasworks-house' )   => gwh_mod( 'bedrooms' ),
 	__( 'Bathrooms', 'gasworks-house' )  => gwh_mod( 'bathrooms' ),
-	__( 'Min. nights', 'gasworks-house' ) => gwh_mod( 'min_nights' ),
+	__( 'Min. nights', 'gasworks-house' ) => gwh_bset( 'min_nights' ),
 ) );
 ?>
 
@@ -29,13 +28,8 @@ $gwh_facts = array_filter( array(
 			<h1 class="hero-title"><?php echo esc_html( gwh_mod( 'hero_heading' ) ); ?></h1>
 			<p class="hero-text"><?php echo esc_html( gwh_mod( 'hero_text' ) ); ?></p>
 			<div class="hero-actions">
-				<?php if ( $gwh_airbnb ) : ?>
-					<a class="btn" href="<?php echo esc_url( $gwh_airbnb ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Book on Airbnb', 'gasworks-house' ); ?></a>
-					<a class="btn btn-ghost" href="#enquire"><?php esc_html_e( 'Ask about dates', 'gasworks-house' ); ?></a>
-				<?php else : ?>
-					<a class="btn" href="#enquire"><?php esc_html_e( 'Check availability', 'gasworks-house' ); ?></a>
-					<a class="btn btn-ghost" href="#house"><?php esc_html_e( 'See the house', 'gasworks-house' ); ?></a>
-				<?php endif; ?>
+				<a class="btn" href="#book"><?php esc_html_e( 'Check availability', 'gasworks-house' ); ?></a>
+				<a class="btn btn-ghost" href="#house"><?php esc_html_e( 'See the house', 'gasworks-house' ); ?></a>
 			</div>
 			<?php if ( $gwh_facts ) : ?>
 				<dl class="facts">
@@ -99,7 +93,7 @@ $gwh_facts = array_filter( array(
 							<li><?php echo esc_html( $gwh_item ); ?></li>
 						<?php endforeach; ?>
 					</ol>
-					<a class="btn" href="#enquire" data-party="<?php echo 'hen' === $gwh_type ? 'Hen party' : 'Stag party'; ?>">
+					<a class="btn" href="#book" data-party="<?php echo 'hen' === $gwh_type ? 'Hen party' : 'Stag party'; ?>">
 						<?php echo 'hen' === $gwh_type ? esc_html__( 'Plan the hen', 'gasworks-house' ) : esc_html__( 'Plan the stag', 'gasworks-house' ); ?>
 					</a>
 				</div>
@@ -177,56 +171,85 @@ $gwh_facts = array_filter( array(
 		</div>
 	</section>
 
-	<section class="section section-dark" id="enquire">
-		<div class="wrap split split-form">
-			<div>
-				<p class="kicker"><?php esc_html_e( 'Check availability', 'gasworks-house' ); ?></p>
-				<h2 class="section-title"><?php esc_html_e( 'Tell us about your crew.', 'gasworks-house' ); ?></h2>
-				<p class="muted"><?php esc_html_e( 'Send us your dates and group size and we\'ll get back to you with availability — usually the same day.', 'gasworks-house' ); ?></p>
-				<?php if ( $gwh_airbnb ) : ?>
-					<p><a class="btn btn-ghost" href="<?php echo esc_url( $gwh_airbnb ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Or book instantly on Airbnb', 'gasworks-house' ); ?></a></p>
-				<?php endif; ?>
-				<?php if ( gwh_whatsapp_url() ) : ?>
-					<p><a class="text-link" href="<?php echo esc_url( gwh_whatsapp_url() ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Prefer WhatsApp? Message us →', 'gasworks-house' ); ?></a></p>
-				<?php endif; ?>
+	<section class="section section-dark" id="book">
+		<div class="wrap">
+			<p class="kicker"><?php esc_html_e( 'Book direct', 'gasworks-house' ); ?></p>
+			<h2 class="section-title"><?php esc_html_e( 'Pick your dates.', 'gasworks-house' ); ?></h2>
+			<p class="muted book-lead"><?php esc_html_e( 'Book directly with us and skip the booking-site fees. Choose your dates, send a request, and we\'ll confirm within 24 hours. Your dates are held while we check.', 'gasworks-house' ); ?></p>
+
+			<div class="book-grid">
+				<div class="book-cal">
+					<div class="cal" data-cal aria-live="polite">
+						<p class="muted"><?php esc_html_e( 'Loading availability…', 'gasworks-house' ); ?></p>
+					</div>
+					<ul class="cal-legend" aria-hidden="true">
+						<li><span class="swatch swatch-free"></span><?php esc_html_e( 'Available', 'gasworks-house' ); ?></li>
+						<li><span class="swatch swatch-booked"></span><?php esc_html_e( 'Booked', 'gasworks-house' ); ?></li>
+						<li><span class="swatch swatch-picked"></span><?php esc_html_e( 'Your stay', 'gasworks-house' ); ?></li>
+					</ul>
+				</div>
+
+				<form class="enquiry book-form" method="post" action="<?php echo esc_url( rest_url( 'gwh/v1/request' ) ); ?>" data-book-form>
+					<div class="book-summary" data-summary>
+						<p class="summary-empty"><?php esc_html_e( 'Tap your arrival date, then your departure date.', 'gasworks-house' ); ?></p>
+					</div>
+
+					<div class="hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+
+					<div class="field-row">
+						<label class="field"><span><?php esc_html_e( 'Arrival', 'gasworks-house' ); ?></span><input type="date" name="arrival" required data-arrival></label>
+						<label class="field"><span><?php esc_html_e( 'Departure', 'gasworks-house' ); ?></span><input type="date" name="departure" required data-departure></label>
+					</div>
+					<div class="field-row">
+						<label class="field"><span><?php esc_html_e( 'Group size', 'gasworks-house' ); ?></span><input type="number" name="guests" min="1" max="<?php echo esc_attr( gwh_max_guests() ); ?>" required inputmode="numeric"></label>
+						<label class="field"><span><?php esc_html_e( 'Occasion', 'gasworks-house' ); ?></span>
+							<select name="party" data-party-select>
+								<option>Hen party</option>
+								<option>Stag party</option>
+								<option>Joint hen &amp; stag</option>
+								<option>Other celebration</option>
+							</select>
+						</label>
+					</div>
+					<div class="field-row">
+						<label class="field"><span><?php esc_html_e( 'Name', 'gasworks-house' ); ?></span><input type="text" name="name" required autocomplete="name"></label>
+						<label class="field"><span><?php esc_html_e( 'Email', 'gasworks-house' ); ?></span><input type="email" name="email" required autocomplete="email"></label>
+					</div>
+					<label class="field"><span><?php esc_html_e( 'Phone', 'gasworks-house' ); ?></span><input type="tel" name="phone" autocomplete="tel"></label>
+					<label class="field"><span><?php esc_html_e( 'Anything else? Plans, questions, surprises…', 'gasworks-house' ); ?></span><textarea name="message" rows="3"></textarea></label>
+
+					<p class="notice" data-book-status role="status" hidden></p>
+					<button class="btn btn-block" type="submit" data-book-submit><?php esc_html_e( 'Request to book', 'gasworks-house' ); ?></button>
+					<p class="book-note"><?php esc_html_e( 'No payment now. We\'ll confirm and send deposit details by email.', 'gasworks-house' ); ?></p>
+				</form>
 			</div>
 
-			<form class="enquiry" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-nonce-url="<?php echo esc_url( admin_url( 'admin-ajax.php?action=gwh_nonce' ) ); ?>">
-				<?php if ( 'sent' === $gwh_status ) : ?>
-					<p class="notice notice-ok" role="status"><?php esc_html_e( 'Thanks! Your enquiry is in — we\'ll be in touch shortly.', 'gasworks-house' ); ?></p>
-				<?php elseif ( 'invalid' === $gwh_status ) : ?>
-					<p class="notice notice-err" role="alert"><?php esc_html_e( 'Please add your name and a valid email address.', 'gasworks-house' ); ?></p>
-				<?php elseif ( 'error' === $gwh_status ) : ?>
-					<p class="notice notice-err" role="alert"><?php esc_html_e( 'Sorry, that didn\'t go through. Please send it again.', 'gasworks-house' ); ?></p>
+			<div class="book-extra">
+				<ol class="steps">
+					<li><strong><?php esc_html_e( 'Pick your dates', 'gasworks-house' ); ?></strong><span><?php esc_html_e( 'Live availability, synced with Airbnb.', 'gasworks-house' ); ?></span></li>
+					<li><strong><?php esc_html_e( 'Send your request', 'gasworks-house' ); ?></strong><span><?php esc_html_e( 'We hold the dates for you.', 'gasworks-house' ); ?></span></li>
+					<li><strong><?php esc_html_e( 'We confirm', 'gasworks-house' ); ?></strong><span><?php esc_html_e( 'Pay your deposit and the house is yours.', 'gasworks-house' ); ?></span></li>
+				</ol>
+
+				<?php if ( $gwh_airbnb ) : ?>
+					<div class="airbnb-alt">
+						<p><strong><?php esc_html_e( 'Prefer Airbnb?', 'gasworks-house' ); ?></strong> <?php esc_html_e( 'You can book us there too.', 'gasworks-house' ); ?></p>
+						<?php if ( gwh_mod( 'airbnb_embed' ) && preg_match( '#/rooms/(\d+)#', $gwh_airbnb, $gwh_room ) ) : ?>
+							<?php $gwh_airbnb_host = wp_parse_url( $gwh_airbnb, PHP_URL_HOST ); ?>
+							<div class="airbnb-embed-frame" data-id="<?php echo esc_attr( $gwh_room[1] ); ?>" data-view="home" data-hide-price="true" style="width:100%;max-width:450px;height:300px">
+								<a class="btn btn-ghost" href="<?php echo esc_url( $gwh_airbnb ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'View on Airbnb', 'gasworks-house' ); ?></a>
+								<script async src="https://<?php echo esc_attr( $gwh_airbnb_host ); ?>/embeddable/airbnb_jssdk"></script>
+							</div>
+						<?php else : ?>
+							<a class="btn btn-ghost" href="<?php echo esc_url( $gwh_airbnb ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'View on Airbnb', 'gasworks-house' ); ?></a>
+						<?php endif; ?>
+					</div>
 				<?php endif; ?>
 
-				<input type="hidden" name="action" value="gwh_enquiry">
-				<?php wp_nonce_field( 'gwh_enquiry', 'gwh_nonce' ); ?>
-				<div class="hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
-
-				<div class="field-row">
-					<label class="field"><span><?php esc_html_e( 'Name', 'gasworks-house' ); ?></span><input type="text" name="name" required autocomplete="name"></label>
-					<label class="field"><span><?php esc_html_e( 'Email', 'gasworks-house' ); ?></span><input type="email" name="email" required autocomplete="email"></label>
-				</div>
-				<div class="field-row">
-					<label class="field"><span><?php esc_html_e( 'Phone', 'gasworks-house' ); ?></span><input type="tel" name="phone" autocomplete="tel"></label>
-					<label class="field"><span><?php esc_html_e( 'Occasion', 'gasworks-house' ); ?></span>
-						<select name="party" data-party-select>
-							<option>Hen party</option>
-							<option>Stag party</option>
-							<option>Joint hen &amp; stag</option>
-							<option>Other celebration</option>
-						</select>
-					</label>
-				</div>
-				<div class="field-row field-row-3">
-					<label class="field"><span><?php esc_html_e( 'Arrival', 'gasworks-house' ); ?></span><input type="date" name="arrival"></label>
-					<label class="field"><span><?php esc_html_e( 'Departure', 'gasworks-house' ); ?></span><input type="date" name="departure"></label>
-					<label class="field"><span><?php esc_html_e( 'Group size', 'gasworks-house' ); ?></span><input type="number" name="guests" min="1" max="50" inputmode="numeric"></label>
-				</div>
-				<label class="field"><span><?php esc_html_e( 'Anything else? Plans, questions, surprises…', 'gasworks-house' ); ?></span><textarea name="message" rows="4"></textarea></label>
-				<button class="btn btn-block" type="submit"><?php esc_html_e( 'Send enquiry', 'gasworks-house' ); ?></button>
-			</form>
+				<?php if ( gwh_whatsapp_url() ) : ?>
+					<p><a class="text-link" href="<?php echo esc_url( gwh_whatsapp_url() ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Questions first? Message us on WhatsApp →', 'gasworks-house' ); ?></a></p>
+				<?php endif; ?>
+			</div>
 		</div>
 	</section>
 

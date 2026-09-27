@@ -32,7 +32,7 @@ $gwh_wa     = gwh_whatsapp_url();
 				<?php if ( $gwh_wa ) : ?>
 					<li><a href="<?php echo esc_url( $gwh_wa ); ?>" rel="noopener" target="_blank"><?php esc_html_e( 'WhatsApp us', 'gasworks-house' ); ?></a></li>
 				<?php endif; ?>
-				<li><a href="<?php echo esc_url( ( is_front_page() ? '' : home_url( '/' ) ) . '#enquire' ); ?>"><?php esc_html_e( 'Send an enquiry', 'gasworks-house' ); ?></a></li>
+				<li><a href="<?php echo esc_url( ( is_front_page() ? '' : home_url( '/' ) ) . '#book' ); ?>"><?php esc_html_e( 'Book direct', 'gasworks-house' ); ?></a></li>
 			</ul>
 		</div>
 		<?php if ( $gwh_social ) : ?>
@@ -54,7 +54,7 @@ $gwh_wa     = gwh_whatsapp_url();
 
 <?php if ( is_front_page() ) : ?>
 	<div class="mobile-cta" data-mobile-cta>
-		<a class="btn" href="<?php echo esc_url( gwh_book_url() ); ?>"<?php echo gwh_mod( 'airbnb_url' ) ? ' target="_blank" rel="noopener"' : ''; ?>><?php echo gwh_mod( 'airbnb_url' ) ? esc_html__( 'Book on Airbnb', 'gasworks-house' ) : esc_html__( 'Check availability', 'gasworks-house' ); ?></a>
+		<a class="btn" href="#book"><?php esc_html_e( 'Check availability', 'gasworks-house' ); ?></a>
 	</div>
 <?php endif; ?>
 

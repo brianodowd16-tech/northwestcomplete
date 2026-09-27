@@ -50,7 +50,7 @@ $gwh_anchor   = $gwh_on_front ? '' : home_url( '/' );
 				<?php
 			}
 			?>
-			<a class="btn btn-small" href="<?php echo esc_url( $gwh_anchor . '#enquire' ); ?>"><?php esc_html_e( 'Check dates', 'gasworks-house' ); ?></a>
+			<a class="btn btn-small" href="<?php echo esc_url( $gwh_anchor . '#book' ); ?>"><?php esc_html_e( 'Check dates', 'gasworks-house' ); ?></a>
 		</nav>
 	</div>
 </header>

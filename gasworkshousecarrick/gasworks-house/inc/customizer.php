@@ -33,7 +33,8 @@ function gwh_customize_register( $wp_customize ) {
 			'title'  => __( 'Booking & contact', 'gasworks-house' ),
 			'fields' => array(
 				'airbnb_url'    => array( 'url', __( 'Airbnb listing URL', 'gasworks-house' ) ),
-				'contact_email' => array( 'email', __( 'Email (enquiries are sent here; defaults to the site admin email)', 'gasworks-house' ) ),
+				'airbnb_embed'  => array( 'checkbox', __( 'Show the Airbnb listing card next to the booking calendar', 'gasworks-house' ) ),
+				'contact_email' => array( 'email', __( 'Public contact email', 'gasworks-house' ) ),
 				'contact_phone' => array( 'text', __( 'Phone', 'gasworks-house' ) ),
 				'whatsapp'      => array( 'text', __( 'WhatsApp number (e.g. 087 123 4567)', 'gasworks-house' ) ),
 				'instagram_url' => array( 'url', __( 'Instagram URL', 'gasworks-house' ) ),
@@ -47,7 +48,6 @@ function gwh_customize_register( $wp_customize ) {
 				'sleeps'        => array( 'text', __( 'Sleeps up to (guests)', 'gasworks-house' ) ),
 				'bedrooms'      => array( 'text', __( 'Bedrooms', 'gasworks-house' ) ),
 				'bathrooms'     => array( 'text', __( 'Bathrooms', 'gasworks-house' ) ),
-				'min_nights'    => array( 'text', __( 'Minimum nights', 'gasworks-house' ) ),
 				'about_heading' => array( 'text', __( 'Heading', 'gasworks-house' ) ),
 				'about_text'    => array( 'textarea', __( 'Description (blank line between paragraphs)', 'gasworks-house' ) ),
 				'features'      => array( 'textarea', __( 'Features. ', 'gasworks-house' ) . $lines_help ),
@@ -96,6 +96,7 @@ function gwh_customize_register( $wp_customize ) {
 		'url'      => 'esc_url_raw',
 		'email'    => 'sanitize_email',
 		'image'    => 'absint',
+		'checkbox' => 'wp_validate_boolean',
 	);
 
 	foreach ( $sections as $section_id => $section ) {

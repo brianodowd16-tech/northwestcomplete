@@ -20,7 +20,8 @@ function gwh_defaults() {
 		'meta_description' => 'Gasworks House is a hen and stag party house in Carrick-on-Shannon, Co. Leitrim, sleeping up to 30. Whole-house stays for big groups, a short stroll from the town\'s pubs and river.',
 
 		// Booking & contact.
-		'airbnb_url'       => '',
+		'airbnb_url'       => 'https://www.airbnb.ie/rooms/50016674',
+		'airbnb_embed'     => true,
 		'contact_email'    => '',
 		'contact_phone'    => '',
 		'whatsapp'         => '',
@@ -32,7 +33,6 @@ function gwh_defaults() {
 		'sleeps'           => '30',
 		'bedrooms'         => '5',
 		'bathrooms'        => '3',
-		'min_nights'       => '2',
 
 		// The house.
 		'about_heading'    => 'Big rooms for a big group. Built for a big weekend.',
@@ -57,6 +57,6 @@ function gwh_defaults() {
 		'reviews'          => '',
 
 		// FAQ.
-		'faq'              => "Do you take hen and stag groups? | Yes — that's exactly who Gasworks House is for. Tell us about your group when you enquire.\nHow do we book? | Book instantly through Airbnb, or send us an enquiry and we'll come back to you about availability.\nIs there a minimum stay? | Weekend bookings have a minimum stay — see the key facts above, or ask us about midweek.\nCan you help organise activities? | Absolutely. Let us know what you're planning and we'll point you to trusted local boats, bars and activity providers.\nCan we decorate the house? | Of course — balloons and banners are welcome. We just ask for no confetti, glitter or anything stuck to the walls.\nAre there house rules? | We ask groups to keep noise down late at night out of respect for our neighbours, and to treat the house as if it were your own. The full rules are shared when you book.",
+		'faq'              => "Do you take hen and stag groups? | Yes — that's exactly who Gasworks House is for. Tell us about your group when you send your request.\nHow do we book? | Pick your dates in the calendar, send a request, and we'll confirm within 24 hours with deposit details. Your dates are held while we check. You can also book through Airbnb.\nIs there a minimum stay? | Yes. The minimum is shown in the key facts at the top of the page, and the calendar won't let you pick a shorter stay.\nCan you help organise activities? | Absolutely. Let us know what you're planning and we'll point you to trusted local boats, bars and activity providers.\nCan we decorate the house? | Of course — balloons and banners are welcome. We just ask for no confetti, glitter or anything stuck to the walls.\nAre there house rules? | We ask groups to keep noise down late at night out of respect for our neighbours, and to treat the house as if it were your own. The full rules are shared when you book.",
 	);
 }
