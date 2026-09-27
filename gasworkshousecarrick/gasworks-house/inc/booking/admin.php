@@ -48,6 +48,9 @@ function gwh_booking_column( $column, $post_id ) {
 			break;
 		case 'gwh_total':
 			echo (float) $b['total'] > 0 ? esc_html( gwh_money( $b['total'] ) ) : '–';
+			foreach ( gwh_payment_lines( $b ) as $line ) {
+				echo '<br><span class="description">' . esc_html( $line ) . '</span>';
+			}
 			break;
 		case 'gwh_contact':
 			if ( $b['email'] ) {
@@ -149,6 +152,9 @@ function gwh_booking_admin_notices() {
 		'declined'  => array( 'info', __( 'Request declined and the guest has been emailed.', 'gasworks-house' ) ),
 		'conflict'  => array( 'error', __( 'Not confirmed: those dates now clash with another booking (possibly from Airbnb). Check the calendar before confirming.', 'gasworks-house' ) ),
 		'overlap'   => array( 'warning', __( 'Saved, but heads up: these dates overlap another booking or an Airbnb reservation.', 'gasworks-house' ) ),
+		'paydone'   => array( 'success', __( 'Done. See the Payments section below for the result.', 'gasworks-house' ) ),
+		/* translators: %s: Stripe error */
+		'payerr'    => array( 'error', sprintf( __( 'Stripe said: %s', 'gasworks-house' ), isset( $_GET['gwh_err'] ) ? sanitize_text_field( wp_unslash( $_GET['gwh_err'] ) ) : '' ) ), // phpcs:ignore WordPress.Security.NonceVerification
 	);
 	if ( isset( $messages[ $notice ] ) ) {
 		printf( '<div class="notice notice-%1$s is-dismissible"><p>%2$s</p></div>', esc_attr( $messages[ $notice ][0] ), esc_html( $messages[ $notice ][1] ) );
@@ -213,7 +219,27 @@ function gwh_render_booking_box( $post ) {
 	$row( __( 'Phone', 'gasworks-house' ), '<input type="text" name="gwh[phone]" value="' . esc_attr( $b['phone'] ) . '">' );
 	$row( __( 'Occasion', 'gasworks-house' ), '<input type="text" name="gwh[party]" value="' . esc_attr( $b['party'] ) . '">' );
 	$row( __( 'Message / notes', 'gasworks-house' ), '<textarea rows="5" name="gwh[message]">' . esc_textarea( $b['message'] ) . '</textarea>' );
+	$row( __( 'Cruise', 'gasworks-house' ), '<input type="number" min="0" name="gwh[cruise_people]" value="' . esc_attr( $b['cruise_people'] ) . '" style="width:80px"> ' . esc_html__( 'people on', 'gasworks-house' ) . ' <input type="date" name="gwh[cruise_date]" value="' . esc_attr( $b['cruise_date'] ) . '">' );
 	echo '</tbody></table>';
+
+	if ( $b['customer'] || (float) $b['paid'] > 0 ) {
+		echo '<h3>' . esc_html__( 'Payments', 'gasworks-house' ) . '</h3><ul>';
+		foreach ( gwh_payment_lines( $b ) as $line ) {
+			echo '<li>' . esc_html( $line ) . '</li>';
+		}
+		echo '</ul><p>';
+		if ( (float) $b['balance'] > 0 && in_array( $b['balance_status'], array( 'scheduled', 'failed', 'processing' ), true ) ) {
+			echo '<a class="button" href="' . esc_url( gwh_action_url( 'charge_balance', $post->ID ) ) . '">' . esc_html__( 'Charge balance now', 'gasworks-house' ) . '</a> ';
+		}
+		if ( 'held' === $b['hold_status'] ) {
+			echo '<a class="button" href="' . esc_url( gwh_action_url( 'release', $post->ID ) ) . '">' . esc_html__( 'Release damage hold now', 'gasworks-house' ) . '</a></p>';
+			echo '<p><label>' . esc_html__( 'Capture for damage (€):', 'gasworks-house' ) . ' <input type="number" min="1" step="0.01" max="' . esc_attr( gwh_pricing()['deposit'] ) . '" id="gwh-capture-amount" style="width:100px"></label> ';
+			echo '<a class="button" href="' . esc_url( gwh_action_url( 'capture', $post->ID ) ) . '" onclick="var a=document.getElementById(\'gwh-capture-amount\').value;if(!a){alert(\'Enter an amount\');return false;}this.href+=\'&amount=\'+encodeURIComponent(a);return confirm(\'Charge €\'+a+\' from the guest\\\'s damage deposit?\');">' . esc_html__( 'Capture', 'gasworks-house' ) . '</a>';
+		} elseif ( in_array( $b['hold_status'], array( '', 'failed' ), true ) && $b['customer'] && gwh_pricing()['deposit'] > 0 && 'confirmed' === $b['status'] ) {
+			echo '<a class="button" href="' . esc_url( gwh_action_url( 'hold', $post->ID ) ) . '">' . esc_html__( 'Place damage hold now', 'gasworks-house' ) . '</a>';
+		}
+		echo '</p><p class="description">' . esc_html__( 'Refunds and cancellations are done in your Stripe dashboard.', 'gasworks-house' ) . '</p>';
+	}
 
 	if ( in_array( $b['status'], array( 'pending', 'expired' ), true ) && $b['email'] ) {
 		echo '<p><a class="button button-primary" href="' . esc_url( gwh_action_url( 'confirm', $post->ID ) ) . '">' . esc_html__( 'Confirm & email guest', 'gasworks-house' ) . '</a> ';
@@ -241,6 +267,8 @@ function gwh_save_booking( $post_id, $post ) {
 		'phone'     => sanitize_text_field( $in['phone'] ?? '' ),
 		'party'     => sanitize_text_field( $in['party'] ?? '' ),
 		'message'   => sanitize_textarea_field( $in['message'] ?? '' ),
+		'cruise_people' => absint( $in['cruise_people'] ?? 0 ),
+		'cruise_date'   => gwh_is_date( $in['cruise_date'] ?? '' ) ? $in['cruise_date'] : '',
 	);
 	if ( $data['arrival'] && $data['departure'] && $data['departure'] <= $data['arrival'] ) {
 		$data['departure'] = '';
@@ -303,6 +331,29 @@ function gwh_sanitize_booking_settings( $in ) {
 	$out['checkin_time']         = sanitize_text_field( $in['checkin_time'] ?? '' );
 	$out['checkout_time']        = sanitize_text_field( $in['checkout_time'] ?? '' );
 	$out['payment_instructions'] = sanitize_textarea_field( $in['payment_instructions'] ?? '' );
+
+	// Online payments. Secret fields are never echoed back, so a blank box keeps the saved value.
+	$saved = get_option( 'gwh_booking', array() );
+	foreach ( array( 'stripe_secret_key', 'stripe_webhook_secret' ) as $k ) {
+		$value     = trim( sanitize_text_field( $in[ $k ] ?? '' ) );
+		$out[ $k ] = ! empty( $in[ $k . '_remove' ] ) ? '' : ( '' !== $value ? $value : ( $saved[ $k ] ?? '' ) );
+	}
+	if ( $out['stripe_secret_key'] && ! preg_match( '/^(sk|rk)_(test|live)_[A-Za-z0-9]+$/', $out['stripe_secret_key'] ) ) {
+		add_settings_error( 'gwh_booking', 'gwh_key', __( 'That doesn\'t look like a Stripe secret key (it should start with sk_test_ or sk_live_). It wasn\'t saved.', 'gasworks-house' ) );
+		$out['stripe_secret_key'] = $saved['stripe_secret_key'] ?? '';
+	}
+	if ( $out['stripe_webhook_secret'] && 0 !== strpos( $out['stripe_webhook_secret'], 'whsec_' ) ) {
+		add_settings_error( 'gwh_booking', 'gwh_whsec', __( 'The webhook signing secret should start with whsec_. It wasn\'t saved.', 'gasworks-house' ) );
+		$out['stripe_webhook_secret'] = $saved['stripe_webhook_secret'] ?? '';
+	}
+	$out['deposit_percent'] = (string) min( 100, max( 0, absint( $in['deposit_percent'] ?? 30 ) ) );
+	$out['balance_days']    = (string) absint( $in['balance_days'] ?? 14 );
+
+	// Cruise add-on.
+	$out['cruise_enabled']     = empty( $in['cruise_enabled'] ) ? '0' : '1';
+	$out['cruise_name']        = sanitize_text_field( $in['cruise_name'] ?? '' );
+	$out['cruise_price']       = '' === trim( (string) ( $in['cruise_price'] ?? '' ) ) ? '' : (string) max( 0, (float) $in['cruise_price'] );
+	$out['cruise_description'] = sanitize_textarea_field( $in['cruise_description'] ?? '' );
 	return $out;
 }
 
@@ -332,6 +383,7 @@ function gwh_render_booking_settings() {
 	?>
 	<div class="wrap gwh-settings">
 		<h1><?php esc_html_e( 'Booking settings & Airbnb sync', 'gasworks-house' ); ?></h1>
+		<?php settings_errors( 'gwh_booking' ); ?>
 
 		<h2><?php esc_html_e( '1. Airbnb → your website', 'gasworks-house' ); ?></h2>
 		<p><?php esc_html_e( 'In Airbnb go to Calendar → Availability → Connect to another website (Sync calendars) → Export calendar, copy the link, and paste it below. Airbnb bookings will then block dates on your website. The site re-checks every hour and right before accepting a request.', 'gasworks-house' ); ?></p>
@@ -346,7 +398,7 @@ function gwh_render_booking_settings() {
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="gwh_sync_now">
 				<?php wp_nonce_field( 'gwh_sync_now' ); ?>
-				<?php submit_button( __( 'Sync now', 'gasworks-house' ), 'secondary', 'submit', false ); ?>
+				<?php submit_button( __( 'Sync now', 'gasworks-house' ), 'secondary', 'gwh-sync-now', false ); ?>
 			</form>
 		<?php endif; ?>
 
@@ -402,15 +454,152 @@ function gwh_render_booking_settings() {
 					<td><input id="gwh-notify" type="email" name="gwh_booking[notify_email]" value="<?php echo esc_attr( $val( 'notify_email' ) ); ?>" class="regular-text" placeholder="<?php echo esc_attr( gwh_owner_email() ); ?>"></td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="gwh-pay"><?php esc_html_e( 'Payment instructions', 'gasworks-house' ); ?></label></th>
+					<th scope="row"><label for="gwh-pay"><?php esc_html_e( 'Payment instructions (requests only)', 'gasworks-house' ); ?></label></th>
 					<td>
 						<textarea id="gwh-pay" name="gwh_booking[payment_instructions]" rows="9"><?php echo esc_textarea( $val( 'payment_instructions' ) ); ?></textarea>
 						<p class="description"><?php esc_html_e( 'Emailed to the guest when you confirm. Add your bank details or a Stripe/Revolut payment link.', 'gasworks-house' ); ?></p>
 					</td>
 				</tr>
 			</tbody></table>
+
+			<h2 id="payments"><?php esc_html_e( '4. Online payments (Stripe)', 'gasworks-house' ); ?></h2>
+			<?php if ( gwh_payments_enabled() ) : ?>
+				<p><strong><?php echo gwh_stripe_test_mode() ? '🧪 ' . esc_html__( 'Test mode: payments use Stripe test cards, no real money moves.', 'gasworks-house' ) : '✅ ' . esc_html__( 'Live: guests pay real money.', 'gasworks-house' ); ?></strong></p>
+			<?php else : ?>
+				<p><?php esc_html_e( 'Payments are off, so guests send requests that you confirm by hand. Add your Stripe keys to switch to instant booking.', 'gasworks-house' ); ?></p>
+			<?php endif; ?>
+			<p><?php esc_html_e( 'In Stripe go to Developers → API keys and copy the Secret key. Use the test key (sk_test_…) first and make a test booking with card 4242 4242 4242 4242, then swap in the live key. Then go to Developers → Webhooks → Add endpoint, paste the URL below, and select these events: checkout.session.completed, checkout.session.async_payment_succeeded, checkout.session.expired. Copy the endpoint\'s Signing secret (whsec_…) into the box below.', 'gasworks-house' ); ?></p>
+			<code class="gwh-code"><?php echo esc_html( rest_url( 'gwh/v1/stripe-webhook' ) ); ?></code>
+			<table class="form-table" role="presentation"><tbody>
+				<?php
+				foreach ( array(
+					'stripe_secret_key'     => array( __( 'Stripe secret key', 'gasworks-house' ), 'GWH_STRIPE_SECRET_KEY', 'sk_test_…' ),
+					'stripe_webhook_secret' => array( __( 'Webhook signing secret', 'gasworks-house' ), 'GWH_STRIPE_WEBHOOK_SECRET', 'whsec_…' ),
+				) as $key => $f ) :
+					$current = 'stripe_secret_key' === $key ? gwh_stripe_key() : gwh_stripe_webhook_secret();
+					?>
+					<tr>
+						<th scope="row"><label for="gwh-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $f[0] ); ?></label></th>
+						<td>
+							<?php if ( defined( $f[1] ) ) : ?>
+								<p><?php /* translators: %s: constant name */ echo esc_html( sprintf( __( 'Set in wp-config.php (%s).', 'gasworks-house' ), $f[1] ) ); ?></p>
+							<?php else : ?>
+								<input id="gwh-<?php echo esc_attr( $key ); ?>" type="password" autocomplete="off" name="gwh_booking[<?php echo esc_attr( $key ); ?>]" value="" class="regular-text" placeholder="<?php echo esc_attr( $current ? '•••• ' . substr( $current, -4 ) . ' ' . __( '(saved; leave blank to keep)', 'gasworks-house' ) : $f[2] ); ?>">
+								<?php if ( $current ) : ?>
+									<label><input type="checkbox" name="gwh_booking[<?php echo esc_attr( $key ); ?>_remove]" value="1"> <?php esc_html_e( 'Remove', 'gasworks-house' ); ?></label>
+								<?php endif; ?>
+							<?php endif; ?>
+						</td>
+					</tr>
+				<?php endforeach; ?>
+				<tr>
+					<th scope="row"><label for="gwh-deposit_percent"><?php esc_html_e( 'Deposit at booking (%)', 'gasworks-house' ); ?></label></th>
+					<td><input id="gwh-deposit_percent" type="number" min="0" max="100" name="gwh_booking[deposit_percent]" value="<?php echo esc_attr( $val( 'deposit_percent' ) ); ?>" style="width:120px">
+						<p class="description"><?php esc_html_e( 'Use 100 to take full payment at booking.', 'gasworks-house' ); ?></p></td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="gwh-balance_days"><?php esc_html_e( 'Charge the balance (days before arrival)', 'gasworks-house' ); ?></label></th>
+					<td><input id="gwh-balance_days" type="number" min="0" name="gwh_booking[balance_days]" value="<?php echo esc_attr( $val( 'balance_days' ) ); ?>" style="width:120px">
+						<p class="description"><?php esc_html_e( 'The balance is charged to the saved card automatically. Guests booking later than this pay in full.', 'gasworks-house' ); ?></p></td>
+				</tr>
+			</tbody></table>
+			<p class="description"><?php /* translators: 1: days before, 2: days after */ echo esc_html( sprintf( __( 'Damage deposit: the amount above is held on the saved card %1$d day before arrival and released automatically %2$d days after check-out. Capture some or all of it from the booking if there\'s damage.', 'gasworks-house' ), GWH_HOLD_DAYS_BEFORE, GWH_RELEASE_DAYS_AFTER ) ); ?></p>
+
+			<h2><?php esc_html_e( '5. Cruise add-on', 'gasworks-house' ); ?></h2>
+			<table class="form-table" role="presentation"><tbody>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Offer at booking', 'gasworks-house' ); ?></th>
+					<td><label><input type="checkbox" name="gwh_booking[cruise_enabled]" value="1" <?php checked( (bool) gwh_bset( 'cruise_enabled' ) ); ?>> <?php esc_html_e( 'Show the cruise add-on on the booking form', 'gasworks-house' ); ?></label></td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="gwh-cruise_name"><?php esc_html_e( 'Name', 'gasworks-house' ); ?></label></th>
+					<td><input id="gwh-cruise_name" type="text" name="gwh_booking[cruise_name]" value="<?php echo esc_attr( $val( 'cruise_name' ) ); ?>" class="regular-text"></td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="gwh-cruise_price"><?php esc_html_e( 'Price per person (€)', 'gasworks-house' ); ?></label></th>
+					<td><input id="gwh-cruise_price" type="number" min="0" step="0.01" name="gwh_booking[cruise_price]" value="<?php echo esc_attr( $val( 'cruise_price' ) ); ?>" style="width:120px"></td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="gwh-cruise_description"><?php esc_html_e( 'Description', 'gasworks-house' ); ?></label></th>
+					<td><textarea id="gwh-cruise_description" name="gwh_booking[cruise_description]" rows="3"><?php echo esc_textarea( $val( 'cruise_description' ) ); ?></textarea></td>
+				</tr>
+			</tbody></table>
 			<?php submit_button(); ?>
 		</form>
 	</div>
 	<?php
+}
+
+/* ---------- Payment actions ---------- */
+
+/**
+ * Human-readable payment state for a booking.
+ */
+function gwh_payment_lines( $b ) {
+	$lines = array();
+	if ( (float) $b['paid'] > 0 ) {
+		/* translators: %s: amount */
+		$lines[] = sprintf( __( 'Paid %s', 'gasworks-house' ), gwh_money( $b['paid'] ) );
+	}
+	if ( (float) $b['balance'] > 0 ) {
+		$labels = array(
+			'scheduled'  => __( 'Balance %1$s due %2$s (auto-charge)', 'gasworks-house' ),
+			'processing' => __( 'Balance %1$s being charged', 'gasworks-house' ),
+			'failed'     => __( '⚠️ Balance %1$s failed; guest emailed a link', 'gasworks-house' ),
+			'paid'       => __( 'Balance %1$s paid', 'gasworks-house' ),
+		);
+		if ( isset( $labels[ $b['balance_status'] ] ) ) {
+			$lines[] = sprintf( $labels[ $b['balance_status'] ], gwh_money( $b['balance'] ), $b['balance_date'] ? gwh_nice_date( $b['balance_date'] ) : '' );
+		}
+	}
+	$deposit = gwh_money( gwh_pricing()['deposit'] );
+	$holds   = array(
+		'held'     => sprintf( __( 'Damage hold %s active', 'gasworks-house' ), $deposit ),
+		'failed'   => __( '⚠️ Damage hold needs guest approval (emailed)', 'gasworks-house' ),
+		'released' => __( 'Damage hold released', 'gasworks-house' ),
+		'captured' => sprintf( __( 'Damage deposit: %s captured', 'gasworks-house' ), gwh_money( $b['hold_captured'] ) ),
+	);
+	if ( isset( $holds[ $b['hold_status'] ] ) ) {
+		$lines[] = $holds[ $b['hold_status'] ];
+	}
+	if ( (int) $b['cruise_people'] > 0 ) {
+		/* translators: 1: people, 2: date */
+		$lines[] = sprintf( __( 'Cruise: %1$d people, %2$s', 'gasworks-house' ), $b['cruise_people'], gwh_is_date( $b['cruise_date'] ) ? gwh_nice_date( $b['cruise_date'] ) : '' );
+	}
+	return $lines;
+}
+
+function gwh_payment_action( $action ) {
+	$post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0;
+	check_admin_referer( 'gwh_' . $action . '_' . $post_id );
+	if ( ! $post_id || 'gwh_booking' !== get_post_type( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
+		wp_die( esc_html__( 'Sorry, you can\'t do that.', 'gasworks-house' ) );
+	}
+
+	$result = null;
+	switch ( $action ) {
+		case 'charge_balance':
+			update_post_meta( $post_id, '_gwh_balance_status', 'scheduled' );
+			gwh_charge_balance( $post_id );
+			break;
+		case 'hold':
+			delete_post_meta( $post_id, '_gwh_hold_status' );
+			gwh_place_hold( $post_id );
+			break;
+		case 'release':
+			$result = gwh_release_hold( $post_id );
+			break;
+		case 'capture':
+			$amount = isset( $_GET['amount'] ) ? (float) $_GET['amount'] : 0;
+			$result = $amount > 0 ? gwh_capture_hold( $post_id, $amount ) : new WP_Error( 'amount', 'Enter an amount' );
+			break;
+	}
+	$msg = is_wp_error( $result ) ? 'payerr&gwh_err=' . rawurlencode( $result->get_error_message() ) : 'paydone';
+	wp_safe_redirect( admin_url( 'post.php?action=edit&post=' . $post_id . '&gwh_notice=' . $msg ) );
+	exit;
+}
+foreach ( array( 'charge_balance', 'hold', 'release', 'capture' ) as $gwh_pay_action ) {
+	add_action( 'admin_post_gwh_' . $gwh_pay_action, function () use ( $gwh_pay_action ) {
+		gwh_payment_action( $gwh_pay_action );
+	} );
 }

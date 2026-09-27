@@ -9,12 +9,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'GWH_VERSION', '1.1.0' );
+define( 'GWH_VERSION', '1.2.0' );
 
 require get_template_directory() . '/inc/defaults.php';
 require get_template_directory() . '/inc/customizer.php';
 require get_template_directory() . '/inc/booking/core.php';
 require get_template_directory() . '/inc/booking/api.php';
+require get_template_directory() . '/inc/booking/payments.php';
 require get_template_directory() . '/inc/booking/admin.php';
 
 /**

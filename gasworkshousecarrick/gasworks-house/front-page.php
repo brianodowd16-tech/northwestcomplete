@@ -175,7 +175,11 @@ $gwh_facts = array_filter( array(
 		<div class="wrap">
 			<p class="kicker"><?php esc_html_e( 'Book direct', 'gasworks-house' ); ?></p>
 			<h2 class="section-title"><?php esc_html_e( 'Pick your dates.', 'gasworks-house' ); ?></h2>
-			<p class="muted book-lead"><?php esc_html_e( 'Book directly with us and skip the booking-site fees. Choose your dates, send a request, and we\'ll confirm within 24 hours. Your dates are held while we check.', 'gasworks-house' ); ?></p>
+			<p class="muted book-lead"><?php
+			echo esc_html( gwh_payments_enabled()
+				? __( 'Book directly with us and skip the booking-site fees. Choose your dates, pay your deposit securely, and you\'re confirmed straight away.', 'gasworks-house' )
+				: __( 'Book directly with us and skip the booking-site fees. Choose your dates, send a request, and we\'ll confirm within 24 hours. Your dates are held while we check.', 'gasworks-house' ) );
+			?></p>
 			<?php $gwh_p = gwh_pricing(); ?>
 			<?php if ( $gwh_p['weekday'] > 0 || $gwh_p['weekend'] > 0 ) : ?>
 				<ul class="rates">
@@ -228,6 +232,23 @@ $gwh_facts = array_filter( array(
 							</select>
 						</label>
 					</div>
+					<?php $gwh_cruise = gwh_cruise(); ?>
+					<?php if ( $gwh_cruise ) : ?>
+						<div class="addon">
+							<label class="addon-toggle">
+								<input type="checkbox" name="cruise" value="1" data-cruise-toggle>
+								<span>
+									<strong><?php /* translators: %s: add-on name */ echo esc_html( sprintf( __( 'Add the %s', 'gasworks-house' ), $gwh_cruise['name'] ) ); ?></strong>
+									<em><?php /* translators: %s: price */ echo esc_html( sprintf( __( '%s per person', 'gasworks-house' ), gwh_money( $gwh_cruise['price'] ) ) ); ?></em>
+									<small><?php echo esc_html( $gwh_cruise['description'] ); ?></small>
+								</span>
+							</label>
+							<div class="field-row addon-fields" data-cruise-fields hidden>
+								<label class="field"><span><?php esc_html_e( 'How many people?', 'gasworks-house' ); ?></span><input type="number" name="cruise_people" min="1" max="<?php echo esc_attr( gwh_max_guests() ); ?>" inputmode="numeric" data-cruise-people></label>
+								<label class="field"><span><?php esc_html_e( 'Which day?', 'gasworks-house' ); ?></span><select name="cruise_date" data-cruise-date><option value=""><?php esc_html_e( 'Pick your dates first', 'gasworks-house' ); ?></option></select></label>
+							</div>
+						</div>
+					<?php endif; ?>
 					<div class="field-row">
 						<label class="field"><span><?php esc_html_e( 'Name', 'gasworks-house' ); ?></span><input type="text" name="name" required autocomplete="name"></label>
 						<label class="field"><span><?php esc_html_e( 'Email', 'gasworks-house' ); ?></span><input type="email" name="email" required autocomplete="email"></label>
@@ -237,15 +258,29 @@ $gwh_facts = array_filter( array(
 
 					<p class="notice" data-book-status role="status" hidden></p>
 					<button class="btn btn-block" type="submit" data-book-submit><?php esc_html_e( 'Request to book', 'gasworks-house' ); ?></button>
-					<p class="book-note"><?php esc_html_e( 'No payment now. We\'ll confirm and send deposit details by email.', 'gasworks-house' ); ?></p>
+					<?php if ( gwh_payments_enabled() ) : ?>
+						<p class="book-note">
+							<?php
+							/* translators: %d: days */
+							echo esc_html( sprintf( __( '🔒 Secure payment by Stripe. The balance is charged to the same card %d days before arrival.', 'gasworks-house' ), absint( gwh_bset( 'balance_days' ) ) ) );
+							?>
+						</p>
+					<?php else : ?>
+						<p class="book-note"><?php esc_html_e( 'No payment now. We\'ll confirm and send deposit details by email.', 'gasworks-house' ); ?></p>
+					<?php endif; ?>
 				</form>
 			</div>
 
 			<div class="book-extra">
 				<ol class="steps">
 					<li><strong><?php esc_html_e( 'Pick your dates', 'gasworks-house' ); ?></strong><span><?php esc_html_e( 'Live availability, synced with Airbnb.', 'gasworks-house' ); ?></span></li>
-					<li><strong><?php esc_html_e( 'Send your request', 'gasworks-house' ); ?></strong><span><?php esc_html_e( 'We hold the dates for you.', 'gasworks-house' ); ?></span></li>
-					<li><strong><?php esc_html_e( 'We confirm', 'gasworks-house' ); ?></strong><span><?php esc_html_e( 'Pay your deposit and the house is yours.', 'gasworks-house' ); ?></span></li>
+					<?php if ( gwh_payments_enabled() ) : ?>
+						<li><strong><?php esc_html_e( 'Pay your deposit', 'gasworks-house' ); ?></strong><span><?php esc_html_e( 'Securely by card with Stripe.', 'gasworks-house' ); ?></span></li>
+						<li><strong><?php esc_html_e( 'You\'re booked', 'gasworks-house' ); ?></strong><span><?php esc_html_e( 'Instant confirmation by email.', 'gasworks-house' ); ?></span></li>
+					<?php else : ?>
+						<li><strong><?php esc_html_e( 'Send your request', 'gasworks-house' ); ?></strong><span><?php esc_html_e( 'We hold the dates for you.', 'gasworks-house' ); ?></span></li>
+						<li><strong><?php esc_html_e( 'We confirm', 'gasworks-house' ); ?></strong><span><?php esc_html_e( 'Pay your deposit and the house is yours.', 'gasworks-house' ); ?></span></li>
+					<?php endif; ?>
 				</ol>
 
 				<?php if ( $gwh_airbnb ) : ?>

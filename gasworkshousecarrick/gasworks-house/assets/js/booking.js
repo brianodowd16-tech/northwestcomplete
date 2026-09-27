@@ -13,6 +13,11 @@
 	var arrivalInput = form.querySelector('[data-arrival]');
 	var departureInput = form.querySelector('[data-departure]');
 	var guestsInput = form.querySelector('input[name="guests"]');
+	var cruiseToggle = form.querySelector('[data-cruise-toggle]');
+	var cruiseFields = form.querySelector('[data-cruise-fields]');
+	var cruisePeople = form.querySelector('[data-cruise-people]');
+	var cruiseDate = form.querySelector('[data-cruise-date]');
+	var submitLabel = submitBtn.textContent;
 
 	var DAY = 86400000;
 	var blocked = {};
@@ -47,7 +52,7 @@
 	}
 
 	/* ---------- Pricing (mirrors gwh_quote() on the server) ---------- */
-	function quote(a, d, guests) {
+	function quote(a, d, guests, cruiseCount) {
 		var p = cfg.pricing;
 		var extra = Math.max(0, guests - p.baseGuests);
 		var base = 0, extras = 0, priced = true;
@@ -59,10 +64,25 @@
 			base += rate;
 			extras += extra * (weekend ? p.weekendExtra : p.weekdayExtra);
 		}
+		var cruise = cfg.cruise ? Math.min(cruiseCount || 0, guests) * cfg.cruise.price : 0;
 		return {
-			nights: nightsBetween(a, d), extraGuests: extra, base: base, extras: extras, priced: priced,
-			total: priced ? base + extras + p.cleaning : 0
+			nights: nightsBetween(a, d), extraGuests: extra, base: base, extras: extras, priced: priced, cruise: cruise,
+			total: priced ? base + extras + p.cleaning + cruise : 0
 		};
+	}
+
+	// What's charged today vs later (mirrors gwh_payment_split()).
+	function split(total, a) {
+		var pct = Math.min(100, Math.max(0, cfg.depositPct));
+		var balanceOn = add(a, -cfg.balanceDays);
+		if (pct <= 0 || pct >= 100 || balanceOn <= cfg.today) return { now: total, balance: 0, balanceOn: '' };
+		var now = Math.round(total * pct) / 100;
+		return { now: now, balance: Math.round((total - now) * 100) / 100, balanceOn: balanceOn };
+	}
+	function cruiseCount() {
+		if (!cruiseToggle || !cruiseToggle.checked) return 0;
+		var n = parseInt(cruisePeople.value, 10);
+		return n > 0 ? n : 0;
 	}
 	function guestCount() {
 		var g = parseInt(guestsInput.value, 10);
@@ -173,6 +193,8 @@
 
 	/* ---------- Summary ---------- */
 	function renderSummary() {
+		syncCruise();
+		syncButton();
 		if (!arrival) {
 			summaryEl.innerHTML = '<p class="summary-empty">Tap your arrival date, then your departure date.</p>';
 			return;
@@ -184,7 +206,7 @@
 		}
 		var p = cfg.pricing;
 		var guests = guestCount();
-		var q = quote(arrival, departure, guests);
+		var q = quote(arrival, departure, guests, cruiseCount());
 		var plural = function (n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); };
 		var html = '<p class="summary-dates">' + nice(arrival) + ' → ' + nice(departure, { year: 'numeric' }) +
 			' <span>· ' + plural(q.nights, 'night') + '</span></p>';
@@ -193,7 +215,14 @@
 				'<div><dt>' + plural(q.nights, 'night') + ', up to ' + p.baseGuests + ' guests</dt><dd>' + money(q.base) + '</dd></div>' +
 				(q.extras ? '<div><dt>' + plural(q.extraGuests, 'extra guest') + ' × ' + plural(q.nights, 'night') + '</dt><dd>' + money(q.extras) + '</dd></div>' : '') +
 				(p.cleaning ? '<div><dt>Cleaning</dt><dd>' + money(p.cleaning) + '</dd></div>' : '') +
+				(q.cruise ? '<div><dt>' + cfg.cruise.name + ' × ' + cruiseCount() + '</dt><dd>' + money(q.cruise) + '</dd></div>' : '') +
 				'<div class="summary-total"><dt>Total' + (guests ? ' for ' + guests + ' guests' : '') + '</dt><dd>' + money(q.total) + '</dd></div></dl>';
+			if (cfg.payments && guests) {
+				var sp = split(q.total, arrival);
+				html += '<div class="summary-due"><div><span>' + (sp.balance ? 'Due today (' + cfg.depositPct + '% deposit)' : 'Due today (paid in full)') +
+					'</span><span>' + money(sp.now) + '</span></div>' +
+					(sp.balance ? '<div><span>Balance, charged automatically ' + nice(sp.balanceOn) + '</span><span>' + money(sp.balance) + '</span></div>' : '') + '</div>';
+			}
 			if (!guests) {
 				html += '<p class="summary-note">Enter your group size below. Over ' + p.baseGuests + ' guests: +' + money(p.weekendExtra) +
 					' per extra person per night at weekends, +' + money(p.weekdayExtra) + ' midweek.</p>';
@@ -202,7 +231,8 @@
 			html += '<p class="summary-note">We\'ll confirm your price by email.</p>';
 		}
 		if (p.deposit) {
-			html += '<p class="summary-note">' + money(p.deposit) + ' damage deposit taken as a card pre-authorisation (a hold, not a charge), released after your stay.</p>';
+			html += '<p class="summary-note">' + money(p.deposit) + ' damage deposit taken as a card pre-authorisation (a hold, not a charge)' +
+				(cfg.payments ? ' the day before you arrive, released ' + cfg.releaseAfter + ' days after check-out.' : ', released after your stay.') + '</p>';
 		}
 		html += '<button type="button" class="summary-clear" data-clear>Clear dates</button>';
 		summaryEl.innerHTML = html;
@@ -211,6 +241,41 @@
 	summaryEl.addEventListener('click', function (e) {
 		if (e.target.closest('[data-clear]')) { arrival = departure = null; message = ''; sync(); }
 	});
+
+	/* ---------- Cruise add-on ---------- */
+	function syncCruise() {
+		if (!cruiseToggle) return;
+		cruiseFields.hidden = !cruiseToggle.checked;
+		cruisePeople.required = cruiseDate.required = cruiseToggle.checked;
+		var g = guestCount();
+		cruisePeople.max = g || cfg.maxGuests;
+		if (cruiseToggle.checked && !cruisePeople.value && g) cruisePeople.value = g;
+		if (g && +cruisePeople.value > g) cruisePeople.value = g;
+
+		// Offer each day of the stay, check-out day included.
+		var current = cruiseDate.value, opts = '';
+		if (arrival && departure) {
+			for (var day = arrival; day <= departure; day = add(day, 1)) {
+				opts += '<option value="' + day + '"' + (day === current ? ' selected' : '') + '>' + nice(day) + '</option>';
+			}
+		} else {
+			opts = '<option value="">Pick your dates first</option>';
+		}
+		cruiseDate.innerHTML = opts;
+	}
+	if (cruiseToggle) {
+		cruiseToggle.addEventListener('change', function () { syncCruise(); renderSummary(); });
+		cruisePeople.addEventListener('input', renderSummary);
+	}
+	function syncButton() {
+		if (!cfg.payments) { submitBtn.textContent = submitLabel; return; }
+		var g = guestCount();
+		if (arrival && departure && g) {
+			var q = quote(arrival, departure, g, cruiseCount());
+			if (q.priced) { submitBtn.textContent = 'Book & pay ' + money(split(q.total, arrival).now); return; }
+		}
+		submitBtn.textContent = 'Book & pay deposit';
+	}
 
 	/* ---------- Typed dates (keyboard users, no-JS parity) ---------- */
 	function fromInputs() {
@@ -256,9 +321,9 @@
 		var data = {};
 		new FormData(form).forEach(function (v, k) { data[k] = v; });
 		submitBtn.disabled = true;
-		submitBtn.textContent = 'Sending…';
+		submitBtn.textContent = cfg.payments ? 'Opening secure payment…' : 'Sending…';
 
-		fetch(cfg.request, {
+		fetch(cfg.payments ? cfg.checkoutUrl : cfg.request, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(data),
@@ -266,6 +331,10 @@
 		})
 			.then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
 			.then(function (res) {
+				if (res.ok && res.body && res.body.url) {
+					window.location.href = res.body.url;
+					return 'redirecting';
+				}
 				if (res.ok && res.body && res.body.ok) {
 					form.innerHTML = '<div class="book-done"><p class="book-done-title">🎉 Request sent!</p><p>' +
 						(res.body.message || 'We\'ll be in touch within 24 hours.') + '</p><p class="summary-dates">' +
@@ -280,8 +349,8 @@
 				}
 			})
 			.catch(function () { showStatus('Sorry, we couldn\'t send that. Please check your connection and try again.', false); })
-			.then(function () {
-				if (submitBtn.isConnected) { submitBtn.disabled = false; submitBtn.textContent = 'Request to book'; }
+			.then(function (state) {
+				if (state !== 'redirecting' && submitBtn.isConnected) { submitBtn.disabled = false; syncButton(); }
 			});
 	});
 
@@ -305,7 +374,53 @@
 			.catch(function () {});
 	}
 
+	/* ---------- Back from Stripe ---------- */
+	function handleReturn() {
+		var params = new URLSearchParams(window.location.search);
+		var state = params.get('booking');
+		if (!state) return;
+		if (window.history.replaceState) window.history.replaceState(null, '', window.location.pathname + '#book');
+		document.getElementById('book').scrollIntoView();
+
+		if (state === 'cancelled') {
+			showStatus('Payment cancelled, so your dates weren\'t booked. You can try again below.', false);
+			return;
+		}
+		if (state === 'nothing-due') {
+			showStatus('Nothing to pay: that payment is already complete.', true);
+			return;
+		}
+		if (state === 'paid') {
+			showStatus('Payment received, thank you!', true);
+			return;
+		}
+		if (state !== 'success' || !params.get('session_id')) return;
+
+		form.innerHTML = '<div class="book-done"><p class="book-done-title">Confirming your payment…</p></div>';
+		var tries = 0;
+		(function poll() {
+			fetch(cfg.statusUrl + (cfg.statusUrl.indexOf('?') === -1 ? '?' : '&') + 'session_id=' + encodeURIComponent(params.get('session_id')), { cache: 'no-store', credentials: 'omit' })
+				.then(function (r) { return r.json(); })
+				.then(function (b) {
+					if (b.status === 'confirmed') {
+						form.innerHTML = '<div class="book-done"><p class="book-done-title">🎉 You\'re booked!</p>' +
+							'<p class="summary-dates">' + nice(b.arrival) + ' → ' + nice(b.departure, { year: 'numeric' }) + '</p>' +
+							'<p>Paid today: <strong>' + money(b.paid) + '</strong>' +
+							(b.balance ? '<br>Balance of ' + money(b.balance) + ' charged automatically on ' + nice(b.balanceOn) : '') + '</p>' +
+							'<p class="summary-note">Confirmation sent to ' + b.email + '.</p></div>';
+						refresh();
+					} else if (++tries < 10) {
+						setTimeout(poll, 2000);
+					} else {
+						form.innerHTML = '<div class="book-done"><p class="book-done-title">Payment received</p><p>We\'re finishing your booking. You\'ll get a confirmation email shortly.</p></div>';
+					}
+				})
+				.catch(function () { if (++tries < 10) setTimeout(poll, 2000); });
+		})();
+	}
+
 	setBlocked(currentRanges);
 	sync();
 	refresh();
+	handleReturn();
 })();

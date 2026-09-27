@@ -50,7 +50,7 @@ Airbnb only re-reads imported calendars every few hours, so there's a small wind
 3. In **Bookings**, click **Confirm & email guest**. The guest gets your payment instructions (bank details or a Stripe/Revolut payment link). Or click **Decline**, and they get a polite email.
 4. Requests you don't act on expire after the hold period, and the dates free up again.
 
-You can also add phone or email bookings, or block dates for maintenance, with **Bookings → Add booking or block dates**. There's no card payment built in; guests pay using your payment instructions.
+You can also add phone or email bookings, or block dates for maintenance, with **Bookings → Add booking or block dates**. Without Stripe keys, guests pay using your payment instructions. With Stripe keys, see Online payments below.
 
 **Prices** (already set as the defaults; change them in the settings page):
 
@@ -64,6 +64,32 @@ Plus a €60 cleaning fee per stay. Example: 20 guests, Friday to Sunday = €1,
 The €300 damage deposit is a **card pre-authorisation** (a hold, not a charge). It's shown to guests and in emails but isn't added to the total, and the site doesn't place the hold for you: do it yourself before arrival, e.g. in your Stripe dashboard. Card holds usually expire after about 7 days, so place it close to check-in.
 
 Prices can't be pulled from Airbnb automatically (Airbnb's calendar link only contains dates), so keep your Airbnb prices in step by hand.
+
+## Online payments (Stripe)
+
+Guests book instantly and pay by card through **Stripe Checkout**. Until you add Stripe keys, the site takes requests instead (see above).
+
+**What happens:**
+
+1. The guest picks dates, enters their group size, optionally adds the Moon River cruise, and clicks **Book & pay**. The dates are held for about 30 minutes while they're on the Stripe payment page.
+2. They pay a **30% deposit**, or the full amount if arriving within 14 days. Their card is saved securely at Stripe (never on your site), and the booking is confirmed and emailed straight away.
+3. **14 days before arrival**, the balance is charged to the saved card automatically.
+4. **The day before arrival**, a **€300 damage-deposit hold** is placed on the card (a hold, not a charge). It's released automatically **2 days after check-out**, unless you capture some or all of it from the booking screen. Card holds lapse after about 7 days, which is why the window is kept short.
+5. If a bank asks the guest to approve a charge or hold (common with Irish cards), or a card is declined, the guest is emailed a link to pay, and you're emailed too. The booking screen shows a ⚠️ until it's sorted.
+
+Refunds and cancellations are done in your Stripe dashboard.
+
+**Setup (about 10 minutes):**
+
+1. In Stripe, go to **Developers → API keys** and copy the **test** secret key (`sk_test_…`).
+2. In WordPress, go to **Bookings → Settings & Airbnb sync → Online payments** and paste it in. **Never send your keys by email or chat.** To keep keys out of the database, you can instead add `define( 'GWH_STRIPE_SECRET_KEY', 'sk_…' );` and `define( 'GWH_STRIPE_WEBHOOK_SECRET', 'whsec_…' );` to `wp-config.php` (Hostinger → File Manager).
+3. In Stripe, go to **Developers → Webhooks → Add endpoint**. Paste the webhook URL shown on the settings page and choose the events `checkout.session.completed`, `checkout.session.async_payment_succeeded` and `checkout.session.expired`. Copy the **Signing secret** (`whsec_…`) into the settings page.
+4. Make a test booking on your site with card **4242 4242 4242 4242** (any future expiry date and any CVC). Check the confirmation email and the booking screen. To test a card that needs bank approval, use **4000 0027 6000 3184**.
+5. When you're happy, swap in the **live** keys (`sk_live_…`) and create a live-mode webhook the same way. It has a different signing secret.
+
+**Moon River cruise add-on:** €25 per person, and guests choose the headcount (up to their group size) and which day of their stay. It's added to the total and marked "subject to availability"; you book the sailing with Moon River. Change the name, price and text, or switch it off, under **5. Cruise add-on** in the settings.
+
+**Hosting notes:** the balance and hold jobs run on WordPress's scheduler, which is triggered by site visits. For exact timing, set up a Hostinger **Cron Job** that runs every 15 minutes: `wget -q -O - https://gasworkshousecarrick.com/wp-cron.php?doing_wp_cron >/dev/null 2>&1`. Also make sure LiteSpeed Cache doesn't cache `/wp-json/` (it's excluded by default).
 
 ## ⚠️ Check the default wording before going live
 
@@ -87,7 +113,8 @@ gasworks-house/
   inc/customizer.php   Customizer panel
   inc/booking/core.php   availability, pricing, calendar sync (import/export)
   inc/booking/api.php    public API used by the calendar
-  inc/booking/admin.php  Bookings screen, confirm/decline, settings page
+  inc/booking/admin.php  Bookings screen, confirm/decline, payments panel, settings page
+  inc/booking/payments.php  Stripe Checkout, webhook, balance charge, damage hold
   assets/css/main.css
   assets/js/main.js    mobile menu, tabs, lightbox
   assets/js/booking.js availability calendar and booking form

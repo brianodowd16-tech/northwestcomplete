@@ -325,6 +325,18 @@ p { margin: 0 0 1em; }
 .summary-total { margin-top: 6px; padding-top: 10px !important; border-top: 1px dashed rgba(255, 255, 255, .18); color: #fff !important; font-weight: 700; font-size: 18px; }
 .summary-note { margin: 8px 0 0; font-size: 14px; color: rgba(255, 255, 255, .6); }
 .summary-clear { margin-top: 10px; padding: 0; border: 0; background: none; color: var(--gold); font: 700 14px var(--font-body); cursor: pointer; text-decoration: underline; }
+.addon { margin: 4px 0 18px; padding: 16px; border-radius: var(--radius-sm); border: 1px dashed rgba(255, 255, 255, .22); }
+.addon-toggle { display: flex; gap: 14px; align-items: flex-start; cursor: pointer; }
+.addon-toggle input { width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--hen); flex: none; }
+.addon-toggle span { display: grid; gap: 2px; }
+.addon-toggle em { font-style: normal; font-weight: 700; color: var(--gold); }
+.addon-toggle small { font-size: 14px; color: rgba(255, 255, 255, .65); }
+.addon-fields { margin-top: 14px; }
+.addon-fields .field { margin-bottom: 0; }
+.summary-due { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: rgba(255, 92, 147, .14); }
+.summary-due div { display: flex; justify-content: space-between; gap: 12px; }
+.summary-due div:first-child { font-weight: 700; color: #fff; }
+.summary-due div + div { font-size: 14px; color: rgba(255, 255, 255, .7); }
 .book-note { margin: 12px 0 0; text-align: center; font-size: 14px; color: rgba(255, 255, 255, .6); }
 .book-done { padding: 28px 8px; text-align: center; }
 .book-done-title { font-family: var(--font-display); font-size: 30px; font-weight: 700; margin-bottom: 8px; }
