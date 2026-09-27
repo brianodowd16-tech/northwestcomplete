@@ -35,9 +35,9 @@ function gwh_defaults() {
 		'min_nights'       => '2',
 
 		// The house.
-		'about_heading'    => 'Industrial bones. Boutique finish. Built for a big weekend.',
-		'about_text'       => "Gasworks House takes its name from Carrick's old gasworks — and keeps a bit of that industrial character, with warm, stylish interiors designed for groups who want to celebrate properly.\n\nThere's room for everyone to get ready together, a big table for the pre-drinks and the morning-after fry, and comfortable beds to crash into when the night is done. The town's pubs, restaurants and the River Shannon are a short walk away, so nobody needs to be the designated driver.",
-		'features'         => "Whole-house exclusive use — no strangers, no sharing\nBig kitchen & dining table for the whole group\nOpen-plan living space for pre-drinks and games\nBluetooth speaker ready for the playlist\nFast Wi-Fi & smart TV\nMirrors, plugs and space for the full glam squad\nFresh linen & towels provided\nShort walk to Carrick's pubs, bars and restaurants",
+		'about_heading'    => 'Big rooms for a big group. Built for a big weekend.',
+		'about_text'       => "Gasworks House is set up for groups who want to stay together. The bright bedrooms are laid out with single beds, so nobody has to argue over who shares, and every bed comes made up with fresh linen and towels.\n\nDownstairs there's a huge open-plan room with sliding doors and a stove. It's a blank canvas for the balloons, the games and the pre-drinks. When it's time to get ready, there are mirrors and dressing tables in the bedrooms and a spacious bathroom with a walk-in shower.",
+		'features'         => "Whole-house exclusive use, with no strangers and no sharing\nGroup bedrooms with single beds\nFresh linen and towels on every bed\nHuge open-plan party room with sliding doors\nStove for cosy nights in\nSpacious bathroom with walk-in shower\nMirrors and dressing tables for getting ready\nShort walk to Carrick's pubs, bars and restaurants",
 
 		// Hens & stags.
 		'hen_intro'        => 'Sashes, prosecco and a river full of boats — Carrick was made for hen parties.',

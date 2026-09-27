@@ -8,7 +8,7 @@ A custom one-page WordPress theme for **Gasworks House**, a boutique hen and sta
 
 - **Hero**: headline, key facts (guests, bedrooms, bathrooms, minimum nights) and a booking button
 - **The house**: description and a feature checklist
-- **Photo gallery**: up to 8 photos with a lightbox. It's hidden from visitors until you add photos.
+- **Photo gallery**: your 4 photos are built in, so the site works straight away. Choose different photos in the Customizer to replace them.
 - **Hens & stags**: a hen/stag toggle with party ideas for each
 - **Carrick-on-Shannon**: things to do, directions and a Google Map
 - **Reviews**: hidden until you add real guest reviews
@@ -23,7 +23,7 @@ A custom one-page WordPress theme for **Gasworks House**, a boutique hen and sta
 3. Go to **Appearance → Customize → Gasworks House** and fill in each section:
    - **Booking & contact**: your Airbnb listing URL (the main button then says "Book on Airbnb"), email, phone and WhatsApp
    - **The house**: guest numbers, bedrooms, bathrooms, description and features
-   - **Photo gallery**: up to 8 photos. The first one is shown largest.
+   - **Photo gallery**: optional. Pick up to 8 photos to replace the built-in ones. The first one is shown largest.
    - **Hero & SEO**: a large landscape hero photo (about 2000px wide) and your Google description
    - **Things to do & location**: add your address or Eircode for the map
    - **Reviews & FAQ**
@@ -38,7 +38,6 @@ The site comes filled with starter copy. **Update anything that isn't accurate f
 - Sleeps 12, 5 bedrooms, 3 bathrooms, 2-night minimum
 - The feature list (Wi-Fi, speaker, linen and so on)
 - The FAQ answers and house rules (confetti policy, noise and so on)
-- The claim that the name comes from Carrick's old gasworks
 
 Lists in the Customizer use one item per line. Things to do, getting here, reviews and FAQs use the format `Title | Description`.
 

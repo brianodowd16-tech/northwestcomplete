@@ -8,18 +8,9 @@
 get_header();
 
 $gwh_airbnb   = gwh_mod( 'airbnb_url' );
-$gwh_hero_id  = gwh_mod( 'hero_image' );
-$gwh_hero_url = $gwh_hero_id ? wp_get_attachment_image_url( $gwh_hero_id, 'full' ) : '';
-$gwh_can_edit = current_user_can( 'edit_theme_options' );
+$gwh_hero_url = gwh_hero_url();
+$gwh_gallery  = gwh_gallery_items();
 $gwh_status   = isset( $_GET['enquiry'] ) ? sanitize_key( wp_unslash( $_GET['enquiry'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
-
-$gwh_gallery = array();
-for ( $i = 1; $i <= 8; $i++ ) {
-	$gwh_id = absint( gwh_mod( 'gallery_' . $i ) );
-	if ( $gwh_id ) {
-		$gwh_gallery[] = $gwh_id;
-	}
-}
 
 $gwh_facts = array_filter( array(
 	__( 'Guests', 'gasworks-house' )     => gwh_mod( 'sleeps' ),
@@ -78,26 +69,17 @@ $gwh_facts = array_filter( array(
 		</div>
 	</section>
 
-	<?php if ( $gwh_gallery || $gwh_can_edit ) : ?>
-		<section class="section section-tight" id="gallery" aria-label="<?php esc_attr_e( 'Photos', 'gasworks-house' ); ?>">
-			<div class="wrap">
-				<?php if ( $gwh_gallery ) : ?>
-					<div class="gallery gallery-<?php echo esc_attr( min( count( $gwh_gallery ), 8 ) ); ?>">
-						<?php foreach ( $gwh_gallery as $gwh_index => $gwh_id ) : ?>
-							<a class="gallery-item" href="<?php echo esc_url( wp_get_attachment_image_url( $gwh_id, 'full' ) ); ?>" data-lightbox>
-								<?php echo wp_get_attachment_image( $gwh_id, 0 === $gwh_index ? 'large' : 'medium_large', false, array( 'loading' => 'lazy' ) ); ?>
-							</a>
-						<?php endforeach; ?>
-					</div>
-				<?php else : ?>
-					<div class="admin-hint">
-						<strong><?php esc_html_e( 'Only you can see this:', 'gasworks-house' ); ?></strong>
-						<?php esc_html_e( 'add up to 8 photos in Appearance → Customize → Gasworks House → Photo gallery. Visitors won\'t see this box.', 'gasworks-house' ); ?>
-					</div>
-				<?php endif; ?>
+	<section class="section section-tight" id="gallery" aria-label="<?php esc_attr_e( 'Photos', 'gasworks-house' ); ?>">
+		<div class="wrap">
+			<div class="gallery gallery-<?php echo esc_attr( count( $gwh_gallery ) ); ?>">
+				<?php foreach ( $gwh_gallery as $gwh_photo ) : ?>
+					<a class="gallery-item" href="<?php echo esc_url( $gwh_photo['full'] ); ?>" data-lightbox>
+						<img src="<?php echo esc_url( $gwh_photo['thumb'] ); ?>" alt="<?php echo esc_attr( $gwh_photo['alt'] ); ?>" loading="lazy" decoding="async">
+					</a>
+				<?php endforeach; ?>
 			</div>
-		</section>
-	<?php endif; ?>
+		</div>
+	</section>
 
 	<section class="section section-dark" id="parties">
 		<div class="wrap">

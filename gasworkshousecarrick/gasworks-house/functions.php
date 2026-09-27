@@ -75,7 +75,7 @@ function gwh_head_meta() {
 	}
 	$desc  = gwh_mod( 'meta_description' );
 	$title = get_bloginfo( 'name' );
-	$image = gwh_mod( 'hero_image' ) ? wp_get_attachment_image_url( gwh_mod( 'hero_image' ), 'large' ) : '';
+	$image = gwh_hero_url();
 
 	echo '<meta name="description" content="' . esc_attr( $desc ) . "\">\n";
 	echo '<meta property="og:type" content="website">' . "\n";
@@ -131,6 +131,61 @@ function gwh_whatsapp_url() {
 		$num = '353' . substr( $num, 1 );
 	}
 	return 'https://wa.me/' . $num;
+}
+
+/**
+ * Photos bundled with the theme, used until photos are chosen in the Customizer.
+ */
+function gwh_bundled_photos() {
+	$base = get_template_directory_uri() . '/assets/img/';
+	$list = array(
+		'bedroom-window' => __( 'Bright group bedroom with single beds and a large window', 'gasworks-house' ),
+		'bedroom-quad'   => __( 'Bedroom with four single beds, fresh linen and towels', 'gasworks-house' ),
+		'party-room'     => __( 'Large open-plan room with tiled floor and sliding doors', 'gasworks-house' ),
+		'bathroom'       => __( 'Spacious bathroom with walk-in shower', 'gasworks-house' ),
+	);
+	$out = array();
+	foreach ( $list as $file => $alt ) {
+		$out[] = array(
+			'full'  => $base . $file . '.jpg',
+			'thumb' => $base . $file . '-900.jpg',
+			'alt'   => $alt,
+		);
+	}
+	return $out;
+}
+
+/**
+ * Gallery photos: Customizer choices if any, otherwise the bundled photos.
+ *
+ * @return array[] Each item has full, thumb and alt.
+ */
+function gwh_gallery_items() {
+	$items = array();
+	for ( $i = 1; $i <= 8; $i++ ) {
+		$id = absint( gwh_mod( 'gallery_' . $i ) );
+		if ( $id && wp_get_attachment_image_url( $id, 'full' ) ) {
+			$items[] = array(
+				'full'  => wp_get_attachment_image_url( $id, 'full' ),
+				'thumb' => wp_get_attachment_image_url( $id, 0 === count( $items ) ? 'large' : 'medium_large' ),
+				'alt'   => get_post_meta( $id, '_wp_attachment_image_alt', true ),
+			);
+		}
+	}
+	return $items ? $items : gwh_bundled_photos();
+}
+
+/**
+ * Hero photo: Customizer choice, otherwise the first bundled photo.
+ */
+function gwh_hero_url() {
+	$id  = absint( gwh_mod( 'hero_image' ) );
+	$url = $id ? wp_get_attachment_image_url( $id, 'full' ) : '';
+	if ( ! $url ) {
+		$bundled = gwh_bundled_photos();
+		$url     = $bundled[0]['full'];
+	}
+	return $url;
 }
 
 /**
