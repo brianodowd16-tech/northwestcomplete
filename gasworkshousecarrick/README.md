@@ -21,13 +21,13 @@ A custom one-page WordPress theme for **Gasworks House**, a boutique hen and sta
 1. Download `gasworks-house.zip` from this folder. If you change the theme, rebuild it with `./build.sh`.
 2. In WordPress admin go to **Appearance → Themes → Add New Theme → Upload Theme**, choose the zip, then click **Install Now** and **Activate**.
 3. Go to **Appearance → Customize → Gasworks House** and fill in each section:
-   - **Booking & contact**: your Airbnb listing URL (the main button then says "Book on Airbnb"), email, phone and WhatsApp
+   - **Booking & contact**: your Airbnb listing URL (shown as a secondary "Prefer Airbnb?" option), email, phone and WhatsApp
    - **The house**: guest numbers, bedrooms, bathrooms, description and features
    - **Photo gallery**: optional. Pick up to 8 photos to replace the built-in ones. The first one is shown largest.
    - **Hero & SEO**: a large landscape hero photo (about 2000px wide) and your Google description
    - **Things to do & location**: add your address or Eircode for the map
    - **Reviews & FAQ**
-4. Optional: add a logo under **Customize → Site Identity**, and set the site title to "Gasworks House Carrick".
+4. Your logo and favicon are built in (see Branding below). Set the site title to "Gasworks House Carrick" under **Customize → Site Identity**.
 5. If Hostinger's **LiteSpeed Cache** is on, purge the cache after each change (**LiteSpeed Cache → Toolbox → Purge All**).
 6. Set up bookings (next section), then send yourself a test request. If the email doesn't arrive, the request is still saved under **Bookings**. For reliable email, set up Hostinger email and an SMTP plugin such as WP Mail SMTP.
 7. Under **Settings → General**, set the timezone to **Dublin** so "today" is correct on the calendar.
@@ -61,7 +61,7 @@ You can also add phone or email bookings, or block dates for maintenance, with *
 
 Plus a €60 cleaning fee per stay. Example: 20 guests, Friday to Sunday = €1,400 + (8 × €70 × 2) + €60 = **€2,580**.
 
-The €300 damage deposit is a **card pre-authorisation** (a hold, not a charge). It's shown to guests and in emails but isn't added to the total, and the site doesn't place the hold for you: do it yourself before arrival, e.g. in your Stripe dashboard. Card holds usually expire after about 7 days, so place it close to check-in.
+The €300 damage deposit is a **card pre-authorisation** (a hold, not a charge). It's shown to guests and in emails but isn't added to the total. With Stripe connected, the site places and releases the hold automatically (see Online payments). Without Stripe, place it yourself close to check-in, because card holds lapse after about 7 days.
 
 Prices can't be pulled from Airbnb automatically (Airbnb's calendar link only contains dates), so keep your Airbnb prices in step by hand.
 
@@ -90,6 +90,19 @@ Refunds and cancellations are done in your Stripe dashboard.
 **Moon River cruise add-on:** €25 per person, and guests choose the headcount (up to their group size) and which day of their stay. It's added to the total and marked "subject to availability"; you book the sailing with Moon River. Change the name, price and text, or switch it off, under **5. Cruise add-on** in the settings.
 
 **Hosting notes:** the balance and hold jobs run on WordPress's scheduler, which is triggered by site visits. For exact timing, set up a Hostinger **Cron Job** that runs every 15 minutes: `wget -q -O - https://gasworkshousecarrick.com/wp-cron.php?doing_wp_cron >/dev/null 2>&1`. Also make sure LiteSpeed Cache doesn't cache `/wp-json/` (it's excluded by default).
+
+## Branding
+
+Your logo is built into the theme in two versions, both in `gasworks-house/assets/brand/`:
+
+- **`logo-light`**: black turned to cream, for the site's dark header and footer. It shows large over the hero photo and shrinks when the visitor scrolls.
+- **`logo-dark`**: your original, for light backgrounds. It's used on the WordPress login screen and in Google's structured data.
+
+The **favicon** is the "G" from your logo in flame colours on a dark tile. The full logo can't be read at browser-tab size, but the G stays clear down to 16 pixels in both light and dark browser tabs. The same design is used as the phone home-screen icon. To use a different icon, set one under **Customize → Site Identity → Site Icon**; it overrides the built-in one.
+
+Buttons and highlights use the flame orange and red from the logo. Pink stays on hen-party elements and teal on stag-party ones.
+
+If you upload a logo under **Customize → Site Identity → Logo**, it replaces the built-in one in the header. Use a light version, because the header is dark.
 
 ## ⚠️ Check the default wording before going live
 

@@ -25,8 +25,7 @@ $gwh_anchor   = $gwh_on_front ? '' : home_url( '/' );
 			<?php if ( has_custom_logo() ) : ?>
 				<?php echo wp_get_attachment_image( get_theme_mod( 'custom_logo' ), 'medium', false, array( 'class' => 'brand-logo' ) ); ?>
 			<?php else : ?>
-				<span class="brand-mark" aria-hidden="true">G</span>
-				<span class="brand-text">Gasworks <em>House</em></span>
+				<img class="brand-logo" src="<?php echo esc_url( gwh_brand_url( 'logo-light.webp' ) ); ?>" width="400" height="286" alt="<?php esc_attr_e( 'Gasworks House, self-catering accommodation', 'gasworks-house' ); ?>">
 			<?php endif; ?>
 		</a>
 

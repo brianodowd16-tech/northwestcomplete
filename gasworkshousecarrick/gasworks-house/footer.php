@@ -17,7 +17,7 @@ $gwh_wa     = gwh_whatsapp_url();
 <footer class="site-footer">
 	<div class="wrap footer-grid">
 		<div>
-			<p class="footer-brand">Gasworks <em>House</em></p>
+			<img class="footer-logo" src="<?php echo esc_url( gwh_brand_url( 'logo-light.webp' ) ); ?>" width="400" height="286" alt="<?php esc_attr_e( 'Gasworks House', 'gasworks-house' ); ?>" loading="lazy">
 			<p class="muted"><?php esc_html_e( 'Boutique hen & stag stays in Carrick-on-Shannon, Co. Leitrim.', 'gasworks-house' ); ?></p>
 		</div>
 		<div>

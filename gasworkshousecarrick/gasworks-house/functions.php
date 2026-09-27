@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'GWH_VERSION', '1.2.0' );
+define( 'GWH_VERSION', '1.3.0' );
 
 require get_template_directory() . '/inc/defaults.php';
 require get_template_directory() . '/inc/customizer.php';
@@ -99,6 +99,7 @@ function gwh_head_meta() {
 		'name'        => $title,
 		'description' => $desc,
 		'url'         => home_url( '/' ),
+		'logo'        => gwh_brand_url( 'logo-dark.png' ),
 		'address'     => array(
 			'@type'           => 'PostalAddress',
 			'streetAddress'   => gwh_mod( 'address_street' ),
@@ -119,6 +120,40 @@ function gwh_head_meta() {
 	echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . "</script>\n";
 }
 add_action( 'wp_head', 'gwh_head_meta', 1 );
+
+function gwh_brand_url( $file ) {
+	return get_template_directory_uri() . '/assets/brand/' . $file;
+}
+
+/**
+ * Favicon and home-screen icon, unless one has been set under Customize → Site Identity.
+ */
+function gwh_favicons() {
+	if ( has_site_icon() ) {
+		return;
+	}
+	echo '<link rel="icon" href="' . esc_url( gwh_brand_url( 'favicon.ico' ) ) . '" sizes="any">' . "\n";
+	echo '<link rel="icon" type="image/png" sizes="32x32" href="' . esc_url( gwh_brand_url( 'favicon-32.png' ) ) . '">' . "\n";
+	echo '<link rel="icon" type="image/png" sizes="512x512" href="' . esc_url( gwh_brand_url( 'site-icon-512.png' ) ) . '">' . "\n";
+	echo '<link rel="apple-touch-icon" href="' . esc_url( gwh_brand_url( 'apple-touch-icon.png' ) ) . '">' . "\n";
+}
+add_action( 'wp_head', 'gwh_favicons', 2 );
+add_action( 'admin_head', 'gwh_favicons' );
+add_action( 'login_head', 'gwh_favicons' );
+
+/**
+ * Your logo on the WordPress login screen.
+ */
+function gwh_login_logo() {
+	printf(
+		'<style>#login h1 a{background:url(%s) center/contain no-repeat;width:260px;height:186px;}</style>',
+		esc_url( gwh_brand_url( 'logo-dark.webp' ) )
+	);
+}
+add_action( 'login_enqueue_scripts', 'gwh_login_logo' );
+add_filter( 'login_headerurl', function () {
+	return home_url( '/' );
+} );
 
 /**
  * Digits-only phone number for tel: and wa.me links.
