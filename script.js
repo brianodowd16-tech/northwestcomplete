@@ -1,5 +1,5 @@
 // Where contact form enquiries are sent (opens the visitor's email client).
-const CONTACT_EMAIL = "hello@northwestcomplete.ie";
+const CONTACT_EMAIL = "hello@northwestcomplete.com";
 
 document.documentElement.classList.add("js");
 
@@ -73,5 +73,5 @@ form.addEventListener("submit", (e) => {
   const body = `Name: ${d.name}\nBusiness: ${d.business || "-"}\nEmail: ${d.email}\nService: ${d.service}\n\n${d.message}`;
   window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   status.classList.remove("is-error");
-  status.textContent = "Thanks! Your email app should open with your enquiry ready to send.";
+  status.textContent = `Opening your email app with the enquiry filled in. If nothing opens, email us at ${CONTACT_EMAIL}.`;
 });
