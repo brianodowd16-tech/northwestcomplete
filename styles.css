@@ -140,7 +140,7 @@ p { margin: 0; }
 
 /* Service cards */
 .grid.services { display: grid; gap: 16px; grid-template-columns: 1fr; }
-@media (min-width: 680px) { .grid.services { grid-template-columns: repeat(2, 1fr); } .card--feature { grid-column: span 2; } }
+@media (min-width: 680px) { .grid.services { grid-template-columns: repeat(2, 1fr); } .card--feature, .card--wide { grid-column: span 2; } }
 @media (min-width: 1000px) { .grid.services { grid-template-columns: repeat(3, 1fr); } }
 .card {
   position: relative; padding: 30px; border-radius: var(--radius);
