@@ -239,8 +239,11 @@ details p { padding: 0 22px 22px; color: var(--muted); }
 .form select option { background: var(--surface); }
 .form input:focus, .form select:focus, .form textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.15); }
 .form .is-invalid { border-color: #f87171; }
+.form__hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.form { position: relative; }
 .form__status { min-height: 1.4em; font-size: 0.9rem; color: var(--accent); }
 .form__status.is-error { color: #f87171; }
+.form button[disabled] { opacity: 0.6; cursor: progress; transform: none; }
 
 /* Footer */
 .footer { padding: 56px 0 32px; border-top: 1px solid var(--line); margin-top: 80px; }

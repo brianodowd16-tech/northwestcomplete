@@ -1,4 +1,4 @@
-// Where contact form enquiries are sent (opens the visitor's email client).
+// Shown to visitors as a fallback if the form can't be sent.
 const CONTACT_EMAIL = "hello@northwestcomplete.com";
 
 document.documentElement.classList.add("js");
@@ -52,10 +52,23 @@ document.querySelectorAll("[data-contact-email]").forEach((a) => {
 });
 document.getElementById("year").textContent = new Date().getFullYear();
 
-// Contact form: validate, then open a pre-filled email
+// Contact form: validate, then send to contact.php on the server
 const form = document.getElementById("contact-form");
 const status = form.querySelector(".form__status");
-form.addEventListener("submit", (e) => {
+const submitBtn = form.querySelector('button[type="submit"]');
+document.getElementById("form-started").value = Date.now();
+
+const setStatus = (msg, isError) => {
+  status.textContent = msg;
+  status.classList.toggle("is-error", Boolean(isError));
+};
+
+// Result of a no-JavaScript submission (contact.php redirects back here)
+const params = new URLSearchParams(location.search);
+if (params.has("sent")) setStatus("Thanks, your enquiry has been sent. We'll be in touch within one working day.");
+if (params.has("error")) setStatus(`Your enquiry could not be sent. Please email us at ${CONTACT_EMAIL}.`, true);
+
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
   let valid = true;
   form.querySelectorAll("[required]").forEach((field) => {
@@ -64,14 +77,25 @@ form.addEventListener("submit", (e) => {
     if (!ok) valid = false;
   });
   if (!valid) {
-    status.textContent = "Please fill in your name, a valid email and a message.";
-    status.classList.add("is-error");
+    setStatus("Please fill in your name, a valid email and a message.", true);
     return;
   }
-  const d = Object.fromEntries(new FormData(form));
-  const subject = `Enquiry: ${d.service}${d.business ? ` - ${d.business}` : ""}`;
-  const body = `Name: ${d.name}\nBusiness: ${d.business || "-"}\nEmail: ${d.email}\nService: ${d.service}\n\n${d.message}`;
-  window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  status.classList.remove("is-error");
-  status.textContent = `Opening your email app with the enquiry filled in. If nothing opens, email us at ${CONTACT_EMAIL}.`;
+
+  submitBtn.disabled = true;
+  setStatus("Sending…");
+  try {
+    const res = await fetch(form.action, {
+      method: "POST",
+      body: new FormData(form),
+      headers: { "X-Requested-With": "fetch" },
+    });
+    const data = await res.json();
+    setStatus(data.message, !data.ok);
+    if (data.ok) form.reset();
+  } catch {
+    setStatus(`Your enquiry could not be sent. Please email us at ${CONTACT_EMAIL}.`, true);
+  } finally {
+    submitBtn.disabled = false;
+    document.getElementById("form-started").value = Date.now();
+  }
 });
