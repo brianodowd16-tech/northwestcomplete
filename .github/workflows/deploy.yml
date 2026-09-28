@@ -1,0 +1,47 @@
+name: Deploy to Hostinger
+
+# Uploads the website to Hostinger over FTP whenever main changes.
+# Only files that changed since the last deploy are uploaded.
+#
+# Required repository secrets (Settings > Secrets and variables > Actions):
+#   FTP_SERVER    FTP host from hPanel > Files > FTP Accounts (e.g. ftp.northwestcomplete.com or an IP)
+#   FTP_USERNAME  FTP username (e.g. u123456789 or u123456789.northwestcomplete.com)
+#   FTP_PASSWORD  FTP password
+# Optional repository variables:
+#   FTP_SERVER_DIR  Remote folder for the site. Default: public_html/
+#   FTP_PROTOCOL    ftps (default, encrypted) or ftp if FTPS won't connect
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hostinger
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Check PHP syntax
+        run: php -l contact.php
+
+      - name: Upload to Hostinger
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+          security: loose
+          server-dir: ${{ vars.FTP_SERVER_DIR || 'public_html/' }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .github/**
+            dist/**
+            **/*.md

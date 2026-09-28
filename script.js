@@ -54,48 +54,50 @@ document.getElementById("year").textContent = new Date().getFullYear();
 
 // Contact form: validate, then send to contact.php on the server
 const form = document.getElementById("contact-form");
-const status = form.querySelector(".form__status");
-const submitBtn = form.querySelector('button[type="submit"]');
-document.getElementById("form-started").value = Date.now();
+if (form) {
+  const status = form.querySelector(".form__status");
+  const submitBtn = form.querySelector('button[type="submit"]');
+  document.getElementById("form-started").value = Date.now();
 
-const setStatus = (msg, isError) => {
-  status.textContent = msg;
-  status.classList.toggle("is-error", Boolean(isError));
-};
+  const setStatus = (msg, isError) => {
+    status.textContent = msg;
+    status.classList.toggle("is-error", Boolean(isError));
+  };
 
-// Result of a no-JavaScript submission (contact.php redirects back here)
-const params = new URLSearchParams(location.search);
-if (params.has("sent")) setStatus("Thanks, your enquiry has been sent. We'll be in touch within one working day.");
-if (params.has("error")) setStatus(`Your enquiry could not be sent. Please email us at ${CONTACT_EMAIL}.`, true);
+  // Result of a no-JavaScript submission (contact.php redirects back here)
+  const params = new URLSearchParams(location.search);
+  if (params.has("sent")) setStatus("Thanks, your enquiry has been sent. We'll be in touch within one working day.");
+  if (params.has("error")) setStatus(`Your enquiry could not be sent. Please email us at ${CONTACT_EMAIL}.`, true);
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  let valid = true;
-  form.querySelectorAll("[required]").forEach((field) => {
-    const ok = field.value.trim() !== "" && field.checkValidity();
-    field.classList.toggle("is-invalid", !ok);
-    if (!ok) valid = false;
-  });
-  if (!valid) {
-    setStatus("Please fill in your name, a valid email and a message.", true);
-    return;
-  }
-
-  submitBtn.disabled = true;
-  setStatus("Sending…");
-  try {
-    const res = await fetch(form.action, {
-      method: "POST",
-      body: new FormData(form),
-      headers: { "X-Requested-With": "fetch" },
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    let valid = true;
+    form.querySelectorAll("[required]").forEach((field) => {
+      const ok = field.value.trim() !== "" && field.checkValidity();
+      field.classList.toggle("is-invalid", !ok);
+      if (!ok) valid = false;
     });
-    const data = await res.json();
-    setStatus(data.message, !data.ok);
-    if (data.ok) form.reset();
-  } catch {
-    setStatus(`Your enquiry could not be sent. Please email us at ${CONTACT_EMAIL}.`, true);
-  } finally {
-    submitBtn.disabled = false;
-    document.getElementById("form-started").value = Date.now();
-  }
-});
+    if (!valid) {
+      setStatus("Please fill in your name, a valid email and a message.", true);
+      return;
+    }
+
+    submitBtn.disabled = true;
+    setStatus("Sending…");
+    try {
+      const res = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { "X-Requested-With": "fetch" },
+      });
+      const data = await res.json();
+      setStatus(data.message, !data.ok);
+      if (data.ok) form.reset();
+    } catch {
+      setStatus(`Your enquiry could not be sent. Please email us at ${CONTACT_EMAIL}.`, true);
+    } finally {
+      submitBtn.disabled = false;
+      document.getElementById("form-started").value = Date.now();
+    }
+  });
+}
