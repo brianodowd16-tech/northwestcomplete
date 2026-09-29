@@ -213,7 +213,10 @@ $gwh_facts = array_filter( array(
 						</div>
 						<div class="map-bar">
 							<address><?php echo esc_html( implode( ', ', gwh_address_lines() ) ); ?></address>
-							<a class="btn btn-small" href="<?php echo esc_url( gwh_maps_url( true ) ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Get directions', 'gasworks-house' ); ?></a>
+							<span class="map-actions">
+								<a class="text-link-dark" href="<?php echo esc_url( gwh_maps_url() ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'View on Google Maps', 'gasworks-house' ); ?></a>
+								<a class="btn btn-small" href="<?php echo esc_url( gwh_maps_url( true ) ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Get directions', 'gasworks-house' ); ?></a>
+							</span>
 						</div>
 					</div>
 				<?php endif; ?>

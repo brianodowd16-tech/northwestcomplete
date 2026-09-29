@@ -14,10 +14,10 @@ function gwh_defaults() {
 	return array(
 		// Hero.
 		'hero_image'       => '',
-		'hero_eyebrow'     => 'Carrick-on-Shannon · Co. Leitrim',
+		'hero_eyebrow'     => 'Carrick-on-Shannon · Co. Roscommon',
 		'hero_heading'     => 'The party house for hens & stags on the Shannon.',
 		'hero_text'        => 'A whole-house stay for groups of up to 30, minutes from Carrick\'s pubs, boats and late bars. Bring the whole crew. We\'ve got the space and the local know-how.',
-		'meta_description' => 'Gasworks House is a hen and stag party house in Carrick-on-Shannon, Co. Leitrim, sleeping up to 30. Whole-house stays for big groups, a short stroll from the town\'s pubs and river.',
+		'meta_description' => 'Gasworks House is a hen and stag party house on Station Road, Carrick-on-Shannon, sleeping up to 30. Whole-house stays for big groups, a short stroll from the town\'s pubs and river.',
 
 		// Booking & contact.
 		'airbnb_url'       => 'https://www.airbnb.ie/rooms/50016674',
@@ -49,9 +49,10 @@ function gwh_defaults() {
 		'things'           => "Shannon boat trips | Cruise the river on a party boat or hire your own cruiser, right from the town quay.\nPubs & live music | Carrick's famous strip of pubs and late bars is all within walking distance.\nLough Key Forest Park | Treetop walks, the Zipit adventure course and boating, a short drive away.\nKayaking & watersports | Paddle the Shannon with local outdoor adventure providers.\nGolf | Plenty of courses in the area for a more civilised morning.\nFood & brunch | From bottomless brunch to late-night chips — the town has you covered.",
 
 		// Getting here.
-		'address_street'   => '',
+		'address_street'   => 'Station Road',
 		'eircode'          => 'N41 DW99',
-		'map_query'        => 'Gasworks House, N41 DW99, Carrick-on-Shannon, Co. Leitrim',
+		'map_query'        => 'Gasworks House, Station Road, Carrick-on-Shannon, N41 DW99',
+		'maps_listing_url' => 'https://maps.app.goo.gl/3nEyjx7tibjEiE2k9',
 		'getting_here'     => "By car | About 2 hours from Dublin on the N4.\nBy train | Direct trains from Dublin Connolly on the Sligo line stop in Carrick-on-Shannon.\nBy air | Under an hour from Ireland West Airport Knock.",
 
 		// Reviews (left empty: add real guest reviews only).

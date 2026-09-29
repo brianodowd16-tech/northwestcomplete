@@ -108,7 +108,7 @@ function gwh_head_meta() {
 			'streetAddress'   => gwh_mod( 'address_street' ),
 			'postalCode'      => gwh_mod( 'eircode' ),
 			'addressLocality' => 'Carrick-on-Shannon',
-			'addressRegion'   => 'Co. Leitrim',
+			'addressRegion'   => 'Co. Roscommon',
 			'addressCountry'  => 'IE',
 		),
 	);
@@ -130,9 +130,12 @@ add_action( 'wp_head', 'gwh_head_meta', 1 );
  */
 function gwh_maps_url( $directions = false ) {
 	$place = rawurlencode( gwh_mod( 'map_query' ) );
-	return $directions
-		? 'https://www.google.com/maps/dir/?api=1&destination=' . $place
-		: 'https://www.google.com/maps/search/?api=1&query=' . $place;
+	if ( $directions ) {
+		return 'https://www.google.com/maps/dir/?api=1&destination=' . $place;
+	}
+	// The Business Profile link opens the listing itself, with photos and reviews.
+	$listing = gwh_mod( 'maps_listing_url' );
+	return $listing ? $listing : 'https://www.google.com/maps/search/?api=1&query=' . $place;
 }
 
 /**
@@ -142,7 +145,7 @@ function gwh_address_lines() {
 	return array_values( array_filter( array(
 		__( 'Gasworks House', 'gasworks-house' ),
 		gwh_mod( 'address_street' ),
-		__( 'Carrick-on-Shannon, Co. Leitrim', 'gasworks-house' ),
+		__( 'Carrick-on-Shannon, Co. Roscommon', 'gasworks-house' ),
 		gwh_mod( 'eircode' ),
 	) ) );
 }

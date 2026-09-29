@@ -18,7 +18,7 @@ $gwh_wa     = gwh_whatsapp_url();
 	<div class="wrap footer-grid">
 		<div>
 			<img class="footer-logo" src="<?php echo esc_url( gwh_brand_url( 'logo-light.webp' ) ); ?>" width="400" height="286" alt="<?php esc_attr_e( 'Gasworks House', 'gasworks-house' ); ?>" loading="lazy">
-			<p class="muted"><?php esc_html_e( 'Boutique hen & stag stays in Carrick-on-Shannon, Co. Leitrim.', 'gasworks-house' ); ?></p>
+			<p class="muted"><?php esc_html_e( 'Boutique hen & stag stays in Carrick-on-Shannon.', 'gasworks-house' ); ?></p>
 		</div>
 		<div>
 			<p class="footer-title"><?php esc_html_e( 'Get in touch', 'gasworks-house' ); ?></p>
@@ -55,7 +55,7 @@ $gwh_wa     = gwh_whatsapp_url();
 	</div>
 	<div class="wrap footer-base muted">
 		<span>&copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> <?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
-		<span><?php echo esc_html( sprintf( 'Carrick-on-Shannon · Co. Leitrim · %s', gwh_mod( 'eircode' ) ) ); ?></span>
+		<span><?php echo esc_html( implode( ' · ', array_slice( gwh_address_lines(), 1 ) ) ); ?></span>
 	</div>
 </footer>
 
