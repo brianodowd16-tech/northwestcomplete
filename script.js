@@ -109,3 +109,89 @@ if (form) {
     }
   });
 }
+
+// Audit checkout: send details to the server, then go to Revolut's payment page
+const checkoutForm = document.getElementById("checkout-form");
+if (checkoutForm) {
+  const status = checkoutForm.querySelector(".form__status");
+  const button = checkoutForm.querySelector('button[type="submit"]');
+  if (new URLSearchParams(location.search).has("error")) {
+    status.textContent = `We couldn't start the payment. Please try again, or email ${CONTACT_EMAIL}.`;
+    status.classList.add("is-error");
+  }
+  checkoutForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    let valid = true;
+    checkoutForm.querySelectorAll("[required]").forEach((field) => {
+      const ok = field.type === "checkbox" ? field.checked : field.value.trim() !== "" && field.checkValidity();
+      field.classList.toggle("is-invalid", !ok);
+      if (!ok) valid = false;
+    });
+    if (!valid) {
+      status.textContent = "Please enter your name and email, and tick the box to agree.";
+      status.classList.add("is-error");
+      return;
+    }
+    button.disabled = true;
+    status.classList.remove("is-error");
+    status.textContent = "Taking you to secure payment…";
+    try {
+      const res = await fetch(checkoutForm.action, {
+        method: "POST",
+        body: new FormData(checkoutForm),
+        headers: { "X-Requested-With": "fetch" },
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.message);
+      window.location.href = data.checkout_url;
+    } catch (err) {
+      status.textContent = err.message || `We couldn't start the payment. Please try again, or email ${CONTACT_EMAIL}.`;
+      status.classList.add("is-error");
+      button.disabled = false;
+    }
+  });
+}
+
+// Payment result: poll the server until Revolut confirms the payment
+const result = document.getElementById("payment-result");
+if (result) {
+  const ref = new URLSearchParams(location.search).get("ref") || "";
+  const $ = (id) => document.getElementById(id);
+  const show = (state, eyebrow, title, text) => {
+    result.dataset.state = state;
+    $("result-eyebrow").textContent = eyebrow;
+    $("result-title").textContent = title;
+    $("result-text").textContent = text;
+    const icon = result.querySelector(".result__icon");
+    if (state !== "checking") icon.textContent = state === "paid" ? "✓" : "!";
+    if (state !== "checking") $("result-actions").hidden = false;
+  };
+  const showRef = () => { $("result-ref").hidden = false; $("result-ref").textContent = `Reference: ${ref}`; };
+  let tries = 0;
+  const check = async () => {
+    tries += 1;
+    try {
+      const res = await fetch(`api/order-status.php?ref=${encodeURIComponent(ref)}`, { cache: "no-store" });
+      const data = await res.json();
+      if (data.status === "paid") {
+        showRef();
+        return show("paid", "Payment received", "Your audit is booked.",
+          `Thanks! We've received ${data.amount} and sent a confirmation to ${data.email} with your next steps for scheduling the audit.`);
+      }
+      if (data.status === "failed") {
+        return show("failed", "Payment not completed", "Your payment didn't go through.",
+          "No money has been taken. You can try again, or contact us if the problem continues.");
+      }
+      if (data.status === "unknown") {
+        return show("unknown", "Payment", "We couldn't find this booking.",
+          `If you've paid, email ${CONTACT_EMAIL} with your name and we'll sort it out.`);
+      }
+    } catch { /* keep trying */ }
+    if (tries < 20) return setTimeout(check, 3000);
+    showRef();
+    show("pending", "Payment processing", "Your payment is still processing.",
+      `We'll email you as soon as it's confirmed. If you don't hear from us within an hour, contact ${CONTACT_EMAIL}.`);
+  };
+  if (ref) check();
+  else show("unknown", "Payment", "We couldn't find this booking.", `If you've paid, email ${CONTACT_EMAIL} and we'll sort it out.`);
+}
