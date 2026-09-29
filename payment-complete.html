@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en-IE">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payment Complete | Northwest Complete</title>
+  <meta name="description" content="Confirmation of your Northwest Complete systems audit payment.">
+  <meta name="theme-color" content="#07090f">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="nav" id="top">
+    <div class="wrap nav__inner">
+      <a href="index.html" class="brand" aria-label="Northwest Complete home">
+        <svg class="brand__mark" viewBox="0 0 40 40" aria-hidden="true">
+          <rect width="40" height="40" rx="11" fill="url(#g)"/>
+          <path d="M11 29 L27 13 M13 13 H27 V27" stroke="#07090f" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round" transform="rotate(-90 20 20)"/>
+          <defs><linearGradient id="g" x1="0" y1="0" x2="40" y2="40"><stop offset="0" stop-color="#5eead4"/><stop offset="1" stop-color="#818cf8"/></linearGradient></defs>
+        </svg>
+        <span class="brand__name">Northwest<b>Complete</b></span>
+      </a>
+      <nav class="nav__links" aria-label="Main">
+        <a href="index.html#services">Services</a>
+        <a href="index.html#platforms">Platforms</a>
+        <a href="about.html">About</a>
+        <a href="index.html#process">Process</a>
+        <a href="index.html#faq">FAQ</a>
+      </nav>
+      <a href="index.html#contact" class="btn btn--sm">Start a project</a>
+      <button class="nav__toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mobile-menu" hidden>
+      <a href="index.html#services">Services</a>
+      <a href="index.html#platforms">Platforms</a>
+      <a href="about.html">About</a>
+      <a href="index.html#process">Process</a>
+      <a href="index.html#faq">FAQ</a>
+      <a href="index.html#contact" class="btn">Start a project</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-hero page-hero--compact">
+      <div class="hero__glow" aria-hidden="true"></div>
+      <div class="wrap page-hero__inner">
+        <div class="result" id="payment-result" data-state="checking">
+          <div class="result__icon" aria-hidden="true"><span class="result__spinner"></span></div>
+          <p class="eyebrow" id="result-eyebrow">Payment</p>
+          <h1 id="result-title">Checking your payment…</h1>
+          <p class="lead" id="result-text">This usually takes a few seconds. Please keep this page open.</p>
+          <p class="result__ref" id="result-ref" hidden></p>
+          <div class="hero__cta" id="result-actions" hidden>
+            <a href="index.html" class="btn">Back to home <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer__inner">
+      <div>
+        <a href="index.html" class="brand brand--footer"><span class="brand__name">Northwest<b>Complete</b></span></a>
+        <p class="footer__tag">Software, automation &amp; business technology.</p>
+      </div>
+      <nav class="footer__links" aria-label="Footer">
+        <a href="index.html#services">Services</a>
+        <a href="index.html#platforms">Platforms</a>
+        <a href="about.html">About</a>
+        <a href="index.html#process">Process</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+    </div>
+    <div class="wrap footer__legal">
+      <p>© <span id="year">2026</span> Northwest Complete Limited. All rights reserved.</p>
+      <p class="footer__tm">Third-party names and logos are trademarks of their respective owners and are used to identify platforms we work with. Brand icons via Simple Icons (CC0).</p>
+    </div>
+  </footer>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
