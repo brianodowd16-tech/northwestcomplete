@@ -24,7 +24,7 @@ function gwh_defaults() {
 		'airbnb_embed'     => true,
 		'contact_email'    => 'stay@gasworkshousecarrick.com',
 		'contact_phone'    => '086 174 2808',
-		'whatsapp'         => '',
+		'whatsapp'         => '086 174 2808',
 		'instagram_url'    => '',
 		'facebook_url'     => '',
 		'tiktok_url'       => '',

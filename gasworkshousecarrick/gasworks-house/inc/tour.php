@@ -32,8 +32,8 @@ function gwh_tour_rooms_default() {
 		),
 		array(
 			'name'   => __( 'The Long Room', 'gasworks-house' ),
-			'beds'   => __( '6 single beds', 'gasworks-house' ),
-			'note'   => __( 'The big one: a row of single beds, bedside lockers and space for everyone\'s cases.', 'gasworks-house' ),
+			'beds'   => __( '6 singles + 2 add-in beds · sleeps 8', 'gasworks-house' ),
+			'note'   => __( 'The big one: a row of single beds, bedside lockers and space for everyone\'s cases, plus two add-in beds.', 'gasworks-house' ),
 			'photos' => array(
 				'long-room' => __( 'Long bedroom with six single beds in a row', 'gasworks-house' ),
 			),
@@ -72,16 +72,16 @@ function gwh_tour_rooms_default() {
 		),
 		array(
 			'name'   => __( 'The Attic Room', 'gasworks-house' ),
-			'beds'   => __( '3 single beds', 'gasworks-house' ),
-			'note'   => __( 'Tucked under the eaves, with a sloped ceiling and pine floorboards.', 'gasworks-house' ),
+			'beds'   => __( '3 singles + 2 add-in beds · sleeps 5', 'gasworks-house' ),
+			'note'   => __( 'Tucked under the eaves, with a sloped ceiling, pine floorboards and room for two add-in beds.', 'gasworks-house' ),
 			'photos' => array(
 				'attic-room' => __( 'Attic bedroom with three single beds and a sloped timber ceiling', 'gasworks-house' ),
 			),
 		),
 		array(
 			'name'   => __( 'The Twin Room', 'gasworks-house' ),
-			'beds'   => __( '2 single beds', 'gasworks-house' ),
-			'note'   => __( 'Upstairs, under a big skylight. Two single beds for the pair who fancy a room to themselves.', 'gasworks-house' ),
+			'beds'   => __( '2 singles + 1 add-in bed · sleeps 3', 'gasworks-house' ),
+			'note'   => __( 'Upstairs, under a big skylight. Two single beds and an add-in bed.', 'gasworks-house' ),
 			'photos' => array(
 				'twin-room' => __( 'Upstairs twin bedroom with two single beds under a skylight', 'gasworks-house' ),
 			),

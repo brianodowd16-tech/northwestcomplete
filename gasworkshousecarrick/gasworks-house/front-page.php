@@ -362,23 +362,37 @@ $gwh_facts = array_filter( array(
 					<?php endif; ?>
 				</ol>
 
-				<?php if ( $gwh_airbnb ) : ?>
-					<div class="airbnb-alt">
-						<p><strong><?php esc_html_e( 'Prefer Airbnb?', 'gasworks-house' ); ?></strong> <?php esc_html_e( 'You can book us there too.', 'gasworks-house' ); ?></p>
-						<?php if ( gwh_mod( 'airbnb_embed' ) && preg_match( '#/rooms/(\d+)#', $gwh_airbnb, $gwh_room ) ) : ?>
-							<?php $gwh_airbnb_host = wp_parse_url( $gwh_airbnb, PHP_URL_HOST ); ?>
-							<div class="airbnb-embed-frame" data-id="<?php echo esc_attr( $gwh_room[1] ); ?>" data-view="home" data-hide-price="true" style="width:100%;max-width:450px;height:300px">
+				<div class="book-side">
+					<?php if ( $gwh_airbnb ) : ?>
+						<div class="airbnb-alt">
+							<p><strong><?php esc_html_e( 'Prefer Airbnb?', 'gasworks-house' ); ?></strong> <?php esc_html_e( 'You can book us there too.', 'gasworks-house' ); ?></p>
+							<?php if ( gwh_mod( 'airbnb_embed' ) && preg_match( '#/rooms/(\d+)#', $gwh_airbnb, $gwh_room ) ) : ?>
+								<?php $gwh_airbnb_host = wp_parse_url( $gwh_airbnb, PHP_URL_HOST ); ?>
+								<div class="airbnb-embed-frame" data-id="<?php echo esc_attr( $gwh_room[1] ); ?>" data-view="home" data-hide-price="true" style="width:100%;max-width:450px;height:300px">
+									<a class="btn btn-ghost" href="<?php echo esc_url( $gwh_airbnb ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'View on Airbnb', 'gasworks-house' ); ?></a>
+									<script async src="https://<?php echo esc_attr( $gwh_airbnb_host ); ?>/embeddable/airbnb_jssdk"></script>
+								</div>
+							<?php else : ?>
 								<a class="btn btn-ghost" href="<?php echo esc_url( $gwh_airbnb ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'View on Airbnb', 'gasworks-house' ); ?></a>
-								<script async src="https://<?php echo esc_attr( $gwh_airbnb_host ); ?>/embeddable/airbnb_jssdk"></script>
-							</div>
-						<?php else : ?>
-							<a class="btn btn-ghost" href="<?php echo esc_url( $gwh_airbnb ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'View on Airbnb', 'gasworks-house' ); ?></a>
-						<?php endif; ?>
-					</div>
-				<?php endif; ?>
+							<?php endif; ?>
+						</div>
+					<?php endif; ?>
 
-				<?php if ( gwh_whatsapp_url() ) : ?>
-					<p><a class="text-link" href="<?php echo esc_url( gwh_whatsapp_url() ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Questions first? Message us on WhatsApp →', 'gasworks-house' ); ?></a></p>
+					<?php if ( gwh_whatsapp_url() || gwh_mod( 'contact_phone' ) ) : ?>
+						<div class="ask">
+							<p><strong><?php esc_html_e( 'Questions first?', 'gasworks-house' ); ?></strong> <?php esc_html_e( 'Message or call us, we\'re happy to help plan the weekend.', 'gasworks-house' ); ?></p>
+							<div class="ask-actions">
+								<?php if ( gwh_whatsapp_url() ) : ?>
+									<a class="btn btn-wa" href="<?php echo esc_url( gwh_whatsapp_url() ); ?>" target="_blank" rel="noopener"><?php echo gwh_whatsapp_icon(); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php esc_html_e( 'WhatsApp us', 'gasworks-house' ); ?></a>
+								<?php endif; ?>
+				</div>
+							<?php if ( gwh_mod( 'contact_phone' ) ) : ?>
+								<a class="btn btn-ghost" href="<?php echo esc_attr( gwh_tel_link( gwh_mod( 'contact_phone' ) ) ); ?>">
+									<?php /* translators: %s: phone number */ echo esc_html( sprintf( __( 'Call %s', 'gasworks-house' ), gwh_mod( 'contact_phone' ) ) ); ?>
+								</a>
+							<?php endif; ?>
+						</div>
+					</div>
 				<?php endif; ?>
 			</div>
 		</div>

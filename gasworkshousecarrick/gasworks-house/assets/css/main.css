@@ -468,17 +468,43 @@ p { margin: 0 0 1em; }
 .steps span { font-size: 15px; color: rgba(255, 255, 255, .65); }
 .airbnb-alt p { margin-bottom: 12px; }
 .airbnb-alt .btn-ghost { color: #fff; }
+/* Only reserve space for Airbnb's card once its widget has loaded (it's often blocked). */
+.airbnb-embed-frame:not(:has(iframe)) { height: auto !important; }
+
+/* ---------- WhatsApp & call ---------- */
+.book-side { display: grid; gap: 28px; align-content: start; }
+.ask { margin: 0; }
+.ask p { margin-bottom: 12px; color: rgba(255, 255, 255, .8); }
+.ask-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.ask .btn-ghost { color: #fff; }
+.btn-wa { background: #1faa53; box-shadow: 0 10px 30px -12px rgba(31, 170, 83, .7); }
+.btn-wa:hover { box-shadow: 0 16px 34px -12px rgba(31, 170, 83, .85); }
+.wa-icon { flex: none; }
+.footer-wa { display: inline-flex; align-items: center; gap: 8px; }
+.footer-wa .wa-icon { width: 18px; height: 18px; color: #4fd37f; }
+.wa-float {
+	position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 45;
+	display: grid; place-items: center; width: 58px; height: 58px; border-radius: 50%;
+	background: #1faa53; color: #fff; box-shadow: 0 10px 30px -8px rgba(0, 0, 0, .45); transition: transform .2s ease;
+}
+.wa-float:hover { transform: scale(1.06); }
+.wa-float .wa-icon { width: 30px; height: 30px; }
+@media (max-width: 720px) {
+	/* Sits beside the sticky "Check availability" bar. */
+	.wa-float { right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); width: 50px; height: 50px; }
+	body:has(.wa-float) .mobile-cta { right: 72px; }
+}
 
 /* ---------- Footer ---------- */
 .site-footer { background: #0f0e11; color: #fff; padding: 72px 0 28px; }
-.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; margin-bottom: 48px; }
+.footer-grid { display: grid; grid-template-columns: 2fr minmax(280px, 1.2fr) 1fr; gap: 40px; margin-bottom: 48px; }
 @media (max-width: 720px) { .footer-grid { grid-template-columns: 1fr; } }
 .site-footer .muted { color: rgba(255, 255, 255, .6); }
 .footer-logo { width: 190px; height: auto; margin-bottom: 14px; }
 .footer-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--gold); }
 .footer-list { list-style: none; margin: 0; padding: 0; }
 .footer-list li { margin-bottom: 8px; }
-.footer-list a { text-decoration: none; opacity: .85; overflow-wrap: anywhere; }
+.footer-list a { text-decoration: none; opacity: .85; overflow-wrap: break-word; }
 .footer-list a:hover { opacity: 1; color: var(--gold); }
 .footer-base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, .1); font-size: 14px; }
 

@@ -21,7 +21,7 @@ A custom one-page WordPress theme for **Gasworks House**, a boutique hen and sta
 1. Download `gasworks-house.zip` from this folder. If you change the theme, rebuild it with `./build.sh`.
 2. In WordPress admin go to **Appearance → Themes → Add New Theme → Upload Theme**, choose the zip, then click **Install Now** and **Activate**.
 3. Go to **Appearance → Customize → Gasworks House** and fill in each section:
-   - **Booking & contact**: your Airbnb listing URL (shown as a secondary "Prefer Airbnb?" option), email, phone and WhatsApp
+   - **Booking & contact**: already set to stay@gasworkshousecarrick.com and 086 174 2808 (calls and WhatsApp). Change them here if needed. Also: your Airbnb listing URL (shown as a secondary "Prefer Airbnb?" option), email, phone and WhatsApp
    - **The house**: guest numbers, bedrooms, bathrooms, description and features
    - **Photo tour**: optional. Pick up to 20 photos to replace the built-in ones, and label each as `Room | description` (e.g. `The Attic Room | Three singles under the eaves`). Photos with the same room name are grouped together.
    - **Hero & SEO**: the main photo at the top of the page (built in: the kitchen with the stove lit) and your Google description
@@ -111,13 +111,13 @@ The built-in tour walks through the house: downstairs, up the stairwell, then up
 | # | Room | Photos (✅ = added) |
 |---|---|---|
 | 01 | Kitchen & living | `kitchen-living` ✅, `kitchen-stove`, `kitchen-dining` |
-| 02 | The Long Room (6 single beds) | `long-room` ✅ |
+| 02 | The Long Room (6 singles + 2 add-in beds) | `long-room` ✅ |
 | 03 | The Window Room (4 single beds) | `bedroom-window` ✅, `bedroom-quad` ✅ |
 | 04 | The Bunk Room (downstairs, 2 bunk beds, sleeps 4) | `bunk-room` |
 | 05 | The Stairwell | `stairwell` ✅ |
 | 06 | The Mezzanine (upstairs lounge, 3 sofa beds) | `mezzanine` ✅ |
-| 07 | The Attic Room (3 single beds) | `attic-room` ✅ |
-| 08 | The Twin Room (upstairs, 2 single beds) | `twin-room` ✅ |
+| 07 | The Attic Room (3 singles + 2 add-in beds) | `attic-room` ✅ |
+| 08 | The Twin Room (upstairs, 2 singles + 1 add-in bed) | `twin-room` ✅ |
 | 09 | Main bathroom | `bathroom` ✅ |
 | 10 | Shower room | `shower-room` ✅ |
 | 11 | Party room | `party-room` ✅ |

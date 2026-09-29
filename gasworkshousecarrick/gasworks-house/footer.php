@@ -30,7 +30,7 @@ $gwh_wa     = gwh_whatsapp_url();
 					<li><a href="<?php echo esc_attr( gwh_tel_link( $gwh_phone ) ); ?>"><?php echo esc_html( $gwh_phone ); ?></a></li>
 				<?php endif; ?>
 				<?php if ( $gwh_wa ) : ?>
-					<li><a href="<?php echo esc_url( $gwh_wa ); ?>" rel="noopener" target="_blank"><?php esc_html_e( 'WhatsApp us', 'gasworks-house' ); ?></a></li>
+					<li><a class="footer-wa" href="<?php echo esc_url( $gwh_wa ); ?>" rel="noopener" target="_blank"><?php echo gwh_whatsapp_icon(); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php esc_html_e( 'WhatsApp us', 'gasworks-house' ); ?></a></li>
 				<?php endif; ?>
 				<li><a href="<?php echo esc_url( ( is_front_page() ? '' : home_url( '/' ) ) . '#book' ); ?>"><?php esc_html_e( 'Book direct', 'gasworks-house' ); ?></a></li>
 			</ul>
@@ -56,6 +56,10 @@ $gwh_wa     = gwh_whatsapp_url();
 	<div class="mobile-cta" data-mobile-cta>
 		<a class="btn" href="#book"><?php esc_html_e( 'Check availability', 'gasworks-house' ); ?></a>
 	</div>
+<?php endif; ?>
+
+<?php if ( $gwh_wa ) : ?>
+	<a class="wa-float" href="<?php echo esc_url( $gwh_wa ); ?>" target="_blank" rel="noopener" aria-label="<?php esc_attr_e( 'Message us on WhatsApp', 'gasworks-house' ); ?>"><?php echo gwh_whatsapp_icon(); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
 <?php endif; ?>
 
 <?php wp_footer(); ?>
