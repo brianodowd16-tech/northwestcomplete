@@ -113,11 +113,11 @@ The built-in tour walks through the house: downstairs, up the stairwell, then up
 | 01 | Kitchen & living | `kitchen-living` ✅, `kitchen-stove`, `kitchen-dining` |
 | 02 | The Long Room (6 single beds) | `long-room` ✅ |
 | 03 | The Window Room (4 single beds) | `bedroom-window` ✅, `bedroom-quad` ✅ |
-| 04 | The Bunk Room (downstairs, bunk beds) | `bunk-room` |
+| 04 | The Bunk Room (downstairs, 2 bunk beds, sleeps 4) | `bunk-room` |
 | 05 | The Stairwell | `stairwell` ✅ |
 | 06 | The Mezzanine (upstairs lounge, red sofas) | `mezzanine` ✅ |
 | 07 | The Attic Room (3 single beds) | `attic-room` ✅ |
-| 08 | The Twin Room (upstairs, 2 single beds) | `twin-room` |
+| 08 | The Twin Room (upstairs, 2 single beds) | `twin-room` ✅ |
 | 09 | Main bathroom | `bathroom` ✅ |
 | 10 | Shower room | `shower-room` ✅ |
 | 11 | Party room | `party-room` ✅ |

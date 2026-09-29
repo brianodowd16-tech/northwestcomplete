@@ -49,8 +49,8 @@ function gwh_tour_rooms_default() {
 		),
 		array(
 			'name'   => __( 'The Bunk Room', 'gasworks-house' ),
-			'beds'   => __( 'Bunk beds', 'gasworks-house' ),
-			'note'   => __( 'Downstairs. Bunks for the crew who\'ll be up latest.', 'gasworks-house' ),
+			'beds'   => __( '2 bunk beds · sleeps 4', 'gasworks-house' ),
+			'note'   => __( 'Downstairs. Two sets of bunks for the crew who\'ll be up latest.', 'gasworks-house' ),
 			'photos' => array(
 				'bunk-room' => __( 'Downstairs bunk room', 'gasworks-house' ),
 			),
@@ -80,9 +80,9 @@ function gwh_tour_rooms_default() {
 		array(
 			'name'   => __( 'The Twin Room', 'gasworks-house' ),
 			'beds'   => __( '2 single beds', 'gasworks-house' ),
-			'note'   => __( 'Upstairs. Two single beds, for the pair who fancy a room to themselves.', 'gasworks-house' ),
+			'note'   => __( 'Upstairs, under a big skylight. Two single beds for the pair who fancy a room to themselves.', 'gasworks-house' ),
 			'photos' => array(
-				'twin-room' => __( 'Upstairs twin bedroom', 'gasworks-house' ),
+				'twin-room' => __( 'Upstairs twin bedroom with two single beds under a skylight', 'gasworks-house' ),
 			),
 		),
 		array(
