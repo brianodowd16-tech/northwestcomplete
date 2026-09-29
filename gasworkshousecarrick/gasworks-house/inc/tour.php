@@ -64,8 +64,8 @@ function gwh_tour_rooms_default() {
 		),
 		array(
 			'name'   => __( 'The Mezzanine', 'gasworks-house' ),
-			'beds'   => __( '3 sofa beds', 'gasworks-house' ),
-			'note'   => __( 'Upstairs. A lounge on the landing with red leather sofas under a skylight, which fold out into three sofa beds for extra guests.', 'gasworks-house' ),
+			'beds'   => __( '3 double sofa beds · sleeps 6', 'gasworks-house' ),
+			'note'   => __( 'Upstairs. A lounge on the landing with red leather sofas under a skylight, which fold out into three sofa beds sleeping two each.', 'gasworks-house' ),
 			'photos' => array(
 				'mezzanine' => __( 'Upstairs mezzanine lounge with red leather sofas, pine floor and skylight', 'gasworks-house' ),
 			),
