@@ -19,6 +19,7 @@ const GWH_TOUR_SLOTS = 20;
  * Built-in rooms. 'beds' is shown as a badge; leave empty for rooms without beds.
  */
 function gwh_tour_rooms_default() {
+	// Ordered as a walk through the house: downstairs, up the stairwell, then upstairs.
 	return array(
 		array(
 			'name'   => __( 'Kitchen & living', 'gasworks-house' ),
@@ -27,20 +28,6 @@ function gwh_tour_rooms_default() {
 				'kitchen-living' => __( 'Open-plan kitchen and living room with the wood-burning stove lit and a long dining table', 'gasworks-house' ),
 				'kitchen-stove'  => __( 'Kitchen units, wood-burning stove and sofa', 'gasworks-house' ),
 				'kitchen-dining' => __( 'Dining table looking through to the lounge and hallway', 'gasworks-house' ),
-			),
-		),
-		array(
-			'name'   => __( 'Upstairs lounge', 'gasworks-house' ),
-			'note'   => __( 'A second chill-out space on the landing, with leather sofas under a skylight.', 'gasworks-house' ),
-			'photos' => array(
-				'upstairs-lounge' => __( 'Upstairs lounge with red leather sofas, pine floor and skylight', 'gasworks-house' ),
-			),
-		),
-		array(
-			'name'   => __( 'Hall & stairs', 'gasworks-house' ),
-			'note'   => __( 'A bright hallway and staircase linking every room.', 'gasworks-house' ),
-			'photos' => array(
-				'hall-stairs' => __( 'Entrance hall with white staircase and tiled floor', 'gasworks-house' ),
 			),
 		),
 		array(
@@ -54,17 +41,32 @@ function gwh_tour_rooms_default() {
 		array(
 			'name'   => __( 'The Window Room', 'gasworks-house' ),
 			'beds'   => __( '4 single beds', 'gasworks-house' ),
-			'note'   => __( 'Bright and airy, with a dressing table and mirror for getting ready.', 'gasworks-house' ),
+			'note'   => __( 'Bright and airy, with a big window, a dressing table and mirror, and fresh linen and towels on every bed.', 'gasworks-house' ),
 			'photos' => array(
 				'bedroom-window' => __( 'Bedroom with four single beds, large window and dressing table', 'gasworks-house' ),
+				'bedroom-quad'   => __( 'The same bedroom from the doorway, towels laid out on each bed', 'gasworks-house' ),
 			),
 		),
 		array(
-			'name'   => __( 'The Four-Bed Room', 'gasworks-house' ),
-			'beds'   => __( '4 single beds', 'gasworks-house' ),
-			'note'   => __( 'Made up with fresh linen and towels on every bed.', 'gasworks-house' ),
+			'name'   => __( 'The Bunk Room', 'gasworks-house' ),
+			'beds'   => __( 'Bunk beds', 'gasworks-house' ),
+			'note'   => __( 'Downstairs. Bunks for the crew who\'ll be up latest.', 'gasworks-house' ),
 			'photos' => array(
-				'bedroom-quad' => __( 'Bedroom with four single beds, towels laid out on each', 'gasworks-house' ),
+				'bunk-room' => __( 'Downstairs bunk room', 'gasworks-house' ),
+			),
+		),
+		array(
+			'name'   => __( 'The Stairwell', 'gasworks-house' ),
+			'note'   => __( 'A striking white staircase with turned spindles, rising from the tiled hall to the mezzanine.', 'gasworks-house' ),
+			'photos' => array(
+				'stairwell' => __( 'White staircase with turned spindles rising from the tiled entrance hall', 'gasworks-house' ),
+			),
+		),
+		array(
+			'name'   => __( 'The Mezzanine', 'gasworks-house' ),
+			'note'   => __( 'Upstairs. A lounge on the landing with red leather sofas under a skylight: the spot for the morning-after debrief.', 'gasworks-house' ),
+			'photos' => array(
+				'mezzanine' => __( 'Upstairs mezzanine lounge with red leather sofas, pine floor and skylight', 'gasworks-house' ),
 			),
 		),
 		array(
@@ -73,6 +75,14 @@ function gwh_tour_rooms_default() {
 			'note'   => __( 'Tucked under the eaves, with a sloped ceiling and pine floorboards.', 'gasworks-house' ),
 			'photos' => array(
 				'attic-room' => __( 'Attic bedroom with three single beds and a sloped timber ceiling', 'gasworks-house' ),
+			),
+		),
+		array(
+			'name'   => __( 'The Twin Room', 'gasworks-house' ),
+			'beds'   => __( '2 single beds', 'gasworks-house' ),
+			'note'   => __( 'Upstairs. Two single beds, for the pair who fancy a room to themselves.', 'gasworks-house' ),
+			'photos' => array(
+				'twin-room' => __( 'Upstairs twin bedroom', 'gasworks-house' ),
 			),
 		),
 		array(
@@ -100,7 +110,7 @@ function gwh_tour_rooms_default() {
 }
 
 /**
- * Rooms with resolved photo URLs, empty rooms removed.
+ * Rooms with resolved photo URLs. A room may have no photos yet.
  *
  * @return array[] Each: name, note, beds, photos[] (full, thumb, alt).
  */
@@ -123,14 +133,13 @@ function gwh_tour() {
 				);
 			}
 		}
-		if ( $photos ) {
-			$rooms[] = array(
-				'name'   => $room['name'],
-				'note'   => $room['note'],
-				'beds'   => isset( $room['beds'] ) ? $room['beds'] : '',
-				'photos' => $photos,
-			);
-		}
+		// Rooms stay in the tour before their photos arrive; the page shows a card for them.
+		$rooms[] = array(
+			'name'   => $room['name'],
+			'note'   => $room['note'],
+			'beds'   => isset( $room['beds'] ) ? $room['beds'] : '',
+			'photos' => $photos,
+		);
 	}
 	return $rooms;
 }

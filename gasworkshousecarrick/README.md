@@ -106,20 +106,21 @@ If you upload a logo under **Customize → Site Identity → Logo**, it replaces
 
 ## Photo tour
 
-The built-in tour has these rooms, in this order. A photo only appears once its file is in `gasworks-house/assets/img/tour/`, so adding one is just a matter of saving it there under the right name (a WebP up to 1800px wide, plus a 720px `-720.webp` thumbnail):
+The built-in tour walks through the house: downstairs, up the stairwell, then upstairs. A photo only appears once its file is in `gasworks-house/assets/img/tour/` (a WebP up to 1800px wide, plus a 720px `-720.webp` thumbnail). Until then, the room shows as a branded card with its name, beds and description, so the room list is always complete.
 
-| # | Room | Photos |
+| # | Room | Photos (✅ = added) |
 |---|---|---|
 | 01 | Kitchen & living | `kitchen-living` ✅, `kitchen-stove`, `kitchen-dining` |
-| 02 | Upstairs lounge | `upstairs-lounge` |
-| 03 | Hall & stairs | `hall-stairs` |
-| 04 | The Long Room (6 single beds) | `long-room` ✅ |
-| 05 | The Window Room (4 single beds) | `bedroom-window` ✅ |
-| 06 | The Four-Bed Room (4 single beds) | `bedroom-quad` ✅ |
+| 02 | The Long Room (6 single beds) | `long-room` ✅ |
+| 03 | The Window Room (4 single beds) | `bedroom-window` ✅, `bedroom-quad` ✅ |
+| 04 | The Bunk Room (downstairs, bunk beds) | `bunk-room` |
+| 05 | The Stairwell | `stairwell` |
+| 06 | The Mezzanine (upstairs lounge, red sofas) | `mezzanine` |
 | 07 | The Attic Room (3 single beds) | `attic-room` ✅ |
-| 08 | Main bathroom | `bathroom` ✅ |
-| 09 | Shower room | `shower-room` ✅ |
-| 10 | Party room | `party-room` ✅ |
+| 08 | The Twin Room (upstairs, 2 single beds) | `twin-room` |
+| 09 | Main bathroom | `bathroom` ✅ |
+| 10 | Shower room | `shower-room` ✅ |
+| 11 | Party room | `party-room` ✅ |
 
 The room names and bed counts come from the photos. Check them against the house, and edit them in `inc/tour.php`, or build your own tour in the Customizer.
 

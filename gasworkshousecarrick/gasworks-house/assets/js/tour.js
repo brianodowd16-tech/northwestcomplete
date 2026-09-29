@@ -9,14 +9,17 @@
 	var rooms;
 	try { rooms = JSON.parse(dataEl.textContent); } catch (e) { return; }
 
-	// Flatten to one list of photos, each knowing its room.
+	// Flatten to one list of stops, each knowing its room. A room without photos yet is one card stop.
 	var photos = [];
 	rooms.forEach(function (room, r) {
+		if (!room.photos.length) photos.push({ card: true, alt: room.name, room: r });
 		room.photos.forEach(function (p) { photos.push({ full: p.full, thumb: p.thumb, alt: p.alt, room: r }); });
 	});
 	if (!photos.length) return;
 
 	var img = root.querySelector('[data-tour-img]');
+	var figure = root.querySelector('.tour-figure');
+	var card = root.querySelector('[data-tour-card]');
 	var numEl = root.querySelector('[data-tour-num]');
 	var nameEl = root.querySelector('[data-tour-name]');
 	var bedsEl = root.querySelector('[data-tour-beds]');
@@ -30,14 +33,20 @@
 	function pad(n) { return (n < 10 ? '0' : '') + n; }
 	function wrap(i) { return (i + photos.length) % photos.length; }
 
-	function preload(i) { var p = new Image(); p.src = photos[wrap(i)].full; }
+	function preload(i) { var ph = photos[wrap(i)]; if (!ph.card) { var p = new Image(); p.src = ph.full; } }
 
 	function show(i) {
 		current = wrap(i);
 		var p = photos[current];
 		var room = rooms[p.room];
 
-		if (img.getAttribute('src') !== p.full) {
+		figure.classList.toggle('is-card', !!p.card);
+		card.hidden = !p.card; // The card sits over the previous photo.
+		if (p.card) {
+			root.querySelector('[data-tour-card-num]').textContent = pad(p.room + 1);
+			root.querySelector('[data-tour-card-name]').textContent = room.name;
+			root.querySelector('[data-tour-card-beds]').textContent = room.beds || '';
+		} else if (img.getAttribute('src') !== p.full) {
 			img.classList.add('is-loading');
 			var next = new Image();
 			next.onload = next.onerror = function () {
@@ -88,7 +97,7 @@
 			for (var k = 0; k < photos.length; k++) { if (photos[k].room === r) { show(k); break; } }
 			return;
 		}
-		if (e.target.closest('[data-tour-open]')) openBox();
+		if (e.target.closest('[data-tour-open]') && !photos[current].card) openBox();
 	});
 
 	// Arrow keys while the tour has focus.
@@ -143,13 +152,13 @@
 
 		box.addEventListener('click', function (e) {
 			var step = e.target.closest('[data-box-step]');
-			if (step) { show(current + +step.getAttribute('data-box-step')); return; }
+			if (step) { boxStep(+step.getAttribute('data-box-step')); return; }
 			if (e.target.closest('[data-box-close]') || e.target.classList.contains('tour-box-stage')) closeBox();
 		});
 		box.addEventListener('keydown', function (e) {
 			if (e.key === 'Escape') closeBox();
-			if (e.key === 'ArrowRight') show(current + 1);
-			if (e.key === 'ArrowLeft') show(current - 1);
+			if (e.key === 'ArrowRight') boxStep(1);
+			if (e.key === 'ArrowLeft') boxStep(-1);
 			if (e.key === 'Tab') {
 				// Keep focus inside the viewer.
 				var f = box.querySelectorAll('button');
@@ -157,7 +166,16 @@
 				else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { f[0].focus(); e.preventDefault(); }
 			}
 		});
-		swipe(box.querySelector('.tour-box-stage'), function (dir) { show(current + dir); });
+		swipe(box.querySelector('.tour-box-stage'), boxStep);
+	}
+
+	// Full screen only shows real photos, so skip over any room cards.
+	function boxStep(dir) {
+		var i = current;
+		for (var n = 0; n < photos.length; n++) {
+			i = wrap(i + dir);
+			if (!photos[i].card) { show(i); return; }
+		}
 	}
 
 	function renderBox() {
