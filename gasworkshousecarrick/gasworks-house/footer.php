@@ -35,6 +35,13 @@ $gwh_wa     = gwh_whatsapp_url();
 				<li><a href="<?php echo esc_url( ( is_front_page() ? '' : home_url( '/' ) ) . '#book' ); ?>"><?php esc_html_e( 'Book direct', 'gasworks-house' ); ?></a></li>
 			</ul>
 		</div>
+		<div>
+			<p class="footer-title"><?php esc_html_e( 'Find us', 'gasworks-house' ); ?></p>
+			<address class="footer-address">
+				<?php echo implode( '<br>', array_map( 'esc_html', gwh_address_lines() ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+			</address>
+			<a class="footer-maps" href="<?php echo esc_url( gwh_maps_url() ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Open in Google Maps →', 'gasworks-house' ); ?></a>
+		</div>
 		<?php if ( $gwh_social ) : ?>
 			<div>
 				<p class="footer-title"><?php esc_html_e( 'Follow along', 'gasworks-house' ); ?></p>
@@ -48,7 +55,7 @@ $gwh_wa     = gwh_whatsapp_url();
 	</div>
 	<div class="wrap footer-base muted">
 		<span>&copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> <?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
-		<span><?php esc_html_e( 'Carrick-on-Shannon · Co. Leitrim · Ireland', 'gasworks-house' ); ?></span>
+		<span><?php echo esc_html( sprintf( 'Carrick-on-Shannon · Co. Leitrim · %s', gwh_mod( 'eircode' ) ) ); ?></span>
 	</div>
 </footer>
 

@@ -206,9 +206,15 @@ $gwh_facts = array_filter( array(
 					</dl>
 				</div>
 				<?php if ( gwh_mod( 'map_query' ) ) : ?>
-					<div class="map">
-						<iframe title="<?php esc_attr_e( 'Map of Carrick-on-Shannon', 'gasworks-house' ); ?>" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-							src="https://maps.google.com/maps?q=<?php echo rawurlencode( gwh_mod( 'map_query' ) ); ?>&amp;z=14&amp;output=embed"></iframe>
+					<div class="map-wrap">
+						<div class="map">
+							<iframe title="<?php esc_attr_e( 'Map showing Gasworks House', 'gasworks-house' ); ?>" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+								src="https://maps.google.com/maps?q=<?php echo rawurlencode( gwh_mod( 'map_query' ) ); ?>&amp;z=16&amp;output=embed"></iframe>
+						</div>
+						<div class="map-bar">
+							<address><?php echo esc_html( implode( ', ', gwh_address_lines() ) ); ?></address>
+							<a class="btn btn-small" href="<?php echo esc_url( gwh_maps_url( true ) ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Get directions', 'gasworks-house' ); ?></a>
+						</div>
 					</div>
 				<?php endif; ?>
 			</div>

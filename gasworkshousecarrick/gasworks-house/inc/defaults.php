@@ -50,7 +50,8 @@ function gwh_defaults() {
 
 		// Getting here.
 		'address_street'   => '',
-		'map_query'        => 'Carrick-on-Shannon, Co. Leitrim, Ireland',
+		'eircode'          => 'N41 DW99',
+		'map_query'        => 'Gasworks House, N41 DW99, Carrick-on-Shannon, Co. Leitrim',
 		'getting_here'     => "By car | About 2 hours from Dublin on the N4.\nBy train | Direct trains from Dublin Connolly on the Sligo line stop in Carrick-on-Shannon.\nBy air | Under an hour from Ireland West Airport Knock.",
 
 		// Reviews (left empty: add real guest reviews only).

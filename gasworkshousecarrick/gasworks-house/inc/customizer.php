@@ -71,8 +71,9 @@ function gwh_customize_register( $wp_customize ) {
 			'title'  => __( 'Things to do & location', 'gasworks-house' ),
 			'fields' => array(
 				'things'         => array( 'textarea', __( 'Things to do. ', 'gasworks-house' ) . $pipe_help ),
-				'address_street' => array( 'text', __( 'Street address (optional, used for Google)', 'gasworks-house' ) ),
-				'map_query'      => array( 'text', __( 'Map location (address or Eircode)', 'gasworks-house' ) ),
+				'address_street' => array( 'text', __( 'Street address (shown in the footer)', 'gasworks-house' ) ),
+				'eircode'        => array( 'text', __( 'Eircode', 'gasworks-house' ) ),
+				'map_query'      => array( 'text', __( 'What Google Maps searches for (name + Eircode works best)', 'gasworks-house' ) ),
 				'getting_here'   => array( 'textarea', __( 'Getting here. ', 'gasworks-house' ) . $pipe_help ),
 			),
 		),

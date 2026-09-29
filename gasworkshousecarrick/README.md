@@ -25,7 +25,7 @@ A custom one-page WordPress theme for **Gasworks House**, a boutique hen and sta
    - **The house**: guest numbers, bedrooms, bathrooms, description and features
    - **Photo tour**: optional. Pick up to 20 photos to replace the built-in ones, and label each as `Room | description` (e.g. `The Attic Room | Three singles under the eaves`). Photos with the same room name are grouped together.
    - **Hero & SEO**: the main photo at the top of the page (built in: the kitchen with the stove lit) and your Google description
-   - **Things to do & location**: add your address or Eircode for the map
+   - **Things to do & location**: the map, directions and footer already point to **Gasworks House, N41 DW99**. Add the street address here and it appears in the footer too
    - **Reviews & FAQ**
 4. Your logo and favicon are built in (see Branding below). Set the site title to "Gasworks House Carrick" under **Customize → Site Identity**.
 5. If Hostinger's **LiteSpeed Cache** is on, purge the cache after each change (**LiteSpeed Cache → Toolbox → Purge All**).

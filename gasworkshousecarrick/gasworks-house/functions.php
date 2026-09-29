@@ -101,10 +101,12 @@ function gwh_head_meta() {
 		'name'        => $title,
 		'description' => $desc,
 		'url'         => home_url( '/' ),
+		'hasMap'      => gwh_maps_url(),
 		'logo'        => gwh_brand_url( 'logo-dark.png' ),
 		'address'     => array(
 			'@type'           => 'PostalAddress',
 			'streetAddress'   => gwh_mod( 'address_street' ),
+			'postalCode'      => gwh_mod( 'eircode' ),
 			'addressLocality' => 'Carrick-on-Shannon',
 			'addressRegion'   => 'Co. Leitrim',
 			'addressCountry'  => 'IE',
@@ -122,6 +124,28 @@ function gwh_head_meta() {
 	echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . "</script>\n";
 }
 add_action( 'wp_head', 'gwh_head_meta', 1 );
+
+/**
+ * Google Maps: open the listing, or get directions to it.
+ */
+function gwh_maps_url( $directions = false ) {
+	$place = rawurlencode( gwh_mod( 'map_query' ) );
+	return $directions
+		? 'https://www.google.com/maps/dir/?api=1&destination=' . $place
+		: 'https://www.google.com/maps/search/?api=1&query=' . $place;
+}
+
+/**
+ * Address as display lines: name, street (if set), town, Eircode.
+ */
+function gwh_address_lines() {
+	return array_values( array_filter( array(
+		__( 'Gasworks House', 'gasworks-house' ),
+		gwh_mod( 'address_street' ),
+		__( 'Carrick-on-Shannon, Co. Leitrim', 'gasworks-house' ),
+		gwh_mod( 'eircode' ),
+	) ) );
+}
 
 function gwh_brand_url( $file ) {
 	return get_template_directory_uri() . '/assets/brand/' . $file;
