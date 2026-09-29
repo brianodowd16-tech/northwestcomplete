@@ -22,8 +22,8 @@ function gwh_defaults() {
 		// Booking & contact.
 		'airbnb_url'       => 'https://www.airbnb.ie/rooms/50016674',
 		'airbnb_embed'     => true,
-		'contact_email'    => '',
-		'contact_phone'    => '',
+		'contact_email'    => 'stay@gasworkshousecarrick.com',
+		'contact_phone'    => '086 174 2808',
 		'whatsapp'         => '',
 		'instagram_url'    => '',
 		'facebook_url'     => '',

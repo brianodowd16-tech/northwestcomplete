@@ -27,7 +27,7 @@ $gwh_wa     = gwh_whatsapp_url();
 					<li><a href="mailto:<?php echo esc_attr( antispambot( $gwh_email ) ); ?>"><?php echo esc_html( antispambot( $gwh_email ) ); ?></a></li>
 				<?php endif; ?>
 				<?php if ( $gwh_phone ) : ?>
-					<li><a href="tel:<?php echo esc_attr( gwh_phone_digits( $gwh_phone ) ); ?>"><?php echo esc_html( $gwh_phone ); ?></a></li>
+					<li><a href="<?php echo esc_attr( gwh_tel_link( $gwh_phone ) ); ?>"><?php echo esc_html( $gwh_phone ); ?></a></li>
 				<?php endif; ?>
 				<?php if ( $gwh_wa ) : ?>
 					<li><a href="<?php echo esc_url( $gwh_wa ); ?>" rel="noopener" target="_blank"><?php esc_html_e( 'WhatsApp us', 'gasworks-house' ); ?></a></li>

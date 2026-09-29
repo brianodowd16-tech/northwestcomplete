@@ -111,7 +111,7 @@ function gwh_head_meta() {
 		),
 	);
 	if ( gwh_mod( 'contact_phone' ) ) {
-		$schema['telephone'] = gwh_mod( 'contact_phone' );
+		$schema['telephone'] = substr( gwh_tel_link( gwh_mod( 'contact_phone' ) ), 4 );
 	}
 	if ( gwh_mod( 'contact_email' ) ) {
 		$schema['email'] = gwh_mod( 'contact_email' );
@@ -163,6 +163,17 @@ add_filter( 'login_headerurl', function () {
 function gwh_phone_digits( $phone ) {
 	$digits = preg_replace( '/[^0-9+]/', '', (string) $phone );
 	return $digits;
+}
+
+/**
+ * International tel: link, so it works from abroad too. Irish local numbers (086 ...) become +35386...
+ */
+function gwh_tel_link( $phone ) {
+	$digits = gwh_phone_digits( $phone );
+	if ( 0 === strpos( $digits, '0' ) && 0 !== strpos( $digits, '00' ) ) {
+		$digits = '+353' . substr( $digits, 1 );
+	}
+	return 'tel:' . $digits;
 }
 
 function gwh_whatsapp_url() {
