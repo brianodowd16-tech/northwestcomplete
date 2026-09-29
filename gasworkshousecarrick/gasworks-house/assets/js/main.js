@@ -71,23 +71,4 @@
 		});
 	});
 
-	// Simple gallery lightbox.
-	document.querySelectorAll('[data-lightbox]').forEach(function (link) {
-		link.addEventListener('click', function (e) {
-			e.preventDefault();
-			var box = document.createElement('div');
-			box.className = 'lightbox';
-			box.setAttribute('role', 'dialog');
-			box.setAttribute('aria-label', 'Photo');
-			var img = document.createElement('img');
-			img.src = link.href;
-			img.alt = (link.querySelector('img') || {}).alt || '';
-			box.appendChild(img);
-			function close() { box.remove(); document.removeEventListener('keydown', onKey); link.focus(); }
-			function onKey(ev) { if (ev.key === 'Escape') close(); }
-			box.addEventListener('click', close);
-			document.addEventListener('keydown', onKey);
-			document.body.appendChild(box);
-		});
-	});
 })();

@@ -9,10 +9,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'GWH_VERSION', '1.3.0' );
+define( 'GWH_VERSION', '1.4.0' );
 
 require get_template_directory() . '/inc/defaults.php';
 require get_template_directory() . '/inc/customizer.php';
+require get_template_directory() . '/inc/tour.php';
 require get_template_directory() . '/inc/booking/core.php';
 require get_template_directory() . '/inc/booking/api.php';
 require get_template_directory() . '/inc/booking/payments.php';
@@ -58,6 +59,7 @@ function gwh_assets() {
 	wp_enqueue_style( 'gwh-fonts', 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Manrope:wght@400;500;700&display=swap', array(), null );
 	wp_enqueue_style( 'gwh-main', get_template_directory_uri() . '/assets/css/main.css', array(), GWH_VERSION );
 	wp_enqueue_script( 'gwh-main', get_template_directory_uri() . '/assets/js/main.js', array(), GWH_VERSION, true );
+	wp_enqueue_script( 'gwh-tour', get_template_directory_uri() . '/assets/js/tour.js', array(), GWH_VERSION, true );
 	if ( is_front_page() ) {
 		wp_enqueue_script( 'gwh-booking', get_template_directory_uri() . '/assets/js/booking.js', array(), GWH_VERSION, true );
 		wp_add_inline_script( 'gwh-booking', 'window.GWH_BOOKING = ' . wp_json_encode( gwh_calendar_config() ) . ';', 'before' );
@@ -176,58 +178,12 @@ function gwh_whatsapp_url() {
 }
 
 /**
- * Photos bundled with the theme, used until photos are chosen in the Customizer.
- */
-function gwh_bundled_photos() {
-	$base = get_template_directory_uri() . '/assets/img/';
-	$list = array(
-		'bedroom-window' => __( 'Bright group bedroom with single beds and a large window', 'gasworks-house' ),
-		'bedroom-quad'   => __( 'Bedroom with four single beds, fresh linen and towels', 'gasworks-house' ),
-		'party-room'     => __( 'Large open-plan room with tiled floor and sliding doors', 'gasworks-house' ),
-		'bathroom'       => __( 'Spacious bathroom with walk-in shower', 'gasworks-house' ),
-	);
-	$out = array();
-	foreach ( $list as $file => $alt ) {
-		$out[] = array(
-			'full'  => $base . $file . '.jpg',
-			'thumb' => $base . $file . '-900.jpg',
-			'alt'   => $alt,
-		);
-	}
-	return $out;
-}
-
-/**
- * Gallery photos: Customizer choices if any, otherwise the bundled photos.
- *
- * @return array[] Each item has full, thumb and alt.
- */
-function gwh_gallery_items() {
-	$items = array();
-	for ( $i = 1; $i <= 8; $i++ ) {
-		$id = absint( gwh_mod( 'gallery_' . $i ) );
-		if ( $id && wp_get_attachment_image_url( $id, 'full' ) ) {
-			$items[] = array(
-				'full'  => wp_get_attachment_image_url( $id, 'full' ),
-				'thumb' => wp_get_attachment_image_url( $id, 0 === count( $items ) ? 'large' : 'medium_large' ),
-				'alt'   => get_post_meta( $id, '_wp_attachment_image_alt', true ),
-			);
-		}
-	}
-	return $items ? $items : gwh_bundled_photos();
-}
-
-/**
- * Hero photo: Customizer choice, otherwise the first bundled photo.
+ * Hero photo: Customizer choice, otherwise the kitchen and living room with the stove lit.
  */
 function gwh_hero_url() {
 	$id  = absint( gwh_mod( 'hero_image' ) );
 	$url = $id ? wp_get_attachment_image_url( $id, 'full' ) : '';
-	if ( ! $url ) {
-		$bundled = gwh_bundled_photos();
-		$url     = $bundled[0]['full'];
-	}
-	return $url;
+	return $url ? $url : get_template_directory_uri() . '/assets/img/kitchen-living.jpg';
 }
 
 /**

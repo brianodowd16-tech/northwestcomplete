@@ -8,7 +8,7 @@ A custom one-page WordPress theme for **Gasworks House**, a boutique hen and sta
 
 - **Hero**: headline, key facts (guests, bedrooms, bathrooms, minimum nights) and a booking button
 - **The house**: description and a feature checklist
-- **Photo gallery**: your 4 photos are built in, so the site works straight away. Choose different photos in the Customizer to replace them.
+- **Photo tour**: a room-by-room tour of the house (room list, large photo viewer with the room's beds and description, a strip of every photo, and full screen with swipe and arrow keys). Your photos are built in.
 - **Hens & stags**: a hen/stag toggle with party ideas for each
 - **Carrick-on-Shannon**: things to do, directions and a Google Map
 - **Reviews**: hidden until you add real guest reviews
@@ -23,8 +23,8 @@ A custom one-page WordPress theme for **Gasworks House**, a boutique hen and sta
 3. Go to **Appearance → Customize → Gasworks House** and fill in each section:
    - **Booking & contact**: your Airbnb listing URL (shown as a secondary "Prefer Airbnb?" option), email, phone and WhatsApp
    - **The house**: guest numbers, bedrooms, bathrooms, description and features
-   - **Photo gallery**: optional. Pick up to 8 photos to replace the built-in ones. The first one is shown largest.
-   - **Hero & SEO**: a large landscape hero photo (about 2000px wide) and your Google description
+   - **Photo tour**: optional. Pick up to 20 photos to replace the built-in ones, and label each as `Room | description` (e.g. `The Attic Room | Three singles under the eaves`). Photos with the same room name are grouped together.
+   - **Hero & SEO**: the main photo at the top of the page (built in: the kitchen with the stove lit) and your Google description
    - **Things to do & location**: add your address or Eircode for the map
    - **Reviews & FAQ**
 4. Your logo and favicon are built in (see Branding below). Set the site title to "Gasworks House Carrick" under **Customize → Site Identity**.
@@ -103,6 +103,25 @@ The **favicon** is the "G" from your logo in flame colours on a dark tile. The f
 Buttons and highlights use the flame orange and red from the logo. Pink stays on hen-party elements and teal on stag-party ones.
 
 If you upload a logo under **Customize → Site Identity → Logo**, it replaces the built-in one in the header. Use a light version, because the header is dark.
+
+## Photo tour
+
+The built-in tour has these rooms, in this order. A photo only appears once its file is in `gasworks-house/assets/img/tour/`, so adding one is just a matter of saving it there under the right name (a WebP up to 1800px wide, plus a 720px `-720.webp` thumbnail):
+
+| # | Room | Photos |
+|---|---|---|
+| 01 | Kitchen & living | `kitchen-living` ✅, `kitchen-stove`, `kitchen-dining` |
+| 02 | Upstairs lounge | `upstairs-lounge` |
+| 03 | Hall & stairs | `hall-stairs` |
+| 04 | The Long Room (6 single beds) | `long-room` ✅ |
+| 05 | The Window Room (4 single beds) | `bedroom-window` ✅ |
+| 06 | The Four-Bed Room (4 single beds) | `bedroom-quad` ✅ |
+| 07 | The Attic Room (3 single beds) | `attic-room` ✅ |
+| 08 | Main bathroom | `bathroom` ✅ |
+| 09 | Shower room | `shower-room` ✅ |
+| 10 | Party room | `party-room` ✅ |
+
+The room names and bed counts come from the photos. Check them against the house, and edit them in `inc/tour.php`, or build your own tour in the Customizer.
 
 ## ⚠️ Check the default wording before going live
 

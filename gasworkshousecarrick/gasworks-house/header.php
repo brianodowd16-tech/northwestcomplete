@@ -42,6 +42,7 @@ $gwh_anchor   = $gwh_on_front ? '' : home_url( '/' );
 				?>
 				<ul class="nav-list">
 					<li><a href="<?php echo esc_url( $gwh_anchor . '#house' ); ?>"><?php esc_html_e( 'The House', 'gasworks-house' ); ?></a></li>
+					<li><a href="<?php echo esc_url( $gwh_anchor . '#tour' ); ?>"><?php esc_html_e( 'Photos', 'gasworks-house' ); ?></a></li>
 					<li><a href="<?php echo esc_url( $gwh_anchor . '#parties' ); ?>"><?php esc_html_e( 'Hens & Stags', 'gasworks-house' ); ?></a></li>
 					<li><a href="<?php echo esc_url( $gwh_anchor . '#carrick' ); ?>"><?php esc_html_e( 'Carrick', 'gasworks-house' ); ?></a></li>
 					<li><a href="<?php echo esc_url( $gwh_anchor . '#faq' ); ?>"><?php esc_html_e( 'FAQ', 'gasworks-house' ); ?></a></li>

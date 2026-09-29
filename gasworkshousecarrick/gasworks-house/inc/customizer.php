@@ -54,7 +54,8 @@ function gwh_customize_register( $wp_customize ) {
 			),
 		),
 		'gwh_gallery' => array(
-			'title'  => __( 'Photo gallery', 'gasworks-house' ),
+			'title'  => __( 'Photo tour', 'gasworks-house' ),
+			'description' => __( 'Leave empty to use the built-in photos. Photos you add here replace them all. Label each as "Room | description", e.g. "The Attic Room | Three singles under the eaves". Photos with the same room name are grouped together, in order.', 'gasworks-house' ),
 			'fields' => array(),
 		),
 		'gwh_parties' => array(
@@ -84,9 +85,11 @@ function gwh_customize_register( $wp_customize ) {
 		),
 	);
 
-	for ( $i = 1; $i <= 8; $i++ ) {
+	for ( $i = 1; $i <= GWH_TOUR_SLOTS; $i++ ) {
 		/* translators: %d: photo number */
-		$sections['gwh_gallery']['fields'][ 'gallery_' . $i ] = array( 'image', sprintf( __( 'Photo %d', 'gasworks-house' ), $i ) );
+		$sections['gwh_gallery']['fields'][ 'tour_photo_' . $i ] = array( 'image', sprintf( __( 'Photo %d', 'gasworks-house' ), $i ) );
+		/* translators: %d: photo number */
+		$sections['gwh_gallery']['fields'][ 'tour_label_' . $i ] = array( 'text', sprintf( __( 'Photo %d: Room | description', 'gasworks-house' ), $i ) );
 	}
 
 	$defaults  = gwh_defaults();
@@ -101,8 +104,9 @@ function gwh_customize_register( $wp_customize ) {
 
 	foreach ( $sections as $section_id => $section ) {
 		$wp_customize->add_section( $section_id, array(
-			'title' => $section['title'],
-			'panel' => 'gwh',
+			'title'       => $section['title'],
+			'description' => isset( $section['description'] ) ? $section['description'] : '',
+			'panel'       => 'gwh',
 		) );
 
 		foreach ( $section['fields'] as $key => $field ) {
