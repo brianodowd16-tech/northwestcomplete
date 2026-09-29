@@ -45,6 +45,14 @@ document.querySelectorAll(".card").forEach((card) => {
   });
 });
 
+// Buttons that pre-select a service in the contact form
+document.querySelectorAll("[data-service]").forEach((link) => {
+  link.addEventListener("click", () => {
+    const select = document.getElementById("service");
+    if (select) select.value = link.dataset.service;
+  });
+});
+
 // Contact details
 document.querySelectorAll("[data-contact-email]").forEach((a) => {
   a.href = `mailto:${CONTACT_EMAIL}`;

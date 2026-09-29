@@ -19,6 +19,8 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+section[id] { scroll-margin-top: 88px; }
+#audit { scroll-margin-top: 104px; }
 body {
   margin: 0;
   background: var(--bg);
@@ -162,6 +164,24 @@ p { margin: 0; }
 @media (min-width: 1000px) { .card--wide { grid-column: span 2; } .card--feature h3 { font-size: 1.6rem; } .card--feature p { font-size: 1.05rem; max-width: 56ch; } }
 .tags { list-style: none; padding: 0; margin: 22px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .tags li { font-size: 0.82rem; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--text); }
+
+/* Audit */
+.section--tight { padding-top: 0; }
+.audit { display: grid; gap: 40px; padding: 32px 20px; border-radius: 28px; border: 1px solid var(--line-strong);
+  background: radial-gradient(90% 120% at 0% 0%, rgba(94, 234, 212, 0.12), transparent 60%), var(--surface); }
+@media (min-width: 720px) { .audit { padding: 48px; } }
+@media (min-width: 1000px) { .audit { grid-template-columns: 1fr 1.35fr; gap: 56px; align-items: start; } }
+.audit__intro { display: grid; gap: 18px; justify-items: start; min-width: 0; }
+.audit__intro .eyebrow { margin: 0; }
+.audit__intro > p:not(.eyebrow):not(.audit__price) { color: var(--muted); max-width: 52ch; }
+.audit__price { display: flex; align-items: baseline; gap: 10px; }
+.audit__price strong { font: 700 clamp(2.6rem, 6vw, 3.6rem)/1 var(--font-display); letter-spacing: -0.03em; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.audit__price span { color: var(--muted); font-size: 0.95rem; }
+.audit__list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 560px) { .audit__list { grid-template-columns: 1fr 1fr; } }
+.audit__list li { padding: 20px; border-radius: 16px; background: rgba(7, 9, 15, 0.5); border: 1px solid var(--line); min-width: 0; }
+.audit__list h3 { font-size: 1rem; margin-bottom: 6px; }
+.audit__list p { color: var(--muted); font-size: 0.9rem; }
 
 /* Platforms */
 .platforms { display: grid; gap: 12px; grid-template-columns: 1fr; }
