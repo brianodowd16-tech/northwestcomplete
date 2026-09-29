@@ -385,15 +385,15 @@ $gwh_facts = array_filter( array(
 								<?php if ( gwh_whatsapp_url() ) : ?>
 									<a class="btn btn-wa" href="<?php echo esc_url( gwh_whatsapp_url() ); ?>" target="_blank" rel="noopener"><?php echo gwh_whatsapp_icon(); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php esc_html_e( 'WhatsApp us', 'gasworks-house' ); ?></a>
 								<?php endif; ?>
-				</div>
-							<?php if ( gwh_mod( 'contact_phone' ) ) : ?>
-								<a class="btn btn-ghost" href="<?php echo esc_attr( gwh_tel_link( gwh_mod( 'contact_phone' ) ) ); ?>">
-									<?php /* translators: %s: phone number */ echo esc_html( sprintf( __( 'Call %s', 'gasworks-house' ), gwh_mod( 'contact_phone' ) ) ); ?>
-								</a>
-							<?php endif; ?>
+								<?php if ( gwh_mod( 'contact_phone' ) ) : ?>
+									<a class="btn btn-ghost" href="<?php echo esc_attr( gwh_tel_link( gwh_mod( 'contact_phone' ) ) ); ?>">
+										<?php /* translators: %s: phone number */ echo esc_html( sprintf( __( 'Call %s', 'gasworks-house' ), gwh_mod( 'contact_phone' ) ) ); ?>
+									</a>
+								<?php endif; ?>
+							</div>
 						</div>
-					</div>
-				<?php endif; ?>
+					<?php endif; ?>
+				</div>
 			</div>
 		</div>
 	</section>

@@ -458,7 +458,7 @@ p { margin: 0 0 1em; }
 .book-done { padding: 28px 8px; text-align: center; }
 .book-done-title { font-family: var(--font-display); font-size: 30px; font-weight: 700; margin-bottom: 8px; }
 
-.book-extra { display: grid; grid-template-columns: 2fr 1fr; gap: 32px; align-items: start; margin-top: 40px; }
+.book-extra { display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; align-items: start; margin-top: 40px; }
 @media (max-width: 960px) { .book-extra { grid-template-columns: 1fr; } }
 .steps { list-style: none; counter-reset: s; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 @media (max-width: 640px) { .steps { grid-template-columns: 1fr; } }
@@ -475,7 +475,14 @@ p { margin: 0 0 1em; }
 .book-side { display: grid; gap: 28px; align-content: start; }
 .ask { margin: 0; }
 .ask p { margin-bottom: 12px; color: rgba(255, 255, 255, .8); }
-.ask-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.ask-actions { display: flex; flex-wrap: nowrap; gap: 20px; }
+.ask-actions .btn { white-space: nowrap; }
+@media (max-width: 480px) {
+	.ask-actions { gap: 12px; }
+	.ask-actions .btn { min-height: 46px; padding: 0 14px; font-size: 14.5px; }
+	.ask-actions .wa-icon { width: 18px; height: 18px; }
+}
+@media (max-width: 340px) { .ask-actions { flex-wrap: wrap; } }
 .ask .btn-ghost { color: #fff; }
 .btn-wa { background: #1faa53; box-shadow: 0 10px 30px -12px rgba(31, 170, 83, .7); }
 .btn-wa:hover { box-shadow: 0 16px 34px -12px rgba(31, 170, 83, .85); }
