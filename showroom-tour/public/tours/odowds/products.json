@@ -1,0 +1,24 @@
+{
+  "currency": "EUR",
+  "locale": "en-IE",
+  "checkout": {
+    "mode": "demo",
+    "storeUrl": "https://odowdscarrick.com",
+    "email": ""
+  },
+  "products": [
+    { "sku": "STV-MF5", "name": "5kW Multi-fuel Stove", "category": "Stoves", "price": 1195, "image": "products/stove.svg", "url": "", "description": "Sample product. Compact 5kW multi-fuel stove with airwash glass and a riddling grate. Ecodesign ready." },
+    { "sku": "STV-MF8", "name": "8kW Boiler Stove", "category": "Stoves", "price": 1895, "image": "products/stove.svg", "url": "", "description": "Sample product. 8kW stove with back boiler that heats the room and your hot water." },
+    { "sku": "STV-INS", "name": "Inset Multi-fuel Stove", "category": "Stoves", "price": 1450, "image": "products/stove.svg", "url": "", "description": "Sample product. Inset stove that fits a standard fireplace opening for a clean, built-in look." },
+    { "sku": "FP-MRB", "name": "Marble Fireplace Surround", "category": "Fireplaces", "price": 2250, "image": "products/fireplace.svg", "url": "", "description": "Sample product. Polished marble surround with matching hearth and back panel." },
+    { "sku": "FP-CI", "name": "Cast Iron Fireplace Insert", "category": "Fireplaces", "price": 895, "image": "products/fireplace.svg", "url": "", "description": "Sample product. Traditional cast iron insert with tiled cheeks." },
+    { "sku": "FP-OAK", "name": "Oak Beam Mantel 1500mm", "category": "Fireplaces", "price": 345, "image": "products/fireplace.svg", "url": "", "description": "Sample product. Solid oak beam mantel, 1500mm, with a hidden fixing kit." },
+    { "sku": "EF-WALL", "name": "Wall-mounted Electric Fire", "category": "Electric & gas", "price": 699, "image": "products/fireplace.svg", "url": "", "description": "Sample product. Slimline wall-mounted electric fire with LED flame effect and remote." },
+    { "sku": "GF-BAL", "name": "Balanced Flue Gas Fire", "category": "Electric & gas", "price": 1650, "image": "products/fireplace.svg", "url": "", "description": "Sample product. Balanced flue gas fire that needs no chimney. Installation by a registered installer." },
+    { "sku": "ACC-TOOL", "name": "Companion Set", "category": "Accessories", "price": 79, "image": "products/accessory.svg", "url": "", "description": "Sample product. Poker, brush, shovel and tongs on a stand." },
+    { "sku": "ACC-BSK", "name": "Log Basket", "category": "Accessories", "price": 49, "image": "products/accessory.svg", "url": "", "description": "Sample product. Steel log basket with handles." },
+    { "sku": "ACC-GLV", "name": "Stove Gloves", "category": "Accessories", "price": 19, "image": "products/accessory.svg", "url": "", "description": "Sample product. Heat-resistant gloves for loading the stove." },
+    { "sku": "ACC-FUEL", "name": "Kiln-dried Logs (1m³)", "category": "Accessories", "price": 135, "image": "products/accessory.svg", "url": "", "description": "Sample product. Kiln-dried hardwood logs under 20% moisture, ready to burn." },
+    { "sku": "ACC-CO", "name": "Carbon Monoxide Alarm", "category": "Accessories", "price": 29, "image": "products/accessory.svg", "url": "", "description": "Sample product. Battery CO alarm. Required with every solid-fuel stove installation." }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "id": "odowds",
+  "name": "O'Dowds Carrick Showroom",
+  "startNodeId": "g-entrance",
+  "floors": [
+    { "id": "ground", "name": "Ground floor", "plan": "plans/ground.svg", "size": [1000, 600] },
+    { "id": "first", "name": "First floor", "plan": "plans/first.svg", "size": [1000, 600] }
+  ],
+  "nodes": [
+    {
+      "id": "g-entrance",
+      "name": "Entrance & reception",
+      "floor": "ground",
+      "plan": [160, 470],
+      "heading": 0,
+      "panorama": "panos/g-entrance.jpg",
+      "thumbnail": "thumbs/g-entrance.jpg",
+      "links": [{ "nodeId": "g-stoves" }, { "nodeId": "g-fireplaces" }],
+      "hotspots": [
+        { "sku": "ACC-CO", "yaw": -60, "pitch": -5 },
+        { "sku": "ACC-GLV", "yaw": -95, "pitch": -8 }
+      ]
+    },
+    {
+      "id": "g-stoves",
+      "name": "Stove gallery",
+      "floor": "ground",
+      "plan": [480, 450],
+      "heading": 0,
+      "panorama": "panos/g-stoves.jpg",
+      "thumbnail": "thumbs/g-stoves.jpg",
+      "links": [{ "nodeId": "g-entrance" }, { "nodeId": "g-fireplaces" }, { "nodeId": "g-stairs" }],
+      "hotspots": [
+        { "sku": "STV-MF5", "yaw": 150, "pitch": -12 },
+        { "sku": "STV-MF8", "yaw": 180, "pitch": -12 },
+        { "sku": "STV-INS", "yaw": 210, "pitch": -8 },
+        { "sku": "ACC-TOOL", "yaw": 125, "pitch": -18 }
+      ]
+    },
+    {
+      "id": "g-fireplaces",
+      "name": "Fireplace showroom",
+      "floor": "ground",
+      "plan": [440, 170],
+      "heading": 0,
+      "panorama": "panos/g-fireplaces.jpg",
+      "thumbnail": "thumbs/g-fireplaces.jpg",
+      "links": [{ "nodeId": "g-entrance" }, { "nodeId": "g-stoves" }],
+      "hotspots": [
+        { "sku": "FP-MRB", "yaw": -20, "pitch": -5 },
+        { "sku": "FP-CI", "yaw": 20, "pitch": -10 },
+        { "sku": "FP-OAK", "yaw": -60, "pitch": 5 }
+      ]
+    },
+    {
+      "id": "g-stairs",
+      "name": "Stairs (ground)",
+      "floor": "ground",
+      "plan": [840, 300],
+      "heading": 0,
+      "panorama": "panos/g-stairs.jpg",
+      "thumbnail": "thumbs/g-stairs.jpg",
+      "links": [{ "nodeId": "g-stoves" }, { "nodeId": "f-landing", "yaw": 0 }],
+      "hotspots": []
+    },
+    {
+      "id": "f-landing",
+      "name": "First floor landing",
+      "floor": "first",
+      "plan": [840, 300],
+      "heading": 0,
+      "panorama": "panos/f-landing.jpg",
+      "thumbnail": "thumbs/f-landing.jpg",
+      "links": [{ "nodeId": "g-stairs", "yaw": 180 }, { "nodeId": "f-electric" }, { "nodeId": "f-accessories" }],
+      "hotspots": []
+    },
+    {
+      "id": "f-electric",
+      "name": "Electric & gas fires",
+      "floor": "first",
+      "plan": [450, 180],
+      "heading": 0,
+      "panorama": "panos/f-electric.jpg",
+      "thumbnail": "thumbs/f-electric.jpg",
+      "links": [{ "nodeId": "f-landing" }, { "nodeId": "f-accessories" }],
+      "hotspots": [
+        { "sku": "EF-WALL", "yaw": 0, "pitch": 5 },
+        { "sku": "GF-BAL", "yaw": -40, "pitch": -8 }
+      ]
+    },
+    {
+      "id": "f-accessories",
+      "name": "Accessories & fuel",
+      "floor": "first",
+      "plan": [450, 450],
+      "heading": 0,
+      "panorama": "panos/f-accessories.jpg",
+      "thumbnail": "thumbs/f-accessories.jpg",
+      "links": [{ "nodeId": "f-landing" }, { "nodeId": "f-electric" }],
+      "hotspots": [
+        { "sku": "ACC-BSK", "yaw": 160, "pitch": -15 },
+        { "sku": "ACC-FUEL", "yaw": 200, "pitch": -15 },
+        { "sku": "ACC-TOOL", "yaw": 230, "pitch": -10 }
+      ]
+    }
+  ]
+}

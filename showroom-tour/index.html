@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1f1a17" />
+    <title>Showroom Tour</title>
+  </head>
+  <body>
+    <div id="viewer"></div>
+
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span id="brandName">Showroom</span></div>
+      <button type="button" id="cartBtn" class="cart-btn" aria-label="Cart">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM5.2 4l.6 3H21l-2 8H7.6L4.4 2H1v2h4.2Z"/></svg>
+        <span id="cartCount">0</span>
+      </button>
+    </header>
+
+    <aside id="plan" class="plan" aria-label="Floor plan">
+      <div class="plan-head">
+        <div id="planTabs" class="plan-tabs"></div>
+        <button type="button" id="planToggle" class="plan-toggle" aria-expanded="true" aria-label="Show or hide floor plan">▾</button>
+      </div>
+      <div id="planMap" class="plan-map"></div>
+    </aside>
+
+    <div class="roombar">
+      <span id="roomName"></span>
+      <button type="button" id="roomProducts"></button>
+    </div>
+
+    <aside id="drawer" class="drawer" hidden>
+      <header class="drawer-head">
+        <h2 id="drawerTitle"></h2>
+        <button type="button" id="drawerClose" aria-label="Close">×</button>
+      </header>
+      <div id="drawerBody" class="drawer-body"></div>
+    </aside>
+
+    <div id="toast" class="toast" role="status" hidden></div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
