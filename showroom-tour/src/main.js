@@ -327,7 +327,7 @@ function openCart() {
           )
           .join('')}</ul>
         <div class="cart-total"><span>Total</span><strong>${esc(app.money(app.cart.total()))}</strong></div>
-        <button type="button" class="btn-primary wide" data-checkout>Checkout</button>
+        <button type="button" class="btn-primary wide" data-checkout>${['shopify', 'woocommerce'].includes(app.catalog.checkout?.mode) ? 'Continue to cart' : 'Checkout'}</button>
         <button type="button" class="btn-link" data-continue>Keep browsing</button>`
       : '<p class="empty">Your cart is empty. Tap a price tag in the showroom to add products.</p>',
   );

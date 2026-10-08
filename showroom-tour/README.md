@@ -72,28 +72,46 @@ Set each floor's `size` in `tour.json` to the image's pixel size.
 
 Then run `npm run validate`. It reports broken links, unknown SKUs, one-way links and missing files.
 
-### 5. Connect the shop
+### 5. Connect the shop (WooCommerce)
 
-`public/tours/odowds/products.json` holds the catalogue and the checkout setting.
+The pilot is set to hand the cart to the O'Dowds WooCommerce shop (`checkout.mode: "woocommerce"` in
+`public/tours/odowds/products.json`). **Continue to cart** puts every item in the WooCommerce cart in one go
+and opens the shop's cart page. Customers check out there as normal, with the shop's own delivery,
+payment and VAT settings.
+
+**a. Install the cart-link plugin on the WordPress site** (one time):
+
+1. Zip `wordpress/showroom-tour-cart.php`, then upload it at *WordPress admin → Plugins → Add New → Upload Plugin*,
+   or copy the file into `wp-content/plugins/`.
+2. Activate **Showroom Tour Cart Link**.
+3. Check it: open `https://odowdscarrick.com/?showroom_cart=PRODUCT_ID:1` with a real product ID
+   (shown when you hover a product in *Products*). You should land on the cart with that product in it.
+
+WooCommerce's built-in `?add-to-cart=` link only takes one product, which is why the plugin is needed. With it, the
+link works whether the tour is on the shop's domain, on another host, or embedded in an iframe.
+
+**b. Pull in the real catalogue:**
 
 ```bash
-npm run sync-catalog -- --shopify https://odowdscarrick.com
-# or
 npm run sync-catalog -- --woocommerce https://odowdscarrick.com
 ```
 
-This pulls in real names, prices, descriptions, images, links and stock, and switches checkout to that shop.
-Pins point to products by SKU, so pin real SKUs (or re-pin any the script lists as missing).
+This reads the public WooCommerce Store API (no keys needed) and writes real names, prices, sale prices, descriptions,
+images, links, stock and WooCommerce product IDs into `products.json`. A variable product (e.g. a stove in black or grey)
+becomes one entry per variation, so you can pin and sell each one. Pins point to products by SKU. The script lists
+any pinned SKUs it didn't find, so you can re-pin them in the editor. Run it again whenever prices change, then rebuild.
 
-| `checkout.mode` | What Checkout does |
+Other `checkout.mode` options, for other shops:
+
+| `checkout.mode` | What the cart button does |
 | --- | --- |
-| `demo` | Shows a message. This is the current default. |
-| `shopify` | Opens `store/cart/variant:qty,…`, the shop's cart already filled. |
-| `woocommerce` | Adds the items through the Store API, then opens `/checkout/`. This needs the tour on the shop's own domain (e.g. `odowdscarrick.com/tour/`). From another domain, only the first item is passed. |
-| `link` | Opens each product's page on the website. |
-| `enquiry` | Emails `checkout.email` the item list. This suits stoves that need a site survey or fitting. |
+| `woocommerce` | `store/?showroom_cart=id:qty,…` → WooCommerce cart page (needs the plugin) |
+| `shopify` | `store/cart/variant:qty,…` → Shopify cart, already filled |
+| `link` | Opens each product's page on the website |
+| `enquiry` | Emails `checkout.email` the item list |
+| `demo` | Shows a message only |
 
-If the site uses another platform, or none, use `enquiry` or `link` mode.
+The tour's own cart empties once it is handed to WooCommerce or Shopify, so going back to the tour doesn't add the items twice.
 
 ### 6. Publish
 
@@ -137,3 +155,4 @@ and optionally `compareAtPrice`, `inStock`, `shopifyVariantId`, `wooProductId`.
 - `src/cart.js`, `src/checkout.js`: cart state and shop handoff
 - `src/tour-model.js`: link direction maths and validation (shared with the scripts)
 - `scripts/`: `ingest`, `sync-catalog`, `validate-tour`, `make-placeholders`
+- `wordpress/showroom-tour-cart.php`: WordPress plugin that takes the whole tour cart into WooCommerce

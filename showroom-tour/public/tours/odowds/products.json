@@ -2,7 +2,7 @@
   "currency": "EUR",
   "locale": "en-IE",
   "checkout": {
-    "mode": "demo",
+    "mode": "woocommerce",
     "storeUrl": "https://odowdscarrick.com",
     "email": ""
   },

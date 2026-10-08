@@ -6,6 +6,7 @@
 //
 // Hotspots reference products by SKU. Products are keyed by their shop SKU,
 // falling back to the Shopify handle / WooCommerce slug when a SKU is empty.
+// WooCommerce variable products become one entry per variation.
 // Existing checkout settings are kept; checkout.mode is switched to the shop.
 
 import { readFile, writeFile } from 'node:fs/promises';
@@ -63,25 +64,40 @@ async function fromShopify() {
 }
 
 async function fromWooCommerce() {
+  const api = `${store}/wp-json/wc/store/v1/products`;
+  // `options` are the variation's attribute values from the parent listing, e.g. ['Black', '8kW'].
+  const toProduct = (p, parent, options = []) => {
+    const unit = 10 ** (p.prices.currency_minor_unit ?? 2);
+    catalog.currency = p.prices.currency_code || catalog.currency;
+    return {
+      sku: p.sku || (parent ? `${parent.slug}-${p.id}` : p.slug),
+      name: stripHtml(parent ? `${parent.name}${options.length ? ` – ${options.join(', ')}` : ''}` : p.name),
+      category: (parent ?? p).categories?.[0]?.name,
+      price: Number(p.prices.price) / unit,
+      compareAtPrice: p.on_sale ? Number(p.prices.regular_price) / unit : undefined,
+      image: (p.images?.[0] ?? parent?.images?.[0])?.src,
+      url: p.permalink || parent?.permalink,
+      description: stripHtml(p.short_description || p.description || parent?.short_description || parent?.description),
+      inStock: p.is_in_stock,
+      wooProductId: p.id,
+    };
+  };
+
   const out = [];
-  for (let page = 1; ; page++) {
-    const products = await getJson(`${store}/wp-json/wc/store/v1/products?per_page=100&page=${page}`);
-    if (!products.length) break;
-    for (const p of products) {
-      const unit = 10 ** (p.prices.currency_minor_unit ?? 2);
-      out.push({
-        sku: p.sku || p.slug,
-        name: stripHtml(p.name),
-        category: p.categories?.[0]?.name,
-        price: Number(p.prices.price) / unit,
-        compareAtPrice: p.on_sale ? Number(p.prices.regular_price) / unit : undefined,
-        image: p.images?.[0]?.src,
-        url: p.permalink,
-        description: stripHtml(p.short_description || p.description),
-        inStock: p.is_in_stock,
-        wooProductId: p.id,
-      });
-      if (!catalog.currency && p.prices.currency_code) catalog.currency = p.prices.currency_code;
+  for (let page = 1, pages = 1; page <= pages; page++) {
+    const res = await fetch(`${api}?per_page=100&page=${page}`, { headers: { Accept: 'application/json' } });
+    if (!res.ok) throw new Error(`${api} page ${page} -> ${res.status}`);
+    pages = Number(res.headers.get('X-WP-TotalPages')) || page;
+    for (const p of await res.json()) {
+      if (p.type === 'variable' && p.variations?.length) {
+        // One entry per variation, so each colour or size can be pinned and added on its own.
+        for (const v of p.variations) {
+          const options = (v.attributes ?? []).map((a) => a.value).filter(Boolean);
+          out.push(toProduct(await getJson(`${api}/${v.id}`), p, options));
+        }
+      } else {
+        out.push(toProduct(p));
+      }
     }
   }
   return out;
