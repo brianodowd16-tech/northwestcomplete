@@ -52,7 +52,7 @@ export function checkout(cart, catalog, { showMessage }) {
     }
 
     default:
-      showMessage('Demo mode: this is where the cart is handed to the shop checkout. Set checkout.mode in products.json to connect your shop.');
+      showMessage(cfg.message ?? 'Demo mode: this is where the cart is handed to the shop checkout. Set checkout.mode in products.json to connect your shop.');
   }
 }
 

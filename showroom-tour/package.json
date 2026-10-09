@@ -10,7 +10,8 @@
     "placeholders": "node scripts/make-placeholders.mjs",
     "ingest": "node scripts/ingest.mjs",
     "sync-catalog": "node scripts/sync-catalog.mjs",
-    "validate": "node scripts/validate-tour.mjs"
+    "validate": "node scripts/validate-tour.mjs",
+    "preview-file": "node scripts/build-preview.mjs"
   },
   "dependencies": {
     "@photo-sphere-viewer/core": "^5.15.1",

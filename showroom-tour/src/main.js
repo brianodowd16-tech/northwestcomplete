@@ -18,7 +18,7 @@ const base = `${import.meta.env.BASE_URL}tours/${tourId}/`;
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const asset = (p) => (!p ? '' : /^(https?:)?\/\//.test(p) ? p : base + p);
+const asset = (p) => (!p ? '' : /^((https?:)?\/\/|data:|blob:)/.test(p) ? p : base + p);
 
 async function loadJson(file) {
   const res = await fetch(base + file, { cache: 'no-cache' });
