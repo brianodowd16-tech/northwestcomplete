@@ -287,7 +287,7 @@ function openProduct(sku) {
       <div class="buy-row">
         <div class="qty" role="group" aria-label="Quantity">
           <button type="button" data-step="-1" aria-label="Decrease quantity">−</button>
-          <input type="number" min="1" value="1" inputmode="numeric" aria-label="Quantity">
+          <input type="number" min="1" ${p.maxQty ? `max="${p.maxQty}"` : ''} value="1" inputmode="numeric" aria-label="Quantity">
           <button type="button" data-step="1" aria-label="Increase quantity">+</button>
         </div>
         <button type="button" class="btn-primary" data-add ${out ? 'disabled' : ''}>${out ? 'Out of stock' : 'Add to cart'}</button>
@@ -304,11 +304,13 @@ $('#drawerBody').addEventListener('click', (e) => {
   if (!product) return;
   const input = product.querySelector('.qty input');
   const step = e.target.closest('[data-step]');
-  if (step) input.value = Math.max(1, (parseInt(input.value, 10) || 1) + Number(step.dataset.step));
+  const max = Number(input.max) || Infinity;
+  if (step) input.value = Math.min(max, Math.max(1, (parseInt(input.value, 10) || 1) + Number(step.dataset.step)));
   if (e.target.closest('[data-add]')) {
-    const qty = Math.max(1, parseInt(input.value, 10) || 1);
-    app.cart.add(product.dataset.sku, qty);
-    toast(`Added ${qty} × ${app.products.get(product.dataset.sku).name}`, { action: 'View cart', onAction: openCart });
+    const p = app.products.get(product.dataset.sku);
+    const added = app.cart.add(p.sku, Math.max(1, parseInt(input.value, 10) || 1));
+    if (added) toast(`Added ${added} × ${p.name}`, { action: 'View cart', onAction: openCart });
+    else toast(`Only ${p.maxQty} available, and it's already in your cart`, { action: 'View cart', onAction: openCart });
   }
 });
 

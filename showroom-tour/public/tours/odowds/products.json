@@ -7,18 +7,115 @@
     "email": ""
   },
   "products": [
-    { "sku": "STV-MF5", "name": "5kW Multi-fuel Stove", "category": "Stoves", "price": 1195, "image": "products/stove.svg", "url": "", "description": "Sample product. Compact 5kW multi-fuel stove with airwash glass and a riddling grate. Ecodesign ready." },
-    { "sku": "STV-MF8", "name": "8kW Boiler Stove", "category": "Stoves", "price": 1895, "image": "products/stove.svg", "url": "", "description": "Sample product. 8kW stove with back boiler that heats the room and your hot water." },
-    { "sku": "STV-INS", "name": "Inset Multi-fuel Stove", "category": "Stoves", "price": 1450, "image": "products/stove.svg", "url": "", "description": "Sample product. Inset stove that fits a standard fireplace opening for a clean, built-in look." },
-    { "sku": "FP-MRB", "name": "Marble Fireplace Surround", "category": "Fireplaces", "price": 2250, "image": "products/fireplace.svg", "url": "", "description": "Sample product. Polished marble surround with matching hearth and back panel." },
-    { "sku": "FP-CI", "name": "Cast Iron Fireplace Insert", "category": "Fireplaces", "price": 895, "image": "products/fireplace.svg", "url": "", "description": "Sample product. Traditional cast iron insert with tiled cheeks." },
-    { "sku": "FP-OAK", "name": "Oak Beam Mantel 1500mm", "category": "Fireplaces", "price": 345, "image": "products/fireplace.svg", "url": "", "description": "Sample product. Solid oak beam mantel, 1500mm, with a hidden fixing kit." },
-    { "sku": "EF-WALL", "name": "Wall-mounted Electric Fire", "category": "Electric & gas", "price": 699, "image": "products/fireplace.svg", "url": "", "description": "Sample product. Slimline wall-mounted electric fire with LED flame effect and remote." },
-    { "sku": "GF-BAL", "name": "Balanced Flue Gas Fire", "category": "Electric & gas", "price": 1650, "image": "products/fireplace.svg", "url": "", "description": "Sample product. Balanced flue gas fire that needs no chimney. Installation by a registered installer." },
-    { "sku": "ACC-TOOL", "name": "Companion Set", "category": "Accessories", "price": 79, "image": "products/accessory.svg", "url": "", "description": "Sample product. Poker, brush, shovel and tongs on a stand." },
-    { "sku": "ACC-BSK", "name": "Log Basket", "category": "Accessories", "price": 49, "image": "products/accessory.svg", "url": "", "description": "Sample product. Steel log basket with handles." },
-    { "sku": "ACC-GLV", "name": "Stove Gloves", "category": "Accessories", "price": 19, "image": "products/accessory.svg", "url": "", "description": "Sample product. Heat-resistant gloves for loading the stove." },
-    { "sku": "ACC-FUEL", "name": "Kiln-dried Logs (1m³)", "category": "Accessories", "price": 135, "image": "products/accessory.svg", "url": "", "description": "Sample product. Kiln-dried hardwood logs under 20% moisture, ready to burn." },
-    { "sku": "ACC-CO", "name": "Carbon Monoxide Alarm", "category": "Accessories", "price": 29, "image": "products/accessory.svg", "url": "", "description": "Sample product. Battery CO alarm. Required with every solid-fuel stove installation." }
+    {
+      "sku": "nordica-extraflame-teodora-evo",
+      "name": "Nordica Extraflame Teodora Evo",
+      "price": 3000,
+      "compareAtPrice": 3995,
+      "image": "https://odowdscarrick.com/wp-content/uploads/2026/04/teodora.webp",
+      "url": "https://odowdscarrick.com/product/nordica-extraflame-teodora-evo/",
+      "description": "**SPECIAL CLEARANCE DEAL**\n€3000.00 + 1 complimentary bag of pellets (pick-up in store)\nNordica Extraflame Teodora Evo\nCovering of enamelled cast iron\nHearth, door fire and brazier in cast iron\nShell and tube exchanger (manual cleaning)\nHermetic tank Front room ventilation with dedicated motor, with Comfort function\nErgonomic handle\nExtractable hearth (only by authorized assistance)\nOutput smoke outlet possibilities: rear aligned\nStructure completely in enamelled cast-iron.\n2,5-8,0 kW rated thermal input\n229 m3 heatable\nDimensions (W-H-D) 610x739x644 mm\nNet weight 139 kg\nEfficiency 90,8 %\nHourly consumption 0,5 – 1,8 kg/h\nSmoke outlet diameter 80 mm P\nFeed box total capacity 14 kg\nEnergy Label A+",
+      "inStock": true,
+      "wooProductId": 32957
+    },
+    {
+      "sku": "evonic-e800-multibox",
+      "name": "Evonic E800 Multibox",
+      "price": 1150,
+      "compareAtPrice": 2300,
+      "image": "https://odowdscarrick.com/wp-content/uploads/2026/02/142379-1-evonic-e800-glass-front-multibox-electric-fire-600x315w.jpg",
+      "url": "https://odowdscarrick.com/product/evonic-e800-multibox/",
+      "description": "Evonic E800 Multibox Electric Stove\nRRP: €2300\nNOW: €1150\nx1 Remaining Showroom Model\nEvonic E800 Glass Front Multibox Electric Fire is powered by the very latest LED lighting technology, and is part of the award winning modern day range in electric fires. The EVOFLAME technology gives the impression of a deep and rich flame with a hot ash effect fuel bed.\n750/1500w heat output\ne-Touch control system\nApp controlled fire",
+      "inStock": true,
+      "wooProductId": 32898
+    },
+    {
+      "sku": "phoenix-outdoor-fire-pits",
+      "name": "Phoenix Outdoor Fire Pits",
+      "price": 130,
+      "compareAtPrice": 275,
+      "image": "https://odowdscarrick.com/wp-content/uploads/2026/02/The-Phoenix-Fire.jpg",
+      "url": "https://odowdscarrick.com/product/phoenix-outdoor-fire-pits/",
+      "description": "Phoenix Outdoor Fire Pits\nMade in Ireland\nRRP: €275\nNOW: €130\n*Brand New (Limited Stock)\nThere’s no such thing as a smokeless firepit, but this comes very close. Designed with secondary air burn holes, secondary air causes the partially combusted gases at the top of the combustion chamber to re-ignite and create a secondary burn flame. This results in greater heat and further reduces the smoke levels emitted from your firepit to a very low level.\nWe stock and display the best traditional and contemporary Fireplaces, Stoves, Gas and Electric Fires to suit your taste and budget.\nOur award winning showrooms boast over 80 different displays, we guarantee that you will find the perfect fire for your needs. We also have a selection of hearths, flues and other stove accessories in store.\nStation Rd, Carrick on Shannon, N41 DW99\nTel: 0719620153",
+      "inStock": true,
+      "wooProductId": 32742
+    },
+    {
+      "sku": "ezee-glow-pulse",
+      "name": "Ezee Glow Pulse",
+      "price": 225,
+      "compareAtPrice": 550,
+      "image": "https://odowdscarrick.com/wp-content/uploads/2026/02/pulsetrimroomset_1400x1400.webp",
+      "url": "https://odowdscarrick.com/product/ezee-glow-pulse/",
+      "description": "Eeze Glow Pulse Electric Inset Stove\nx1 Remaining Showroom Model\nContemporary and modern in their design, the Pulse range of inset electric fires are the perfect feature for any home, especially those without a chimney or operational fireplace. Available in two sizes, standard and widescreen, both fires fit into the standard 16 inch x 22 inch opening allowing a hassle-free installation, while the realistic flame and 1200W heater maintain the luxury and warmth of a real working fire.\nThis model includes the Nickel trim\nWidescreen Pulse Dimensions Without Trim:\nHeight: 584mm\nWidth: 596mm\nDepth: 135mm\nThe Pulse fires are completely remote controlled, with 3 quality flame settings, two heat modes, a 7- day timer and high-quality fuel bed decoration, including crystals, charred wood pieces and ceramic logs. Whether you choose the standard Pulse fire or the Widescreen Pulse fire, these fires are sure to be a stunning focal point in any home.\nFeatures:\nFits standard 16 x 22 inch fireplace opening.\nTwo standard heating functions; First setting – 1000W, Second setting – 1200W\nTemperature setting available.\nFive levels of flame brightness\nElectronic 7-day timer\nRealistic LED Flame Effect available in 3 (Orange, Blue and Mixed Orange & Blue)\nRemote Control Operated\nHigh quality decorative fuel bed (crystals, charred wood pieces, ceramic logs)\nHigh end tempered black glass panel.\nFront placed heater\nProduct equipped with overheat production safety device\nWe stock and display the best traditional and contemporary Fireplaces, Stoves, Gas and Electric Fires to suit your taste and budget.\nOur award winning showrooms boast over 80 different displays, we guarantee that you will find the perfect fire for your needs. We also have a selection of hearths, flues and other stove accessories in store.\nStation Rd, Carrick on Shannon, N41 DW99\nTel: 0719620153",
+      "inStock": true,
+      "wooProductId": 32740
+    },
+    {
+      "sku": "esse-gardenstove",
+      "name": "Esse Garden Stove",
+      "price": 600,
+      "compareAtPrice": 1200,
+      "image": "https://odowdscarrick.com/wp-content/uploads/2026/02/esse-garden-stove-outside.jpg",
+      "url": "https://odowdscarrick.com/product/esse-gardenstove/",
+      "description": "Esse Garden Stove\nx1 Remaining Showroom Model\nGarden Stove is an outdoor stove with some cooking capability. It comes with wheels to allow it to be easily repositioned or moved after use to protect it from the weather.\nGarden Stove has been designed to burn wood and is an outdoor appliance. With the hotplate down it can be used to heat a kettle or pans. Once the wood has burnt down to embers with the hotplate up Garden Stove offers a simple grill.\nAfter use, once it has cooled down and cleaned, it can be moved undercover to protect it from the elements. Treated with flax oil Garden Stove will weather gracefully.\nThe wheel frame can be detached.\nOutdoor heating and cooking\nWheels offer portability\nComes with flue pipe\nSimple to assemble simple to use\nWe stock and display the best traditional and contemporary Fireplaces, Stoves, Gas and Electric Fires to suit your taste and budget.\nOur award winning showrooms boast over 80 different displays, we guarantee that you will find the perfect fire for your needs. We also have a selection of hearths, flues and other stove accessories in store.\nStation Rd, Carrick on Shannon, N41 DW99\nTel: 0719620153",
+      "inStock": true,
+      "wooProductId": 32729
+    },
+    {
+      "sku": "oak-cask-whiskey-barrels",
+      "name": "Oak Cask Whiskey Barrels",
+      "price": 50,
+      "compareAtPrice": 120,
+      "image": "https://odowdscarrick.com/wp-content/uploads/2024/11/BARRELS.jpg",
+      "url": "https://odowdscarrick.com/product/oak-cask-whiskey-barrels/",
+      "description": "Oak Whiskey Barrels\nCan be cut in half for use as planting pots\n* Limited Quantity Remaining:\nx4 Full (€50 each)\nx1 Half (€25 each)Ideal for any outdoor setting at home, in restaurants or pubs, these good quality, sturdy barrels can be used as tables or just simply as garden ornaments\nWe stock and display the best traditional and contemporary Fireplaces, Stoves, Gas and Electric Fires to suit your taste and budget. Our award winning showrooms boast over 80 different displays, we guarantee that you will find the perfect fire for your needs. We also have a selection of hearths, flues and other stove accessories in store.\n📍Station Rd, Carrick on Shannon, N41 DW99\nTel: 0719620153\nwww.odowdscarrick.com",
+      "inStock": true,
+      "wooProductId": 32425
+    },
+    {
+      "sku": "gazcoriva2-600",
+      "name": "Gazco Riva2 600 Stove",
+      "price": 1250,
+      "compareAtPrice": 2750,
+      "image": "https://odowdscarrick.com/wp-content/uploads/2025/05/gazco-riva-2-600.jpg",
+      "url": "https://odowdscarrick.com/product/gazcoriva2-600/",
+      "description": "*Brand New*\nGazco Riva2 600 (Conventional Flue)\nRRP: €2750 NOW: €1250\nNatural Gas Stove with Brick Linings Conventional Flue (chimney required)\nEdge Frame\nUp to 76% Gas Fire Efficiency\n6.9kW Gas Heat Input\nUp to 5kW Gas Heat Output\nChimney Type Class 1\nRemote Control as standard\nThe glass-fronted Riva2 600 Gas Fire has the style to appeal across the widest range of contemporary interiors – and a performance to match. The Edge frame is a minimalist style frame for a contemporary, sleek finish.\nClick Here To View Full Range Of Riva2 600\nGazco Riva2 600 Specifications:\nSafety Flame Supervision Device (FSD)\nAirwatch System\nType of Heat: Radiant & Convection\nHeating Efficiency: 76%\nHeat Input High: 6.9 kilowatt\nHeat Output High: 5 kilowatt\nFuel Bed Options:\nLog Effect with Emberglow (strands of steel wool to create an ember-like effect)\nFirebox Lining Options:\nRed Brick Lining, Ledgestone Lining, or Black Glass Lining\nControl Options:\nFully Sequential Remote Control\nInstallation requirements:\nAir Vent required\nClass 1 Chimney Type\nWe stock and display the best traditional and contemporary Fireplaces, Stoves, Gas and Electric Fires to suit your taste and budget. Our award winning showrooms boast over 80 different displays, we guarantee that you will find the perfect fire for your needs. We also have a selection of hearths, flues and other stove accessories in store.\n📍Station Rd, Carrick on Shannon, N41 DW99\nTel: 0719620153\nwww.odowdscarrick.com",
+      "inStock": true,
+      "wooProductId": 32706
+    },
+    {
+      "sku": "stove-tower",
+      "name": "Stove Tower Fireplace",
+      "price": 795,
+      "compareAtPrice": 1195,
+      "image": "https://odowdscarrick.com/wp-content/uploads/2026/02/pro-AoPbVevG-scaled.jpeg",
+      "url": "https://odowdscarrick.com/product/stove-tower/",
+      "description": "Stove Tower Clearance Fireplace\nRRP: €1195\nNOW: €795\nx1 Brand New Showroom Model Remaining\n*Custom built with adjustable dimensions\nWe stock and display the best traditional and contemporary Fireplaces, Stoves, Gas and Electric Fires to suit your taste and budget.\nOur award winning showrooms boast over 80 different displays, we guarantee that you will find the perfect fire for your needs. We also have a selection of hearths, flues and other stove accessories in store.\nStation Rd, Carrick on Shannon, N41 DW99\nTel: 0719620153",
+      "inStock": true,
+      "wooProductId": 32703
+    },
+    {
+      "sku": "hd-i4",
+      "name": "Heat Design Iconic 4D (HDi4)",
+      "price": 700,
+      "compareAtPrice": 995,
+      "image": "https://odowdscarrick.com/wp-content/uploads/2024/11/hdi4-3-1.gif",
+      "url": "https://odowdscarrick.com/product/hd-i4/",
+      "description": "Heat Design Iconic 4D (HDi4)\nx1 Remaining Showroom Model\nA wide electric ﬁre that ﬁts into a standard 16″ opening using the spacer provided.\nThis 22″ fire offers exactly the same great features as the 16″ 4D Ecoflame electric fire including the ultra-realistic deep reﬂective fuel and ﬂame effect.\nThis fire boasts a range of key functions including ﬂickering ember effect fuel bed, 7-day timer, optional trim, and ﬁreplace mood lights.\nAll Charlton & Jenrick Elite Fascias now come with the option of patented LED trim lights that are controlled by the ﬁre’s remote control.\nComes complete with a choice of either Chrome & Black or All Chrome Fascia\nFits most 16-22″ Fireplace openings\nUltra-realistic flame effect with 3 color options\nEach color option has 4 mood settings\nFlickering fuel bed with 13 color options\nMultiple fuel bed options incl:\n– Realistic log\n– Coal\n– Ice crystals\n– Glowing embers\nRemote-control handset\n7-day programmable timer & thermostat\nSide buttons for easy access\nControl of flame effect and fuel bed\nTwo heat settings maintain temperature\n1.5kW max heat output\n100% efficient at the point of use\nFits most 16″ Fireplace openings\nFully EU Ecodesign compliant\nOptional: remote-controlled LED trim lights\nWe stock and display the best traditional and contemporary Fireplaces, Stoves, Gas and Electric Fires to suit your taste and budget.\nOur award winning showrooms boast over 80 different displays, we guarantee that you will find the perfect fire for your needs. We also have a selection of hearths, flues and other stove accessories in store.\nStation Rd, Carrick on Shannon, N41 DW99\nTel: 0719620153",
+      "inStock": true,
+      "wooProductId": 32459
+    },
+    {
+      "sku": "gazco-studio-1",
+      "name": "Gazco Studio 1 5.2Kw",
+      "price": 1250,
+      "compareAtPrice": 3250,
+      "image": "https://odowdscarrick.com/wp-content/uploads/2022/10/Studio-1-Edge-1.jpg",
+      "url": "https://odowdscarrick.com/product/gazco-studio-1/",
+      "description": "*Brand New*\nGazco Studio 1 5.2Kw\nRRP: €3250\nNOW: €1250\nGazco Studio 1 LPG Stove\nContemporary LPG Gas Fire, with highly realistic log effect fuel bed\nBalanced flue (no chimney required)\nHeat Output up to 5.3kW\n92% efficiency\nProgrammable Thermostatic Room Temperature Control\nSequential remote control\n5 Year Warranty through Gazco Expert Retailer\nWe stock and display the best traditional and contemporary Fireplaces, Stoves, Gas and Electric Fires to suit your taste and budget.\nOur award winning showrooms boast over 80 different displays, we guarantee that you will find the perfect fire for your needs. We also have a selection of hearths, flues and other stove accessories in store.\nStation Rd, Carrick on Shannon, N41 DW99\nTel: 0719620153\nwww.odowdscarrick.com",
+      "inStock": true,
+      "wooProductId": 32306
+    }
   ]
 }

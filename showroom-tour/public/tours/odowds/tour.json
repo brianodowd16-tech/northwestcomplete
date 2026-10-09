@@ -17,8 +17,7 @@
       "thumbnail": "thumbs/g-entrance.jpg",
       "links": [{ "nodeId": "g-stoves" }, { "nodeId": "g-fireplaces" }],
       "hotspots": [
-        { "sku": "ACC-CO", "yaw": -60, "pitch": -5 },
-        { "sku": "ACC-GLV", "yaw": -95, "pitch": -8 }
+        { "sku": "oak-cask-whiskey-barrels", "yaw": -60, "pitch": -15 }
       ]
     },
     {
@@ -31,15 +30,14 @@
       "thumbnail": "thumbs/g-stoves.jpg",
       "links": [{ "nodeId": "g-entrance" }, { "nodeId": "g-fireplaces" }, { "nodeId": "g-stairs" }],
       "hotspots": [
-        { "sku": "STV-MF5", "yaw": 150, "pitch": -12 },
-        { "sku": "STV-MF8", "yaw": 180, "pitch": -12 },
-        { "sku": "STV-INS", "yaw": 210, "pitch": -8 },
-        { "sku": "ACC-TOOL", "yaw": 125, "pitch": -18 }
+        { "sku": "gazcoriva2-600", "yaw": 150, "pitch": -12 },
+        { "sku": "gazco-studio-1", "yaw": 180, "pitch": -12 },
+        { "sku": "nordica-extraflame-teodora-evo", "yaw": 210, "pitch": -8 }
       ]
     },
     {
       "id": "g-fireplaces",
-      "name": "Fireplace showroom",
+      "name": "Fireplaces & electric",
       "floor": "ground",
       "plan": [440, 170],
       "heading": 0,
@@ -47,9 +45,8 @@
       "thumbnail": "thumbs/g-fireplaces.jpg",
       "links": [{ "nodeId": "g-entrance" }, { "nodeId": "g-stoves" }],
       "hotspots": [
-        { "sku": "FP-MRB", "yaw": -20, "pitch": -5 },
-        { "sku": "FP-CI", "yaw": 20, "pitch": -10 },
-        { "sku": "FP-OAK", "yaw": -60, "pitch": 5 }
+        { "sku": "stove-tower", "yaw": -20, "pitch": -5 },
+        { "sku": "hd-i4", "yaw": 20, "pitch": -10 }
       ]
     },
     {
@@ -84,13 +81,13 @@
       "thumbnail": "thumbs/f-electric.jpg",
       "links": [{ "nodeId": "f-landing" }, { "nodeId": "f-accessories" }],
       "hotspots": [
-        { "sku": "EF-WALL", "yaw": 0, "pitch": 5 },
-        { "sku": "GF-BAL", "yaw": -40, "pitch": -8 }
+        { "sku": "evonic-e800-multibox", "yaw": 0, "pitch": 5 },
+        { "sku": "ezee-glow-pulse", "yaw": -40, "pitch": -8 }
       ]
     },
     {
       "id": "f-accessories",
-      "name": "Accessories & fuel",
+      "name": "Outdoor & garden",
       "floor": "first",
       "plan": [450, 450],
       "heading": 0,
@@ -98,9 +95,8 @@
       "thumbnail": "thumbs/f-accessories.jpg",
       "links": [{ "nodeId": "f-landing" }, { "nodeId": "f-electric" }],
       "hotspots": [
-        { "sku": "ACC-BSK", "yaw": 160, "pitch": -15 },
-        { "sku": "ACC-FUEL", "yaw": 200, "pitch": -15 },
-        { "sku": "ACC-TOOL", "yaw": 230, "pitch": -10 }
+        { "sku": "esse-gardenstove", "yaw": 160, "pitch": -15 },
+        { "sku": "phoenix-outdoor-fire-pits", "yaw": 200, "pitch": -15 }
       ]
     }
   ]

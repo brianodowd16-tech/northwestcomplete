@@ -365,6 +365,7 @@ button {
 }
 
 .product-desc {
+  white-space: pre-line;
   line-height: 1.55;
   color: var(--ink-soft);
 }
@@ -401,6 +402,11 @@ button {
 
 .qty input::-webkit-inner-spin-button {
   -webkit-appearance: none;
+}
+
+.qty.small {
+  display: inline-flex;
+  margin-top: 4px;
 }
 
 .qty.small button {

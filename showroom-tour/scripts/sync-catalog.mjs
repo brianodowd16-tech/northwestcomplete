@@ -29,7 +29,24 @@ if (!store) {
 
 const file = path.resolve('public/tours', args.tour, 'products.json');
 const catalog = JSON.parse(await readFile(file, 'utf8'));
-const stripHtml = (html) => String(html ?? '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+const decodeEntities = (s) =>
+  s
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([\da-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+// One line, for names.
+const stripHtml = (html) => decodeEntities(String(html ?? '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
+// Keeps paragraph and line breaks, for descriptions.
+const htmlToText = (html) =>
+  decodeEntities(String(html ?? '').replace(/<br\s*\/?>|<\/(p|div|li|h\d)>/gi, '\n').replace(/<[^>]+>/g, ' '))
+    .split('\n')
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .join('\n');
 
 async function getJson(url) {
   const res = await fetch(url, { headers: { Accept: 'application/json' } });
@@ -53,7 +70,7 @@ async function fromShopify() {
           compareAtPrice: v.compare_at_price ? Number(v.compare_at_price) : undefined,
           image: (p.images.find((i) => i.id === v.image_id) ?? p.images[0])?.src,
           url: `${store}/products/${p.handle}${p.variants.length > 1 ? `?variant=${v.id}` : ''}`,
-          description: stripHtml(p.body_html),
+          description: htmlToText(p.body_html),
           inStock: v.available,
           shopifyVariantId: v.id,
         });
@@ -77,8 +94,10 @@ async function fromWooCommerce() {
       compareAtPrice: p.on_sale ? Number(p.prices.regular_price) / unit : undefined,
       image: (p.images?.[0] ?? parent?.images?.[0])?.src,
       url: p.permalink || parent?.permalink,
-      description: stripHtml(p.short_description || p.description || parent?.short_description || parent?.description),
+      description: htmlToText(p.short_description || p.description || parent?.short_description || parent?.description),
       inStock: p.is_in_stock,
+      // WooCommerce reports 9999 when it isn't tracking stock.
+      maxQty: p.add_to_cart?.maximum > 0 && p.add_to_cart.maximum < 9999 ? p.add_to_cart.maximum : undefined,
       wooProductId: p.id,
     };
   };

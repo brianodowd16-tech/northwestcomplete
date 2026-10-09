@@ -5,6 +5,8 @@ export function createCart(tourId, products) {
   const key = `showroom-cart:${tourId}`;
   const listeners = new Set();
   let lines = new Map();
+  // The shop's per-order limit (e.g. one showroom model left), when it sets one.
+  const cap = (sku, qty) => Math.min(qty, products.get(sku)?.maxQty ?? Infinity);
 
   try {
     const saved = JSON.parse(localStorage.getItem(key) ?? '[]');
@@ -23,12 +25,18 @@ export function createCart(tourId, products) {
   }
 
   const cart = {
+    // Returns how many were actually added after the shop's limit.
     add(sku, qty = 1) {
-      lines.set(sku, (lines.get(sku) ?? 0) + qty);
-      commit();
+      const before = lines.get(sku) ?? 0;
+      const after = cap(sku, before + qty);
+      if (after > before) {
+        lines.set(sku, after);
+        commit();
+      }
+      return after - before;
     },
     setQty(sku, qty) {
-      if (qty > 0) lines.set(sku, qty);
+      if (qty > 0) lines.set(sku, cap(sku, qty));
       else lines.delete(sku);
       commit();
     },

@@ -32,7 +32,7 @@ export function checkout(cart, catalog, { showMessage }) {
       if (missing.length) return showMessage(`No WooCommerce product id set for: ${missing.map((l) => l.product.name).join(', ')}`);
       const items = lines.map((l) => `${l.product.wooProductId}:${l.qty}`).join(',');
       cart.clear();
-      go(`${store}/?showroom_cart=${items}`);
+      go(`${store}/?showroom_cart=${encodeURIComponent(items)}`);
       return;
     }
 

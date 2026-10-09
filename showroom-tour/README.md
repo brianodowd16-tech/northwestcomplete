@@ -6,8 +6,8 @@ tags on products to see the name, price and description and add them to a cart.
 The cart hands off to the shop's own checkout.
 
 The pilot is **O'Dowds Carrick** (two floors: stoves, fireplaces, accessories),
-in `public/tours/odowds/`. It currently uses **placeholder panoramas and sample
-products** until the real captures and the live catalogue are added.
+in `public/tours/odowds/`. Its products come from the live WooCommerce shop (`npm run sync-catalog`),
+but they are pinned in **placeholder panoramas** until the real Insta360 captures are added.
 
 Built with [Photo Sphere Viewer](https://photo-sphere-viewer.js.org) (virtual
 tour + markers plugins) and Vite. No backend.
