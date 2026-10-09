@@ -63,15 +63,50 @@ function panoramaSvg(node) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" font-family="Helvetica, Arial, sans-serif">${parts.join('')}</svg>`;
 }
 
+// Rectangular footprint, front wall at the bottom. A floor's optional `sketch`
+// adds features: { entrance: 'front', desk: 'left' | 'right', stairs: 'left' | 'right' }.
 function planSvg(floor) {
   const [w, h] = floor.size;
-  const rooms = tour.nodes.filter((n) => n.floor === floor.id && n.plan);
-  const parts = [`<rect width="${w}" height="${h}" fill="#f7f4ef"/>`, `<rect x="20" y="20" width="${w - 40}" height="${h - 40}" fill="none" stroke="#3b2f25" stroke-width="8"/>`];
-  parts.push(`<line x1="${w * 0.7}" y1="20" x2="${w * 0.7}" y2="${h - 20}" stroke="#3b2f25" stroke-width="4" stroke-dasharray="60 40"/>`);
-  parts.push(`<line x1="20" y1="${h * 0.52}" x2="${w * 0.7}" y2="${h * 0.52}" stroke="#3b2f25" stroke-width="4" stroke-dasharray="60 40"/>`);
-  parts.push(`<g stroke="#3b2f25" stroke-width="2">${Array.from({ length: 8 }, (_, i) => `<line x1="${w * 0.78}" x2="${w * 0.9}" y1="${h * 0.3 + i * 14}" y2="${h * 0.3 + i * 14}"/>`).join('')}</g>`);
-  for (const n of rooms) {
-    parts.push(`<text x="${n.plan[0]}" y="${n.plan[1] + 48}" font-size="22" fill="#3b2f25" text-anchor="middle">${esc(n.name)}</text>`);
+  const sketch = floor.sketch ?? {};
+  const ink = '#3b2f25';
+  const m = 40; // wall inset
+  const parts = [`<rect width="${w}" height="${h}" fill="#f7f4ef"/>`];
+  parts.push(`<rect x="${m}" y="${m}" width="${w - 2 * m}" height="${h - 2 * m}" fill="#fffdf9" stroke="${ink}" stroke-width="10"/>`);
+  parts.push(`<text x="${w / 2}" y="${m - 12}" font-size="16" fill="${ink}88" text-anchor="middle" letter-spacing="3">BACK</text>`);
+
+  if (sketch.entrance === 'front') {
+    const door = 120;
+    const x0 = w / 2 - door / 2;
+    parts.push(`<rect x="${x0}" y="${h - m - 8}" width="${door}" height="16" fill="#fffdf9"/>`);
+    parts.push(`<path d="M${x0} ${h - m} A${door / 2} ${door / 2} 0 0 1 ${x0 + door / 2} ${h - m - door / 2} M${x0 + door} ${h - m} A${door / 2} ${door / 2} 0 0 0 ${x0 + door / 2} ${h - m - door / 2}" fill="none" stroke="${ink}88" stroke-width="2" stroke-dasharray="6 5"/>`);
+    parts.push(`<text x="${w / 2}" y="${h - 12}" font-size="18" font-weight="700" fill="${ink}" text-anchor="middle" letter-spacing="3">ENTRANCE</text>`);
+  }
+
+  if (sketch.desk) {
+    const dw = 46;
+    const x = sketch.desk === 'left' ? m + 14 : w - m - 14 - dw;
+    parts.push(`<rect x="${x}" y="${h * 0.34}" width="${dw}" height="${h * 0.32}" rx="6" fill="#d9c7ae" stroke="${ink}" stroke-width="3"/>`);
+    parts.push(`<text transform="translate(${x + dw / 2 + 6} ${h / 2}) rotate(-90)" font-size="16" fill="${ink}" text-anchor="middle">DESK</text>`);
+  }
+
+  if (sketch.stairs) {
+    const sw = 90;
+    const x = sketch.stairs === 'right' ? w - m - sw : m;
+    const y0 = h * 0.22;
+    const y1 = h * 0.78;
+    const steps = 14;
+    parts.push(`<rect x="${x}" y="${y0}" width="${sw}" height="${y1 - y0}" fill="#efe7db" stroke="${ink}" stroke-width="3"/>`);
+    for (let i = 1; i < steps; i++) {
+      const y = y0 + ((y1 - y0) * i) / steps;
+      parts.push(`<line x1="${x}" x2="${x + sw}" y1="${y}" y2="${y}" stroke="${ink}" stroke-width="1.5"/>`);
+    }
+    parts.push(`<path d="M${x + sw * 0.7} ${y1 - 16} V${y0 + 22} m-10 12 l10 -12 l10 12" fill="none" stroke="${ink}" stroke-width="3"/>`);
+    parts.push(`<rect x="${x + sw * 0.3 - 14}" y="${(y0 + y1) / 2 - 38}" width="22" height="76" fill="#efe7db"/>`);
+    parts.push(`<text transform="translate(${x + sw * 0.3 + 2} ${(y0 + y1) / 2}) rotate(-90)" font-size="16" fill="${ink}" text-anchor="middle">STAIRS</text>`);
+  }
+
+  for (const n of tour.nodes.filter((node) => node.floor === floor.id && node.plan)) {
+    parts.push(`<text x="${n.plan[0]}" y="${n.plan[1] + 40}" font-size="20" fill="${ink}" text-anchor="middle">${esc(n.name)}</text>`);
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" font-family="Helvetica, Arial, sans-serif">${parts.join('')}</svg>`;
 }

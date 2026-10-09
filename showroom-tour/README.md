@@ -59,6 +59,10 @@ replaces the image but keeps its links and pins.
 Replace `plans/ground.svg` and `plans/first.svg` with real plans. A phone photo of a sketch works.
 Set each floor's `size` in `tour.json` to the image's pixel size.
 
+Until then, `npm run placeholders -- --force` draws a rectangular sketch plan for each floor, front wall at the bottom,
+from that floor's `sketch` in `tour.json`. The pilot uses `{ "entrance": "front", "desk": "left", "stairs": "right" }`
+for the ground floor and `{ "stairs": "right" }` upstairs.
+
 ### 4. Edit at `/?edit`
 
 1. **Place on floor plan**: choose the floor tab, then click where the photo was taken.

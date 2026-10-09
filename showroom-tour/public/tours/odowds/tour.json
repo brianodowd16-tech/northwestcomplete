@@ -3,47 +3,70 @@
   "name": "O'Dowds Carrick Showroom",
   "startNodeId": "g-entrance",
   "floors": [
-    { "id": "ground", "name": "Ground floor", "plan": "plans/ground.svg", "size": [1000, 600] },
-    { "id": "first", "name": "First floor", "plan": "plans/first.svg", "size": [1000, 600] }
+    {
+      "id": "ground",
+      "name": "Ground floor",
+      "plan": "plans/ground.svg",
+      "size": [1000, 600],
+      "sketch": { "entrance": "front", "desk": "left", "stairs": "right" }
+    },
+    {
+      "id": "first",
+      "name": "First floor",
+      "plan": "plans/first.svg",
+      "size": [1000, 600],
+      "sketch": { "stairs": "right" }
+    }
   ],
   "nodes": [
     {
       "id": "g-entrance",
-      "name": "Entrance & reception",
+      "name": "Entrance",
       "floor": "ground",
-      "plan": [160, 470],
+      "plan": [500, 440],
       "heading": 0,
       "panorama": "panos/g-entrance.jpg",
       "thumbnail": "thumbs/g-entrance.jpg",
-      "links": [{ "nodeId": "g-stoves" }, { "nodeId": "g-fireplaces" }],
+      "links": [{ "nodeId": "g-stoves" }, { "nodeId": "g-reception" }],
       "hotspots": [
-        { "sku": "oak-cask-whiskey-barrels", "yaw": -60, "pitch": -15 }
+        { "sku": "oak-cask-whiskey-barrels", "yaw": 60, "pitch": -15 }
       ]
+    },
+    {
+      "id": "g-reception",
+      "name": "Reception & desk",
+      "floor": "ground",
+      "plan": [190, 300],
+      "heading": 0,
+      "panorama": "panos/g-reception.jpg",
+      "thumbnail": "thumbs/g-reception.jpg",
+      "links": [{ "nodeId": "g-entrance" }, { "nodeId": "g-stoves" }],
+      "hotspots": []
     },
     {
       "id": "g-stoves",
       "name": "Stove gallery",
       "floor": "ground",
-      "plan": [480, 450],
+      "plan": [500, 310],
       "heading": 0,
       "panorama": "panos/g-stoves.jpg",
       "thumbnail": "thumbs/g-stoves.jpg",
-      "links": [{ "nodeId": "g-entrance" }, { "nodeId": "g-fireplaces" }, { "nodeId": "g-stairs" }],
+      "links": [{ "nodeId": "g-entrance" }, { "nodeId": "g-reception" }, { "nodeId": "g-fireplaces" }, { "nodeId": "g-stairs" }],
       "hotspots": [
-        { "sku": "gazcoriva2-600", "yaw": 150, "pitch": -12 },
-        { "sku": "gazco-studio-1", "yaw": 180, "pitch": -12 },
-        { "sku": "nordica-extraflame-teodora-evo", "yaw": 210, "pitch": -8 }
+        { "sku": "gazcoriva2-600", "yaw": 45, "pitch": -12 },
+        { "sku": "gazco-studio-1", "yaw": 135, "pitch": -12 },
+        { "sku": "nordica-extraflame-teodora-evo", "yaw": -135, "pitch": -8 }
       ]
     },
     {
       "id": "g-fireplaces",
       "name": "Fireplaces & electric",
       "floor": "ground",
-      "plan": [440, 170],
+      "plan": [500, 120],
       "heading": 0,
       "panorama": "panos/g-fireplaces.jpg",
       "thumbnail": "thumbs/g-fireplaces.jpg",
-      "links": [{ "nodeId": "g-entrance" }, { "nodeId": "g-stoves" }],
+      "links": [{ "nodeId": "g-stoves" }],
       "hotspots": [
         { "sku": "stove-tower", "yaw": -20, "pitch": -5 },
         { "sku": "hd-i4", "yaw": 20, "pitch": -10 }
@@ -53,7 +76,7 @@
       "id": "g-stairs",
       "name": "Stairs (ground)",
       "floor": "ground",
-      "plan": [840, 300],
+      "plan": [770, 300],
       "heading": 0,
       "panorama": "panos/g-stairs.jpg",
       "thumbnail": "thumbs/g-stairs.jpg",
@@ -64,7 +87,7 @@
       "id": "f-landing",
       "name": "First floor landing",
       "floor": "first",
-      "plan": [840, 300],
+      "plan": [770, 300],
       "heading": 0,
       "panorama": "panos/f-landing.jpg",
       "thumbnail": "thumbs/f-landing.jpg",
@@ -75,7 +98,7 @@
       "id": "f-electric",
       "name": "Electric & gas fires",
       "floor": "first",
-      "plan": [450, 180],
+      "plan": [470, 170],
       "heading": 0,
       "panorama": "panos/f-electric.jpg",
       "thumbnail": "thumbs/f-electric.jpg",
@@ -89,14 +112,14 @@
       "id": "f-accessories",
       "name": "Outdoor & garden",
       "floor": "first",
-      "plan": [450, 450],
+      "plan": [470, 430],
       "heading": 0,
       "panorama": "panos/f-accessories.jpg",
       "thumbnail": "thumbs/f-accessories.jpg",
       "links": [{ "nodeId": "f-landing" }, { "nodeId": "f-electric" }],
       "hotspots": [
         { "sku": "esse-gardenstove", "yaw": 160, "pitch": -15 },
-        { "sku": "phoenix-outdoor-fire-pits", "yaw": 200, "pitch": -15 }
+        { "sku": "phoenix-outdoor-fire-pits", "yaw": -160, "pitch": -15 }
       ]
     }
   ]
