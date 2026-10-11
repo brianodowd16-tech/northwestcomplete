@@ -75,5 +75,8 @@ export function validateTour(tour, catalog) {
     if (typeof p.price !== 'number') errors.push(`product ${p.sku}: price must be a number`);
   }
 
+  const pinnedPlaceholders = new Set(tour.nodes.flatMap((n) => (n.hotspots ?? []).map((h) => h.sku)).filter((sku) => products.get(sku)?.placeholder));
+  if (pinnedPlaceholders.size) warnings.push(`${pinnedPlaceholders.size} placeholder products are still pinned (fine for previews, replace before going live)`);
+
   return { errors, warnings };
 }

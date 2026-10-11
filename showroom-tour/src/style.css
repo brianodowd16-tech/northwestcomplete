@@ -154,7 +154,7 @@ button {
   position: fixed;
   left: 16px;
   bottom: 64px;
-  width: min(300px, calc(100vw - 32px));
+  width: min(360px, calc(100vw - 32px));
   background: var(--paper);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -180,6 +180,10 @@ button {
   padding: 9px 10px;
   font-size: 13px;
   color: var(--ink-soft);
+}
+
+.plan-tabs button {
+  white-space: nowrap;
 }
 
 .plan-tabs button[aria-pressed='true'] {
@@ -453,6 +457,23 @@ button {
   font-weight: 600;
 }
 
+.placeholder-badge {
+  display: inline-block;
+  margin: 14px 0 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #efe7db;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.placeholder-badge + h2 {
+  margin-top: 8px;
+}
+
 .sku {
   color: var(--ink-soft);
   font-size: 12px;
@@ -671,7 +692,12 @@ button {
   }
 
   .plan {
-    width: 190px;
+    width: 220px;
+  }
+
+  .plan-tabs button {
+    padding: 8px 7px;
+    font-size: 12px;
   }
 
   .roombar {

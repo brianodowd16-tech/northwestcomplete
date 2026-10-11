@@ -2,6 +2,9 @@
 // runs before any Insta360 captures exist. Real captures from `npm run ingest`
 // replace the panoramas one file at a time.
 //
+// When layouts/<tour>.json exists (see layout-room.mjs), floors it describes
+// are drawn as the real room in perspective, with every product display in place.
+//
 //   node scripts/make-placeholders.mjs [--tour odowds] [--force]
 
 import { existsSync } from 'node:fs';
@@ -10,6 +13,7 @@ import path from 'node:path';
 import { parseArgs } from 'node:util';
 import sharp from 'sharp';
 import { indexNodes, indexProducts, linkYaw } from '../src/tour-model.js';
+import { roomPanoramaSvg, roomPlanSvg } from './room-render.mjs';
 
 const { values: args } = parseArgs({
   options: { tour: { type: 'string', default: 'odowds' }, force: { type: 'boolean', default: false } },
@@ -20,6 +24,21 @@ const tour = JSON.parse(await readFile(path.join(root, 'tour.json'), 'utf8'));
 const catalog = JSON.parse(await readFile(path.join(root, 'products.json'), 'utf8'));
 const nodes = indexNodes(tour);
 const products = indexProducts(catalog);
+const layoutFile = path.resolve('layouts', `${args.tour}.json`);
+const layout = existsSync(layoutFile) ? JSON.parse(await readFile(layoutFile, 'utf8')) : null;
+const roomFor = (floorId) => layout?.floors?.[floorId] ?? null;
+const floorName = (id) => tour.floors.find((f) => f.id === id)?.name ?? '';
+
+function nodePanoramaSvg(node) {
+  const room = roomFor(node.floor);
+  if (!room) return panoramaSvg(node);
+  return roomPanoramaSvg({ layout, room, node, floorName: floorName(node.floor), productName: (sku) => products.get(sku)?.name });
+}
+
+function floorPlanSvg(floor) {
+  const room = roomFor(floor.id);
+  return room ? roomPlanSvg({ layout, room, floor, nodes: tour.nodes }) : planSvg(floor);
+}
 
 const W = 4096;
 const H = 2048;
@@ -128,7 +147,7 @@ let written = 0;
 for (const node of tour.nodes) {
   const pano = path.join(root, node.panorama);
   if (!existsSync(pano) || args.force) {
-    const img = sharp(Buffer.from(panoramaSvg(node)));
+    const img = sharp(Buffer.from(nodePanoramaSvg(node)));
     await mkdir(path.dirname(pano), { recursive: true });
     await img.clone().jpeg({ quality: 80 }).toFile(pano);
     if (node.thumbnail) {
@@ -139,7 +158,7 @@ for (const node of tour.nodes) {
   }
 }
 for (const floor of tour.floors) {
-  if (await writeIfMissing(path.join(root, floor.plan), planSvg(floor))) written++;
+  if (await writeIfMissing(path.join(root, floor.plan), floorPlanSvg(floor))) written++;
 }
 for (const [name, body] of Object.entries(productIcons)) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 200"><rect width="240" height="200" fill="#f1ece4"/>${body}</svg>`;

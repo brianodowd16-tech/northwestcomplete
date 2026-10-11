@@ -124,11 +124,13 @@ async function fromWooCommerce() {
 
 const products = args.shopify ? await fromShopify() : await fromWooCommerce();
 const tour = JSON.parse(await readFile(path.resolve('public/tours', args.tour, 'tour.json'), 'utf8'));
-const synced = new Set(products.map((p) => p.sku));
+// Placeholder products from layout-room.mjs stay until their pins are replaced.
+const placeholders = catalog.products.filter((p) => p.placeholder);
+const synced = new Set([...products, ...placeholders].map((p) => p.sku));
 const pinned = new Set(tour.nodes.flatMap((n) => (n.hotspots ?? []).map((h) => h.sku)));
 const orphaned = [...pinned].filter((sku) => !synced.has(sku));
 
-catalog.products = products.map((p) => JSON.parse(JSON.stringify(p)));
+catalog.products = [...products.map((p) => JSON.parse(JSON.stringify(p))), ...placeholders];
 catalog.checkout = { ...catalog.checkout, mode: args.shopify ? 'shopify' : 'woocommerce', storeUrl: store };
 await writeFile(file, JSON.stringify(catalog, null, 2) + '\n');
 

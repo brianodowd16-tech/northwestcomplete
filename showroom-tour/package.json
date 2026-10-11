@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "placeholders": "node scripts/make-placeholders.mjs",
+    "layout-room": "node scripts/layout-room.mjs",
     "ingest": "node scripts/ingest.mjs",
     "sync-catalog": "node scripts/sync-catalog.mjs",
     "validate": "node scripts/validate-tour.mjs",

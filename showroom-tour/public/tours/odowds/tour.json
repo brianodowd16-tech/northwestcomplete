@@ -7,15 +7,15 @@
       "id": "ground",
       "name": "Ground floor",
       "plan": "plans/ground.svg",
-      "size": [1000, 600],
-      "sketch": { "entrance": "front", "desk": "left", "stairs": "right" }
+      "size": [1040, 440],
+      "room": { "widthFt": 80, "depthFt": 30 }
     },
     {
       "id": "first",
       "name": "First floor",
       "plan": "plans/first.svg",
-      "size": [1000, 600],
-      "sketch": { "stairs": "right" }
+      "size": [1040, 440],
+      "room": { "widthFt": 80, "depthFt": 30 }
     }
   ],
   "nodes": [
@@ -23,103 +23,211 @@
       "id": "g-entrance",
       "name": "Entrance",
       "floor": "ground",
-      "plan": [500, 440],
+      "plan": [520, 340],
       "heading": 0,
       "panorama": "panos/g-entrance.jpg",
       "thumbnail": "thumbs/g-entrance.jpg",
-      "links": [{ "nodeId": "g-stoves" }, { "nodeId": "g-reception" }],
+      "links": [
+        { "nodeId": "g-stoves" },
+        { "nodeId": "g-fireplaces" },
+        { "nodeId": "g-gas" },
+        { "nodeId": "g-reception" }
+      ],
       "hotspots": [
-        { "sku": "oak-cask-whiskey-barrels", "yaw": 60, "pitch": -15 }
+        { "sku": "ph-12", "yaw": -120.3, "pitch": -26.5 },
+        { "sku": "oak-cask-whiskey-barrels", "yaw": -107.7, "pitch": -16.7 },
+        { "sku": "ph-11", "yaw": -103.2, "pitch": -10 },
+        { "sku": "ph-15", "yaw": 104.6, "pitch": -8.9 },
+        { "sku": "ph-14", "yaw": 106.3, "pitch": -15.5 },
+        { "sku": "ph-13", "yaw": 120.3, "pitch": -26.5 }
       ]
     },
     {
       "id": "g-reception",
       "name": "Reception & desk",
       "floor": "ground",
-      "plan": [190, 300],
+      "plan": [136, 220],
       "heading": 0,
       "panorama": "panos/g-reception.jpg",
       "thumbnail": "thumbs/g-reception.jpg",
-      "links": [{ "nodeId": "g-entrance" }, { "nodeId": "g-stoves" }],
-      "hotspots": []
+      "links": [{ "nodeId": "g-fireplaces" }, { "nodeId": "g-entrance" }],
+      "hotspots": [
+        { "sku": "ph-08", "yaw": -167.9, "pitch": -13.2 },
+        { "sku": "ph-19", "yaw": -145, "pitch": -14.1 },
+        { "sku": "ph-18", "yaw": -32.5, "pitch": -14.4 },
+        { "sku": "ph-01", "yaw": -15.3, "pitch": -10.1 },
+        { "sku": "ph-02", "yaw": 7.8, "pitch": -10.3 },
+        { "sku": "ph-03", "yaw": 28.7, "pitch": -9.2 },
+        { "sku": "ph-10", "yaw": 147.3, "pitch": -10.5 },
+        { "sku": "ph-09", "yaw": 167.9, "pitch": -13.2 }
+      ]
+    },
+    {
+      "id": "g-fireplaces",
+      "name": "Fireplaces",
+      "floor": "ground",
+      "plan": [280, 220],
+      "heading": 0,
+      "panorama": "panos/g-fireplaces.jpg",
+      "thumbnail": "thumbs/g-fireplaces.jpg",
+      "links": [{ "nodeId": "g-reception" }, { "nodeId": "g-stoves" }, { "nodeId": "g-entrance" }],
+      "hotspots": [
+        { "sku": "ph-10", "yaw": -167.9, "pitch": -12.1 },
+        { "sku": "ph-09", "yaw": -147.3, "pitch": -11.4 },
+        { "sku": "ph-02", "yaw": -34.4, "pitch": -8.6 },
+        { "sku": "ph-03", "yaw": -15.3, "pitch": -10.1 },
+        { "sku": "stove-tower", "yaw": 7.8, "pitch": -10.3 },
+        { "sku": "ph-04", "yaw": 36.5, "pitch": -11.6 },
+        { "sku": "ph-12", "yaw": 134, "pitch": -10.1 },
+        { "sku": "oak-cask-whiskey-barrels", "yaw": 146.3, "pitch": -12 },
+        { "sku": "ph-11", "yaw": 167.9, "pitch": -12.1 }
+      ]
     },
     {
       "id": "g-stoves",
       "name": "Stove gallery",
       "floor": "ground",
-      "plan": [500, 310],
+      "plan": [520, 184],
       "heading": 0,
       "panorama": "panos/g-stoves.jpg",
       "thumbnail": "thumbs/g-stoves.jpg",
-      "links": [{ "nodeId": "g-entrance" }, { "nodeId": "g-reception" }, { "nodeId": "g-fireplaces" }, { "nodeId": "g-stairs" }],
+      "links": [{ "nodeId": "g-fireplaces" }, { "nodeId": "g-gas" }, { "nodeId": "g-entrance" }],
       "hotspots": [
-        { "sku": "gazcoriva2-600", "yaw": 45, "pitch": -12 },
-        { "sku": "gazco-studio-1", "yaw": 135, "pitch": -12 },
-        { "sku": "nordica-extraflame-teodora-evo", "yaw": -135, "pitch": -8 }
+        { "sku": "ph-12", "yaw": -160, "pitch": -11.1 },
+        { "sku": "oak-cask-whiskey-barrels", "yaw": -146.3, "pitch": -9.9 },
+        { "sku": "ph-04", "yaw": -43.6, "pitch": -13.4 },
+        { "sku": "ph-05", "yaw": -20.9, "pitch": -17.1 },
+        { "sku": "nordica-extraflame-teodora-evo", "yaw": 10.8, "pitch": -17.9 },
+        { "sku": "ph-06", "yaw": 37.3, "pitch": -14.7 },
+        { "sku": "gazco-studio-1", "yaw": 53.8, "pitch": -8.3 },
+        { "sku": "ph-13", "yaw": 160, "pitch": -11.1 }
       ]
     },
     {
-      "id": "g-fireplaces",
-      "name": "Fireplaces & electric",
+      "id": "g-gas",
+      "name": "Gas & inset fires",
       "floor": "ground",
-      "plan": [500, 120],
+      "plan": [736, 220],
       "heading": 0,
-      "panorama": "panos/g-fireplaces.jpg",
-      "thumbnail": "thumbs/g-fireplaces.jpg",
-      "links": [{ "nodeId": "g-stoves" }],
+      "panorama": "panos/g-gas.jpg",
+      "thumbnail": "thumbs/g-gas.jpg",
+      "links": [{ "nodeId": "g-stoves" }, { "nodeId": "g-stairs" }, { "nodeId": "g-entrance" }],
       "hotspots": [
-        { "sku": "stove-tower", "yaw": -20, "pitch": -5 },
-        { "sku": "hd-i4", "yaw": 20, "pitch": -10 }
+        { "sku": "ph-15", "yaw": -180, "pitch": -11.2 },
+        { "sku": "ph-14", "yaw": -156, "pitch": -13.2 },
+        { "sku": "ph-13", "yaw": -138.4, "pitch": -10.8 },
+        { "sku": "ph-06", "yaw": -36.5, "pitch": -11.6 },
+        { "sku": "gazco-studio-1", "yaw": -7.7, "pitch": -11.1 },
+        { "sku": "hd-i4", "yaw": 15.1, "pitch": -4.2 },
+        { "sku": "gazcoriva2-600", "yaw": 36.5, "pitch": -11.6 },
+        { "sku": "ph-17", "yaw": 139.4, "pitch": -10.3 },
+        { "sku": "ph-16", "yaw": 156, "pitch": -13.2 }
       ]
     },
     {
       "id": "g-stairs",
-      "name": "Stairs (ground)",
+      "name": "Stairs",
       "floor": "ground",
-      "plan": [770, 300],
+      "plan": [880, 220],
       "heading": 0,
       "panorama": "panos/g-stairs.jpg",
       "thumbnail": "thumbs/g-stairs.jpg",
-      "links": [{ "nodeId": "g-stoves" }, { "nodeId": "f-landing", "yaw": 0 }],
-      "hotspots": []
+      "links": [{ "nodeId": "g-gas" }, { "nodeId": "f-landing", "yaw": 90 }],
+      "hotspots": [
+        { "sku": "ph-17", "yaw": -180, "pitch": -13.5 },
+        { "sku": "ph-16", "yaw": -156, "pitch": -13.2 },
+        { "sku": "ph-15", "yaw": -140.8, "pitch": -8.7 },
+        { "sku": "hd-i4", "yaw": -28.4, "pitch": -3.8 },
+        { "sku": "gazcoriva2-600", "yaw": -8.4, "pitch": -14.2 },
+        { "sku": "ph-07", "yaw": 11.5, "pitch": -10.9 },
+        { "sku": "ph-20", "yaw": 35.8, "pitch": -12.3 },
+        { "sku": "ph-21", "yaw": 144.2, "pitch": -12.3 }
+      ]
     },
     {
       "id": "f-landing",
       "name": "First floor landing",
       "floor": "first",
-      "plan": [770, 300],
+      "plan": [880, 220],
       "heading": 0,
       "panorama": "panos/f-landing.jpg",
       "thumbnail": "thumbs/f-landing.jpg",
-      "links": [{ "nodeId": "g-stairs", "yaw": 180 }, { "nodeId": "f-electric" }, { "nodeId": "f-accessories" }],
-      "hotspots": []
+      "links": [{ "nodeId": "g-stairs", "yaw": 90 }, { "nodeId": "f-electric" }],
+      "hotspots": [
+        { "sku": "ph-40", "yaw": -161.3, "pitch": -4.1 },
+        { "sku": "ph-39", "yaw": -143.4, "pitch": -3.5 },
+        { "sku": "evonic-e800-multibox", "yaw": -28.4, "pitch": -3.8 },
+        { "sku": "ph-29", "yaw": -7.7, "pitch": -4.3 },
+        { "sku": "ph-30", "yaw": 11.5, "pitch": -4.2 },
+        { "sku": "ph-45", "yaw": 35.8, "pitch": -12.3 },
+        { "sku": "ph-46", "yaw": 144.2, "pitch": -12.3 },
+        { "sku": "ph-41", "yaw": 175.9, "pitch": -13.4 }
+      ]
     },
     {
       "id": "f-electric",
-      "name": "Electric & gas fires",
+      "name": "Electric fires",
       "floor": "first",
-      "plan": [470, 170],
+      "plan": [712, 220],
       "heading": 0,
       "panorama": "panos/f-electric.jpg",
       "thumbnail": "thumbs/f-electric.jpg",
       "links": [{ "nodeId": "f-landing" }, { "nodeId": "f-accessories" }],
       "hotspots": [
-        { "sku": "evonic-e800-multibox", "yaw": 0, "pitch": 5 },
-        { "sku": "ezee-glow-pulse", "yaw": -40, "pitch": -8 }
+        { "sku": "ph-38", "yaw": -168.5, "pitch": -4.2 },
+        { "sku": "ph-37", "yaw": -147.3, "pitch": -10.5 },
+        { "sku": "ph-27", "yaw": -45, "pitch": -8.8 },
+        { "sku": "ph-28", "yaw": -29.7, "pitch": -10.8 },
+        { "sku": "ezee-glow-pulse", "yaw": 0, "pitch": -4.3 },
+        { "sku": "evonic-e800-multibox", "yaw": 22.1, "pitch": -4 },
+        { "sku": "ph-29", "yaw": 39, "pitch": -3.4 },
+        { "sku": "ph-40", "yaw": 148.7, "pitch": -3.7 },
+        { "sku": "ph-39", "yaw": 168.5, "pitch": -4.2 }
       ]
     },
     {
       "id": "f-accessories",
-      "name": "Outdoor & garden",
+      "name": "Accessories & fuel",
       "floor": "first",
-      "plan": [470, 430],
+      "plan": [496, 220],
       "heading": 0,
       "panorama": "panos/f-accessories.jpg",
       "thumbnail": "thumbs/f-accessories.jpg",
-      "links": [{ "nodeId": "f-landing" }, { "nodeId": "f-electric" }],
+      "links": [{ "nodeId": "f-electric" }, { "nodeId": "f-outdoor" }],
       "hotspots": [
-        { "sku": "esse-gardenstove", "yaw": 160, "pitch": -15 },
-        { "sku": "phoenix-outdoor-fire-pits", "yaw": -160, "pitch": -15 }
+        { "sku": "ph-35", "yaw": -167.9, "pitch": -13.2 },
+        { "sku": "ph-34", "yaw": -147.3, "pitch": -11.4 },
+        { "sku": "ph-25", "yaw": -29.7, "pitch": -11.7 },
+        { "sku": "ph-26", "yaw": -8.1, "pitch": -13.3 },
+        { "sku": "ph-27", "yaw": 15.9, "pitch": -11.9 },
+        { "sku": "ph-28", "yaw": 35.5, "pitch": -10.1 },
+        { "sku": "ph-37", "yaw": 147.3, "pitch": -10.5 },
+        { "sku": "ph-36", "yaw": 167.9, "pitch": -12.1 }
+      ]
+    },
+    {
+      "id": "f-outdoor",
+      "name": "Outdoor & garden",
+      "floor": "first",
+      "plan": [232, 220],
+      "heading": 0,
+      "panorama": "panos/f-outdoor.jpg",
+      "thumbnail": "thumbs/f-outdoor.jpg",
+      "links": [{ "nodeId": "f-accessories" }],
+      "hotspots": [
+        { "sku": "phoenix-outdoor-fire-pits", "yaw": -159.7, "pitch": -13.5 },
+        { "sku": "ph-31", "yaw": -140.8, "pitch": -11.2 },
+        { "sku": "ph-44", "yaw": -115.8, "pitch": -12.1 },
+        { "sku": "ph-43", "yaw": -90, "pitch": -13.4 },
+        { "sku": "ph-42", "yaw": -64.2, "pitch": -12.1 },
+        { "sku": "ph-22", "yaw": -41.6, "pitch": -10.8 },
+        { "sku": "esse-gardenstove", "yaw": -24, "pitch": -13.2 },
+        { "sku": "ph-23", "yaw": 0, "pitch": -14.4 },
+        { "sku": "ph-24", "yaw": 24, "pitch": -13.2 },
+        { "sku": "ph-25", "yaw": 45, "pitch": -9.6 },
+        { "sku": "ph-34", "yaw": 137.1, "pitch": -9.9 },
+        { "sku": "ph-33", "yaw": 152.6, "pitch": -12.8 },
+        { "sku": "ph-32", "yaw": 175.8, "pitch": -14.3 }
       ]
     }
   ]

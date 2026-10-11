@@ -16,6 +16,10 @@ export function checkout(cart, catalog, { showMessage }) {
   const store = (cfg.storeUrl ?? '').replace(/\/$/, '');
   const lines = cart.lines();
   if (!lines.length) return;
+  const placeholders = lines.filter((l) => l.product.placeholder);
+  if (placeholders.length && cfg.mode !== 'demo') {
+    return showMessage(`Placeholder products can't be bought yet: ${placeholders.map((l) => l.product.name).join(', ')}. Remove them from the cart to continue.`);
+  }
 
   switch (cfg.mode) {
     case 'shopify': {

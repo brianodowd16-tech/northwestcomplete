@@ -59,9 +59,26 @@ replaces the image but keeps its links and pins.
 Replace `plans/ground.svg` and `plans/first.svg` with real plans. A phone photo of a sketch works.
 Set each floor's `size` in `tour.json` to the image's pixel size.
 
-Until then, `npm run placeholders -- --force` draws a rectangular sketch plan for each floor, front wall at the bottom,
-from that floor's `sketch` in `tour.json`. The pilot uses `{ "entrance": "front", "desk": "left", "stairs": "right" }`
-for the ground floor and `{ "stairs": "right" }` upstairs.
+#### Placeholder room layout (before capture)
+
+Until the showroom is photographed, the pilot runs on a placeholder model of the real building, defined in feet in
+`layouts/odowds.json`:
+
+- **Floors:** each is 80 × 30 ft (80 ft along the front wall), with the entrance in the middle of the front wall,
+  the reception desk on the left wall and the stairs on the right wall.
+- **Stops:** where each 360° photo will be taken, as `at: [x, y]` in feet from the back-left corner.
+- **Displays:** every product spot along the walls, as `wall` + `at` (feet along that wall) + `kind` (sets size and look).
+  Displays with a `name` and `price` become placeholder products; the others point to real shop SKUs.
+
+```bash
+npm run layout-room                 # stops, links, placeholder products, and every pin's direction from each stop
+npm run placeholders -- --force     # redraw panoramas and plans in true perspective to match
+npm run preview-file                # rebuild the shareable preview
+```
+
+Placeholder products are labelled on their product card, can't be checked out on the live shop, and survive
+`sync-catalog`. `npm run validate` reminds you while any are still pinned. Once real captures are in, pin real products
+in the editor and stop running `layout-room`, because it rewrites the stops and pins.
 
 ### 4. Edit at `/?edit`
 
@@ -158,5 +175,6 @@ and optionally `compareAtPrice`, `inStock`, `shopifyVariantId`, `wooProductId`.
 - `src/editor.js`: `?edit` tools
 - `src/cart.js`, `src/checkout.js`: cart state and shop handoff
 - `src/tour-model.js`: link direction maths and validation (shared with the scripts)
-- `scripts/`: `ingest`, `sync-catalog`, `validate-tour`, `make-placeholders`
+- `scripts/`: `ingest`, `sync-catalog`, `validate-tour`, `make-placeholders`, `layout-room` (+ `room-geometry`, `room-render`), `build-preview`
+- `layouts/odowds.json`: placeholder room layout in feet
 - `wordpress/showroom-tour-cart.php`: WordPress plugin that takes the whole tour cart into WooCommerce

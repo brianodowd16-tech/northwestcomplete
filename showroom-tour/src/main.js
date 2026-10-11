@@ -281,6 +281,7 @@ function openProduct(sku) {
     p.category ?? 'Product',
     `<article class="product" data-sku="${esc(p.sku)}">
       ${p.image ? `<img class="product-img" src="${esc(asset(p.image))}" alt="${esc(p.name)}">` : ''}
+      ${p.placeholder ? '<p class="placeholder-badge">Placeholder product</p>' : ''}
       <h2>${esc(p.name)}</h2>
       <p class="product-price">${p.compareAtPrice ? `<s>${esc(app.money(p.compareAtPrice))}</s> ` : ''}${esc(app.money(p.price))}</p>
       <p class="product-desc">${esc(p.description)}</p>

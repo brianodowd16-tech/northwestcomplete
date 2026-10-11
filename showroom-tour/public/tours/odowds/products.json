@@ -116,6 +116,466 @@
       "description": "*Brand New*\nGazco Studio 1 5.2Kw\nRRP: €3250\nNOW: €1250\nGazco Studio 1 LPG Stove\nContemporary LPG Gas Fire, with highly realistic log effect fuel bed\nBalanced flue (no chimney required)\nHeat Output up to 5.3kW\n92% efficiency\nProgrammable Thermostatic Room Temperature Control\nSequential remote control\n5 Year Warranty through Gazco Expert Retailer\nWe stock and display the best traditional and contemporary Fireplaces, Stoves, Gas and Electric Fires to suit your taste and budget.\nOur award winning showrooms boast over 80 different displays, we guarantee that you will find the perfect fire for your needs. We also have a selection of hearths, flues and other stove accessories in store.\nStation Rd, Carrick on Shannon, N41 DW99\nTel: 0719620153\nwww.odowdscarrick.com",
       "inStock": true,
       "wooProductId": 32306
+    },
+    {
+      "sku": "ph-01",
+      "name": "Limestone Fireplace Surround",
+      "category": "Fireplaces",
+      "price": 1775,
+      "image": "products/fireplace.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-02",
+      "name": "Cast Iron Combination Fireplace",
+      "category": "Fireplaces",
+      "price": 700,
+      "image": "products/fireplace.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-03",
+      "name": "Oak Mantel Surround",
+      "category": "Fireplaces",
+      "price": 1125,
+      "image": "products/fireplace.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-04",
+      "name": "5kW Multi-fuel Stove",
+      "category": "Stoves",
+      "price": 1200,
+      "image": "products/stove.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-05",
+      "name": "8kW Multi-fuel Stove",
+      "category": "Stoves",
+      "price": 1850,
+      "image": "products/stove.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-06",
+      "name": "Contemporary Wood Burner 6kW",
+      "category": "Stoves",
+      "price": 1775,
+      "image": "products/stove.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-07",
+      "name": "Inset Multi-fuel Stove",
+      "category": "Inset fires",
+      "price": 1675,
+      "image": "products/fireplace.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-08",
+      "name": "Companion Set",
+      "category": "Accessories",
+      "price": 35,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-09",
+      "name": "Log Basket",
+      "category": "Accessories",
+      "price": 85,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-10",
+      "name": "Kiln-dried Logs (bag)",
+      "category": "Fuel & log storage",
+      "price": 10,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-11",
+      "name": "Smokeless Coal 20kg",
+      "category": "Fuel & log storage",
+      "price": 40,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-12",
+      "name": "Traditional Cast Iron Stove 7kW",
+      "category": "Stoves",
+      "price": 1550,
+      "image": "products/stove.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-13",
+      "name": "Double-sided Stove 9kW",
+      "category": "Stoves",
+      "price": 925,
+      "image": "products/stove.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-14",
+      "name": "Boiler Stove 12kW",
+      "category": "Stoves",
+      "price": 1150,
+      "image": "products/stove.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-15",
+      "name": "Cassette Wood Burner",
+      "category": "Inset fires",
+      "price": 1425,
+      "image": "products/fireplace.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-16",
+      "name": "Balanced Flue Gas Stove",
+      "category": "Gas stoves & fires",
+      "price": 2125,
+      "image": "products/stove.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-17",
+      "name": "Fireguard",
+      "category": "Accessories",
+      "price": 55,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-18",
+      "name": "Stove Thermometer",
+      "category": "Accessories",
+      "price": 115,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-19",
+      "name": "Firelighters & Kindling",
+      "category": "Fuel & log storage",
+      "price": 125,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-20",
+      "name": "Heat-powered Stove Fan",
+      "category": "Accessories",
+      "price": 20,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-21",
+      "name": "Hearth Rug",
+      "category": "Accessories",
+      "price": 150,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-22",
+      "name": "Steel Fire Pit",
+      "category": "Outdoor & garden",
+      "price": 675,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-23",
+      "name": "Chiminea",
+      "category": "Outdoor & garden",
+      "price": 375,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-24",
+      "name": "Outdoor Pizza Oven",
+      "category": "Outdoor & garden",
+      "price": 250,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-25",
+      "name": "Carbon Monoxide Alarm",
+      "category": "Accessories",
+      "price": 175,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-26",
+      "name": "Stove Glass Cleaner",
+      "category": "Accessories",
+      "price": 75,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-27",
+      "name": "Log Store",
+      "category": "Fuel & log storage",
+      "price": 20,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-28",
+      "name": "Peat Briquettes Bale",
+      "category": "Fuel & log storage",
+      "price": 20,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-29",
+      "name": "Wall-mounted Electric Fire 1200mm",
+      "category": "Electric fires",
+      "price": 1325,
+      "image": "products/fireplace.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-30",
+      "name": "Electric Inset Fire",
+      "category": "Electric fires",
+      "price": 1075,
+      "image": "products/fireplace.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-31",
+      "name": "Patio Heater",
+      "category": "Outdoor & garden",
+      "price": 750,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-32",
+      "name": "Fire Pit BBQ Grill",
+      "category": "Outdoor & garden",
+      "price": 700,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-33",
+      "name": "Garden Log Store",
+      "category": "Outdoor & garden",
+      "price": 550,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-34",
+      "name": "Toolset & Log Holder",
+      "category": "Accessories",
+      "price": 175,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-35",
+      "name": "Companion Set",
+      "category": "Accessories",
+      "price": 80,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-36",
+      "name": "Kiln-dried Logs (bag)",
+      "category": "Fuel & log storage",
+      "price": 85,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-37",
+      "name": "Smokeless Coal 20kg",
+      "category": "Fuel & log storage",
+      "price": 125,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-38",
+      "name": "Media Wall Electric Fire 1500mm",
+      "category": "Electric fires",
+      "price": 1075,
+      "image": "products/fireplace.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-39",
+      "name": "Electric Stove – Matt Black",
+      "category": "Electric fires",
+      "price": 1350,
+      "image": "products/fireplace.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-40",
+      "name": "Panoramic Electric Fire",
+      "category": "Electric fires",
+      "price": 1025,
+      "image": "products/fireplace.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-41",
+      "name": "Log Basket",
+      "category": "Accessories",
+      "price": 130,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-42",
+      "name": "Steel Fire Pit",
+      "category": "Outdoor & garden",
+      "price": 150,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-43",
+      "name": "Chiminea",
+      "category": "Outdoor & garden",
+      "price": 300,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-44",
+      "name": "Outdoor Pizza Oven",
+      "category": "Outdoor & garden",
+      "price": 350,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-45",
+      "name": "Fireguard",
+      "category": "Accessories",
+      "price": 30,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "ph-46",
+      "name": "Stove Thermometer",
+      "category": "Accessories",
+      "price": 55,
+      "image": "products/accessory.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
     }
   ]
 }
