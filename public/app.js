@@ -52,8 +52,8 @@ function bindText(d) {
     ...d,
     fromPrice: euro(Math.min(...d.bundles.map((b) => b.price)), { trim: true }),
     ticketTarget: d.ticketTarget.toLocaleString('en-IE'),
-    drawDateShort: drawDate.toLocaleDateString('en-IE', { weekday: 'long', day: 'numeric', month: 'long' }),
-    drawDateLong: drawDate.toLocaleString('en-IE', { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' }),
+    drawDateShort: drawDate.toLocaleDateString('en-IE', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Dublin' }),
+    drawDateLong: `${drawDate.toLocaleDateString('en-IE', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Dublin' })} at ${drawDate.toLocaleTimeString('en-GB', { hour: 'numeric', hour12: true, timeZone: 'Europe/Dublin' }).replace(/\s/g, '')}`,
   };
   $$('[data-bind]').forEach((el) => { if (values[el.dataset.bind] != null) el.textContent = values[el.dataset.bind]; });
   $$('[data-href]').forEach((el) => {

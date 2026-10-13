@@ -70,11 +70,8 @@ main, .nav, .footer, .ribbon { position: relative; z-index: 1; }
 }
 .brand { display: flex; align-items: center; gap: .7rem; text-decoration: none; }
 .brand__crest {
-  display: grid; place-items: center; width: 44px; height: 44px; flex: none;
-  border-radius: 14px 14px 22px 22px;
-  background: linear-gradient(160deg, var(--holly), var(--holly-deep));
-  font: 800 .95rem var(--display); letter-spacing: -.02em;
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,.18);
+  width: 44px; height: 44px; flex: none; object-fit: contain;
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, .5)) drop-shadow(0 4px 10px rgba(0, 0, 0, .4));
 }
 .brand__text { line-height: 1.1; }
 .brand__text small { display: block; color: var(--frost-dim); font-size: .78rem; }
@@ -295,6 +292,11 @@ main, .nav, .footer, .ribbon { position: relative; z-index: 1; }
   background: linear-gradient(135deg, #12753f, #0b4a28 60%, #08331c);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
 }
+.why__crest {
+  position: absolute; right: clamp(1.5rem, 5vw, 4rem); top: 50%; z-index: 1; width: clamp(140px, 18vw, 220px); height: auto;
+  transform: translateY(-50%) rotate(6deg); filter: drop-shadow(0 20px 30px rgba(0, 0, 0, .45));
+}
+.why__inner > :not(.why__crest) { position: relative; z-index: 2; max-width: min(40rem, calc(100% - 15rem)); }
 .why__inner::after {
   content: ""; position: absolute; right: -80px; bottom: -80px; width: 340px; height: 340px; border-radius: 50%;
   border: 40px solid rgba(255,255,255,.05);
@@ -319,7 +321,8 @@ main, .nav, .footer, .ribbon { position: relative; z-index: 1; }
   max-width: 1240px; margin: 0 auto; padding: 3rem var(--gutter) 7rem; border-top: 1px solid var(--line);
 }
 .footer__brand { display: flex; gap: .9rem; align-items: center; }
-.footer__links { display: flex; flex-wrap: wrap; gap: 1.4rem; }
+.footer__links { display: flex; flex-wrap: wrap; gap: .6rem 1.4rem; min-width: 0; }
+.footer__links a { overflow-wrap: anywhere; }
 .footer__links a { color: var(--frost-dim); text-decoration: none; }
 .footer__links a:hover { color: var(--amber); }
 .footer__fine { grid-column: 1 / -1; font-size: .85rem; }
@@ -374,6 +377,8 @@ main, .nav, .footer, .ribbon { position: relative; z-index: 1; }
   .bundle__tickets strong { font-size: 2.6rem; }
   .prize { min-height: 200px; }
   .footer { grid-template-columns: 1fr; }
+  .why__crest { position: static; transform: rotate(4deg); width: 120px; margin-bottom: 1rem; }
+  .why__inner > :not(.why__crest) { max-width: none; }
   .pump__digits { font-size: 2.1rem; }
 }
 

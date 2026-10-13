@@ -42,6 +42,7 @@ Everything lives in `config/draw.json`:
 | `prizes` | In order, 1st first. Each has `title`, optional `detail`, `value` and `sponsor`, and a `kind` (`holiday`, `fuel` or `home`) |
 | `ticketTarget` | The "F" on the fuel gauge |
 | `ticketsSoldOffset` | Adds paper or offline sales to the gauge |
+| `address` | Club address, shown in the footer |
 | `licenceNote` | Lottery licence or permit number, shown in the footer |
 
 Club colours are CSS variables at the top of `public/styles.css` (`--holly`, `--amber`, `--ember`).

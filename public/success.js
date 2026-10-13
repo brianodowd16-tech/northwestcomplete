@@ -25,7 +25,7 @@ function render(order) {
   if (order.firstName) $('#name').textContent = `, ${order.firstName}`;
   if (order.email) $('#email').textContent = order.email;
   $('#count').textContent = `${order.tickets.length} TICKET${order.tickets.length > 1 ? 'S' : ''}`;
-  $('#drawDate').textContent = new Date(order.drawDate).toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+  $('#drawDate').textContent = new Date(order.drawDate).toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Dublin' }).toUpperCase();
   $('#demoNote').hidden = !order.demo;
 
   const list = $('#ticketList');

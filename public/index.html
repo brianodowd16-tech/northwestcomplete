@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="/img/crest-96.png">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -25,7 +26,7 @@
 
   <header class="nav">
     <a class="brand" href="/">
-      <span class="brand__crest" aria-hidden="true">SM</span>
+      <img class="brand__crest" src="/img/crest-96.png" alt="" width="44" height="44">
       <span class="brand__text"><strong data-bind="clubShort">St Michael's</strong> <small>GAA &amp; LGFA · <span data-bind="clubArea">Ardcarne</span></small></span>
     </a>
     <a class="btn btn--ghost btn--sm" href="#tickets">Get tickets</a>
@@ -155,6 +156,7 @@
     <!-- WHY -->
     <section class="section why reveal">
       <div class="why__inner">
+        <img class="why__crest" src="/img/crest.png" alt="St Michael's GAA crest" width="220" height="220" loading="lazy">
         <p class="eyebrow">Why it matters</p>
         <h2>Every ticket keeps the lights on at the pitch.</h2>
         <p>Floodlights, kit, buses to away games, coaching for hundreds of boys and girls. The Christmas Draw is one of the club's biggest fundraisers of the year. Thank you for backing <span data-bind="clubShort">St Michael's</span>.</p>
@@ -181,13 +183,13 @@
 
   <footer class="footer">
     <div class="footer__brand">
-      <span class="brand__crest" aria-hidden="true">SM</span>
-      <div><strong data-bind="clubName">St Michael's GAA &amp; LGFA</strong><br><span class="muted" data-bind="licenceNote"></span></div>
+      <img class="brand__crest" src="/img/crest-96.png" alt="" width="44" height="44">
+      <div><strong data-bind="clubName">St Michael's GAA &amp; LGFA</strong><br><span class="muted" data-bind="address">Ardcarne, Co. Roscommon</span><br><span class="muted" data-bind="licenceNote"></span></div>
     </div>
     <nav class="footer__links">
       <a href="/terms">Terms &amp; conditions</a>
       <a data-href="facebookUrl" href="#" target="_blank" rel="noopener">Facebook</a>
-      <a data-href="contactEmail" href="#">Contact</a>
+      <a data-href="contactEmail" data-bind="contactEmail" href="#">Contact</a>
     </nav>
     <p class="footer__fine muted">18+ only. Play responsibly. Proceeds go to club development.</p>
   </footer>
