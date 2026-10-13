@@ -28,7 +28,7 @@ function render(order) {
   $('#drawDate').textContent = new Date(order.drawDate).toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
   $('#demoNote').hidden = !order.demo;
 
-  const list = $('#tickets');
+  const list = $('#ticketList');
   order.tickets.forEach((n, i) => {
     const li = document.createElement('li');
     li.textContent = n;
