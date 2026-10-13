@@ -43,7 +43,8 @@ Everything lives in `config/draw.json`:
 | `ticketTarget` | The "F" on the fuel gauge |
 | `ticketsSoldOffset` | Adds paper or offline sales to the gauge |
 | `address` | Club address, shown in the footer |
-| `licenceNote` | Lottery licence or permit number, shown in the footer |
+| `mapsUrl` | Google Maps link for the footer's Directions link |
+| `licenceNote` | Licence line in the footer |
 
 Club colours are CSS variables at the top of `public/styles.css` (`--holly`, `--amber`, `--ember`).
 

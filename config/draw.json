@@ -2,7 +2,8 @@
   "clubName": "St Michael's GAA & LGFA",
   "clubShort": "St Michael's",
   "clubArea": "Ardcarne",
-  "address": "Ardcarne, Co. Roscommon",
+  "address": "Ardcarne, Boyle, Co. Roscommon",
+  "mapsUrl": "https://maps.app.goo.gl/2Lv2M7Hi25sKk2rZA",
   "drawName": "Christmas Holiday & Fuel Draw",
   "currency": "eur",
   "drawDate": "2026-12-20T20:00:00Z",
@@ -13,7 +14,7 @@
   "ticketStartNumber": 1001,
   "facebookUrl": "https://www.facebook.com/stmichaelsgaaardcarne/",
   "contactEmail": "secretary.stmichaels.roscommon@gaa.ie",
-  "licenceNote": "Lottery licence/permit number: TBC",
+  "licenceNote": "Lottery licence details available on request.",
   "bundles": [
     {
       "id": "single",

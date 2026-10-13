@@ -325,6 +325,13 @@ main, .nav, .footer, .ribbon { position: relative; z-index: 1; }
 .footer__links a { overflow-wrap: anywhere; }
 .footer__links a { color: var(--frost-dim); text-decoration: none; }
 .footer__links a:hover { color: var(--amber); }
+.footer__address { color: var(--frost-dim); text-decoration: none; border-bottom: 1px solid var(--line); }
+.footer__address:hover { color: var(--amber); border-color: var(--amber); }
+.support { grid-column: 1 / -1; display: flex; align-items: center; gap: 1.2rem; padding-top: 1.5rem; border-top: 1px solid var(--line); text-decoration: none; }
+.support__label { font: 700 .75rem var(--mono); text-transform: uppercase; letter-spacing: .12em; color: var(--frost-dim); }
+.support__logo { display: block; padding: .6rem; border-radius: 14px; background: #ffffff; transition: transform .25s var(--ease); }
+.support:hover .support__logo { transform: translateY(-2px); }
+.support__logo img { width: 92px; height: auto; }
 .footer__fine { grid-column: 1 / -1; font-size: .85rem; }
 
 /* ---------- Sticky buy bar (mobile) ---------- */
