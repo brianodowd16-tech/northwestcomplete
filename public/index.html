@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en-IE">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Christmas Fuel Draw · St Michael's GAA &amp; LGFA</title>
+  <meta name="description" content="Fill your tank this Christmas. Buy tickets for the St Michael's GAA & LGFA Christmas Fuel Draw online — secure checkout, instant ticket numbers.">
+  <meta property="og:title" content="St Michael's Christmas Fuel Draw">
+  <meta property="og:description" content="Fill your tank this Christmas and back the club. Tickets from €10.">
+  <meta name="theme-color" content="#0a0f1e">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <canvas id="snow" aria-hidden="true"></canvas>
+
+  <div class="ribbon" role="note">
+    <span class="ribbon__dot" aria-hidden="true"></span>
+    <span>Draw closes in <strong data-countdown="salesCloseDate">—</strong></span>
+    <span class="ribbon__sep" aria-hidden="true">/</span>
+    <span data-bind="drawLocation">Live on Facebook</span>
+  </div>
+
+  <header class="nav">
+    <a class="brand" href="/">
+      <span class="brand__crest" aria-hidden="true">SM</span>
+      <span class="brand__text"><strong data-bind="clubShort">St Michael's</strong> <small>GAA &amp; LGFA · <span data-bind="clubArea">Ardcarne</span></small></span>
+    </a>
+    <a class="btn btn--ghost btn--sm" href="#tickets">Get tickets</a>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero__copy">
+        <p class="eyebrow reveal">Christmas Fuel Draw <span class="eyebrow__year">’26</span></p>
+        <h1 class="hero__title reveal">
+          Fill your tank<br>
+          <span class="flame-text">this Christmas.</span>
+        </h1>
+        <p class="hero__lede reveal">One ticket could heat your home or fuel your car through the winter — and every euro drives our juvenile, adult and ladies' teams forward.</p>
+        <div class="hero__cta reveal">
+          <a class="btn btn--fuel btn--lg" href="#tickets">
+            <span>Get tickets</span><span class="btn__meta">from <span data-bind="fromPrice">€10</span></span>
+          </a>
+          <a class="link-arrow" href="#prizes">See the prizes</a>
+        </div>
+        <ul class="trust reveal" aria-label="Why buy online">
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5l-8-3Z"/></svg>Secure Stripe checkout</li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v10H4zM4 11h16"/></svg>Card, Apple Pay &amp; Google Pay</li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>Ticket numbers instantly</li>
+        </ul>
+      </div>
+
+      <figure class="gauge reveal" aria-labelledby="gauge-caption">
+        <svg class="gauge__svg" viewBox="0 0 320 200" role="img" aria-label="Fuel gauge showing tickets sold">
+          <defs>
+            <linearGradient id="gaugeFill" x1="0" x2="1">
+              <stop offset="0" stop-color="var(--ember)"/>
+              <stop offset=".55" stop-color="var(--amber)"/>
+              <stop offset="1" stop-color="var(--holly)"/>
+            </linearGradient>
+          </defs>
+          <path class="gauge__track" d="M30 170 A130 130 0 0 1 290 170" pathLength="100"/>
+          <path class="gauge__fill" d="M30 170 A130 130 0 0 1 290 170" pathLength="100" stroke="url(#gaugeFill)"/>
+          <g class="gauge__ticks" id="gaugeTicks"></g>
+          <text x="22" y="196" class="gauge__end">E</text>
+          <text x="290" y="196" class="gauge__end">F</text>
+          <g class="gauge__needle" id="needle">
+            <line x1="160" y1="170" x2="160" y2="62"/>
+            <circle cx="160" cy="170" r="11"/>
+          </g>
+        </svg>
+        <figcaption id="gauge-caption" class="gauge__readout">
+          <span class="lcd"><span class="odometer" data-odometer="ticketsSold">0000</span></span>
+          <span class="gauge__label">tickets sold · help us fill the tank</span>
+          <span class="gauge__pct"><strong data-bind="pct">0%</strong> of our <span data-bind="ticketTarget">2,000</span> target</span>
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- PRIZES -->
+    <section class="section" id="prizes">
+      <div class="section__head reveal">
+        <p class="eyebrow">The prizes</p>
+        <h2>Big fills. Revealed soon.</h2>
+        <p class="muted">We're finalising this year's line-up with our local sponsors. Get your tickets early — prizes will be announced on our Facebook page.</p>
+      </div>
+      <div class="prizes" id="prizeList"></div>
+    </section>
+
+    <!-- TICKETS / PUMP -->
+    <section class="section section--pump" id="tickets">
+      <div class="section__head reveal">
+        <p class="eyebrow">Pick your fill</p>
+        <h2>More tickets, more chances.</h2>
+      </div>
+
+      <div class="pump reveal">
+        <div class="bundles" id="bundles" role="radiogroup" aria-label="Ticket options"></div>
+
+        <aside class="pump__display" aria-live="polite">
+          <div class="pump__screen">
+            <div class="pump__row">
+              <span class="pump__unit">EURO</span>
+              <span class="pump__digits" id="totalEuro">0.00</span>
+            </div>
+            <div class="pump__row pump__row--sub">
+              <span class="pump__unit">TICKETS</span>
+              <span class="pump__digits" id="totalTickets">0</span>
+            </div>
+            <div class="pump__row pump__row--sub">
+              <span class="pump__unit">€ / TICKET</span>
+              <span class="pump__digits" id="perTicket">0.00</span>
+            </div>
+          </div>
+
+          <div class="stepper" aria-label="Number of bundles">
+            <button type="button" class="stepper__btn" data-step="-1" aria-label="Fewer">−</button>
+            <output id="qty" class="stepper__val">1</output>
+            <button type="button" class="stepper__btn" data-step="1" aria-label="More">+</button>
+            <span class="stepper__label">× bundle</span>
+          </div>
+
+          <button class="btn btn--fuel btn--lg btn--block" id="checkoutBtn" type="button">
+            <span id="checkoutLabel">Fill up</span>
+            <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+          <p class="pump__error" id="checkoutError" role="alert" hidden></p>
+          <p class="pump__fine">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+            Payments processed securely by Stripe. Over 18s only.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section">
+      <div class="section__head reveal">
+        <p class="eyebrow">How it works</p>
+        <h2>Sixty seconds to enter.</h2>
+      </div>
+      <ol class="steps">
+        <li class="step reveal"><span class="step__n">01</span><h3>Choose your fill</h3><p>Pick a bundle. Bigger bundles mean a cheaper price per ticket.</p></li>
+        <li class="step reveal"><span class="step__n">02</span><h3>Pay securely</h3><p>Check out with card, Apple Pay or Google Pay through Stripe.</p></li>
+        <li class="step reveal"><span class="step__n">03</span><h3>Get your numbers</h3><p>Your ticket numbers appear right away, and your receipt comes by email.</p></li>
+        <li class="step reveal"><span class="step__n">04</span><h3>Watch it live</h3><p>The draw is on <span data-bind="drawDateShort">December</span>, streamed on the club Facebook page.</p></li>
+      </ol>
+    </section>
+
+    <!-- WHY -->
+    <section class="section why reveal">
+      <div class="why__inner">
+        <p class="eyebrow">Why it matters</p>
+        <h2>Every ticket keeps the lights on at the pitch.</h2>
+        <p>Floodlights, kit, buses to away games, coaching for hundreds of boys and girls. The Fuel Draw is one of the club's biggest fundraisers of the year. Thank you for backing <span data-bind="clubShort">St Michael's</span>.</p>
+        <a class="btn btn--fuel" href="#tickets">I'm in, get tickets</a>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq">
+      <div class="section__head reveal">
+        <p class="eyebrow">Questions</p>
+        <h2>Good to know</h2>
+      </div>
+      <div class="faq">
+        <details class="reveal"><summary>When and where is the draw?</summary><p>The draw takes place on <strong data-bind="drawDateLong">—</strong>, <span data-bind="drawLocation">live on the club Facebook page</span>. Winners will also be contacted directly.</p></details>
+        <details class="reveal"><summary>How do I get my ticket numbers?</summary><p>They appear on screen as soon as payment goes through, and Stripe emails you a receipt. Keep your confirmation page or a screenshot.</p></details>
+        <details class="reveal"><summary>What are the prizes?</summary><p>The prizes are being confirmed with local sponsors and will be announced on our Facebook page before the draw. All tickets bought before then are entered.</p></details>
+        <details class="reveal"><summary>Is paying online safe?</summary><p>Yes. Payment is handled by Stripe, and your card details never touch our website. You can pay by card, Apple Pay or Google Pay.</p></details>
+        <details class="reveal"><summary>Someone from the club asked me to buy. Can they get credit?</summary><p>Yes. At checkout there's an optional box for the name of the club member who sent you.</p></details>
+        <details class="reveal"><summary>Who can enter?</summary><p>Anyone aged 18 or over. See the <a href="/terms">terms &amp; conditions</a>.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer__brand">
+      <span class="brand__crest" aria-hidden="true">SM</span>
+      <div><strong data-bind="clubName">St Michael's GAA &amp; LGFA</strong><br><span class="muted" data-bind="licenceNote"></span></div>
+    </div>
+    <nav class="footer__links">
+      <a href="/terms">Terms &amp; conditions</a>
+      <a data-href="facebookUrl" href="#" target="_blank" rel="noopener">Facebook</a>
+      <a data-href="contactEmail" href="#">Contact</a>
+    </nav>
+    <p class="footer__fine muted">18+ only. Play responsibly. Proceeds go to club development.</p>
+  </footer>
+
+  <div class="buybar" id="buybar" aria-hidden="true">
+    <div class="buybar__info"><strong id="buybarLabel">Family tank</strong><span id="buybarMeta">7 tickets</span></div>
+    <button class="btn btn--fuel" type="button" id="buybarBtn">Pay <span id="buybarTotal">€50</span></button>
+  </div>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script src="/app.js" type="module"></script>
+</body>
+</html>

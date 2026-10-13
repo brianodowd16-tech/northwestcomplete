@@ -1,0 +1,28 @@
+{
+  "clubName": "St Michael's GAA & LGFA",
+  "clubShort": "St Michael's",
+  "clubArea": "Ardcarne",
+  "drawName": "Christmas Fuel Draw",
+  "currency": "eur",
+  "drawDate": "2026-12-19T20:00:00Z",
+  "drawLocation": "Live on the club Facebook page",
+  "salesCloseDate": "2026-12-19T18:00:00Z",
+  "ticketTarget": 2000,
+  "ticketsSoldOffset": 0,
+  "ticketStartNumber": 1001,
+  "facebookUrl": "https://www.facebook.com/stmichaelsgaaardcarne/",
+  "contactEmail": "info@example.com",
+  "licenceNote": "Lottery licence/permit number: TBC",
+  "bundles": [
+    { "id": "single", "tickets": 1, "price": 1000, "label": "Single fill", "tag": null },
+    { "id": "triple", "tickets": 3, "price": 2500, "label": "Three-pack", "tag": "Save €5" },
+    { "id": "family", "tickets": 7, "price": 5000, "label": "Family tank", "tag": "Most popular", "featured": true },
+    { "id": "bulk", "tickets": 15, "price": 10000, "label": "Full tanker", "tag": "Best value" }
+  ],
+  "maxBundlesPerOrder": 10,
+  "prizes": [
+    { "place": "1st", "title": "Prize TBC", "detail": "To be announced", "revealed": false },
+    { "place": "2nd", "title": "Prize TBC", "detail": "To be announced", "revealed": false },
+    { "place": "3rd", "title": "Prize TBC", "detail": "To be announced", "revealed": false }
+  ]
+}

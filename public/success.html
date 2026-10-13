@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en-IE">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>You're in! · Christmas Fuel Draw</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0a0f1e">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/success.css">
+</head>
+<body>
+  <canvas id="snow" aria-hidden="true"></canvas>
+  <header class="nav">
+    <a class="brand" href="/">
+      <span class="brand__crest" aria-hidden="true">SM</span>
+      <span class="brand__text"><strong>St Michael's</strong> <small>GAA &amp; LGFA · Christmas Fuel Draw</small></span>
+    </a>
+  </header>
+
+  <main class="done">
+    <div class="done__loading" id="loading">
+      <div class="nozzle" aria-hidden="true"></div>
+      <p>Printing your tickets…</p>
+    </div>
+
+    <section class="done__card" id="result" hidden>
+      <p class="eyebrow">Payment confirmed</p>
+      <h1 class="done__title">You're in<span id="name"></span>!</h1>
+      <p class="done__lede">Your ticket numbers for the Christmas Fuel Draw are below. Stripe has emailed a receipt to <strong id="email">you</strong>.</p>
+
+      <div class="receipt" id="receipt">
+        <div class="receipt__head">
+          <span>ST MICHAEL'S · FUEL DRAW</span>
+          <span id="count">0 TICKETS</span>
+        </div>
+        <ol class="receipt__tickets" id="tickets"></ol>
+        <div class="receipt__foot">
+          <span>DRAW</span><span id="drawDate">—</span>
+        </div>
+      </div>
+
+      <p class="demo-note" id="demoNote" hidden>Demo mode: no payment was taken and these tickets are not real.</p>
+
+      <div class="share">
+        <p><strong>Know someone who'd love a full tank?</strong> Send it on. It all goes to the club.</p>
+        <div class="share__btns">
+          <a class="btn btn--fuel" id="shareWhatsapp" target="_blank" rel="noopener">Share on WhatsApp</a>
+          <a class="btn btn--ghost" id="shareFacebook" target="_blank" rel="noopener">Share on Facebook</a>
+          <button class="btn btn--ghost" id="shareNative" type="button" hidden>Share…</button>
+        </div>
+      </div>
+      <a class="link-back" href="/#tickets">Buy more tickets</a>
+    </section>
+
+    <section class="done__card" id="pending" hidden>
+      <p class="eyebrow">Almost there</p>
+      <h1 class="done__title">Still processing…</h1>
+      <p class="done__lede">Your payment is being confirmed. Your ticket numbers will be on your Stripe receipt email, or refresh this page in a minute. If you have any trouble, contact the club and quote this reference:</p>
+      <code class="ref" id="ref"></code>
+    </section>
+  </main>
+
+  <script src="/success.js" type="module"></script>
+</body>
+</html>
