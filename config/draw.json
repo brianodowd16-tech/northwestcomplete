@@ -2,7 +2,7 @@
   "clubName": "St Michael's GAA & LGFA",
   "clubShort": "St Michael's",
   "clubArea": "Ardcarne",
-  "drawName": "Christmas Fuel Draw",
+  "drawName": "Christmas Holiday & Fuel Draw",
   "currency": "eur",
   "drawDate": "2026-12-19T20:00:00Z",
   "drawLocation": "Live on the club Facebook page",
@@ -14,15 +14,165 @@
   "contactEmail": "info@example.com",
   "licenceNote": "Lottery licence/permit number: TBC",
   "bundles": [
-    { "id": "single", "tickets": 1, "price": 1000, "label": "Single fill", "tag": null },
-    { "id": "triple", "tickets": 3, "price": 2500, "label": "Three-pack", "tag": "Save €5" },
-    { "id": "family", "tickets": 7, "price": 5000, "label": "Family tank", "tag": "Most popular", "featured": true },
-    { "id": "bulk", "tickets": 15, "price": 10000, "label": "Full tanker", "tag": "Best value" }
+    {
+      "id": "single",
+      "tickets": 1,
+      "price": 1000,
+      "label": "Single fill",
+      "tag": null
+    },
+    {
+      "id": "triple",
+      "tickets": 3,
+      "price": 2500,
+      "label": "Three-pack",
+      "tag": "Save €5"
+    },
+    {
+      "id": "family",
+      "tickets": 7,
+      "price": 5000,
+      "label": "Family tank",
+      "tag": "Most popular",
+      "featured": true
+    },
+    {
+      "id": "bulk",
+      "tickets": 15,
+      "price": 10000,
+      "label": "Full tanker",
+      "tag": "Best value"
+    }
   ],
   "maxBundlesPerOrder": 10,
   "prizes": [
-    { "place": "1st", "title": "Prize TBC", "detail": "To be announced", "revealed": false },
-    { "place": "2nd", "title": "Prize TBC", "detail": "To be announced", "revealed": false },
-    { "place": "3rd", "title": "Prize TBC", "detail": "To be announced", "revealed": false }
+    {
+      "place": "1st",
+      "title": "Trip for 2 to Oz",
+      "detail": "Flights and spending money for two to Australia",
+      "value": "€7,500",
+      "sponsor": "Adrian & Cathal McGuinness & Gay Collins, Australia",
+      "kind": "holiday"
+    },
+    {
+      "place": "2nd",
+      "title": "Big Match Package: Roscommon v New York",
+      "detail": "Flights, 5 nights' accommodation and match tickets",
+      "value": null,
+      "sponsor": "Rostrim Construction & The Irish Bank Bar & Restaurant, Hartsdale, NY",
+      "kind": "holiday"
+    },
+    {
+      "place": "3rd",
+      "title": "Bumper tractor trailer of firewood",
+      "detail": "A full trailer load delivered for the winter",
+      "value": null,
+      "sponsor": "Joe Tansey, Greenbelt",
+      "kind": "fuel"
+    },
+    {
+      "place": "4th",
+      "title": "4-day trip to EuroDisney Paris",
+      "detail": "With JourneysByDesign",
+      "value": "Up to €2,300",
+      "sponsor": "King & Moffatt Electrical",
+      "kind": "holiday"
+    },
+    {
+      "place": "5th",
+      "title": "4-night midweek cruise on the Shannon/Erne",
+      "detail": null,
+      "value": null,
+      "sponsor": "Carrick Craft",
+      "kind": "holiday"
+    },
+    {
+      "place": "6th",
+      "title": "Center Parcs Longford holiday voucher",
+      "detail": null,
+      "value": "€1,000",
+      "sponsor": "Padraic McKiernan",
+      "kind": "holiday"
+    },
+    {
+      "place": "7th",
+      "title": "2 nights midweek at Drumhierny Woodland Hideaway",
+      "detail": "Plus 2 spa experiences",
+      "value": null,
+      "sponsor": "Karl Moffatt",
+      "kind": "holiday"
+    },
+    {
+      "place": "8th",
+      "title": "Weekend break in Riverhaven Log Cabins",
+      "detail": null,
+      "value": null,
+      "sponsor": "John & Martin Burke",
+      "kind": "holiday"
+    },
+    {
+      "place": "9th",
+      "title": "Robot vacuum cleaner",
+      "detail": null,
+      "value": "Up to €800",
+      "sponsor": "Joe Simon Home, Garden & Build",
+      "kind": "home"
+    },
+    {
+      "place": "10th",
+      "title": "500 litres home heating oil",
+      "detail": null,
+      "value": null,
+      "sponsor": "Stewart's Oil",
+      "kind": "fuel"
+    },
+    {
+      "place": "11th",
+      "title": "500kg Arigna coal (Harvest Flame)",
+      "detail": null,
+      "value": null,
+      "sponsor": "Arigna Fuels",
+      "kind": "fuel"
+    },
+    {
+      "place": "12th",
+      "title": "2 nights B&B for two + dinner",
+      "detail": "Radisson Blu Hotel, Sligo",
+      "value": null,
+      "sponsor": null,
+      "kind": "holiday"
+    },
+    {
+      "place": "13th",
+      "title": "Dinner for 2 + B&B",
+      "detail": "MacNean House & Restaurant, Blacklion",
+      "value": null,
+      "sponsor": null,
+      "kind": "holiday"
+    },
+    {
+      "place": "14th",
+      "title": "B&B + dinner for two",
+      "detail": "Slieve Russell Hotel",
+      "value": null,
+      "sponsor": null,
+      "kind": "holiday"
+    },
+    {
+      "place": "15th",
+      "title": "B&B for two",
+      "detail": "Knightsbrook Hotel, Trim",
+      "value": null,
+      "sponsor": null,
+      "kind": "holiday"
+    },
+    {
+      "place": "16th",
+      "title": "B&B for two",
+      "detail": "Glen Royal Hotel, Maynooth",
+      "value": null,
+      "sponsor": null,
+      "kind": "holiday"
+    }
   ]
 }

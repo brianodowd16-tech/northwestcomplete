@@ -62,16 +62,38 @@ function bindText(d) {
   });
 }
 
+const KIND_LABEL = { holiday: 'Holiday', fuel: 'Fuel', home: 'Home' };
+
 function renderPrizes(prizes) {
-  $('#prizeList').innerHTML = prizes.map((p, i) => `
-    <article class="prize ${p.revealed ? '' : 'prize--mystery'} reveal" style="transition-delay:${i * 90}ms">
-      ${p.revealed ? '' : '<span class="prize__badge">Revealing soon</span>'}
+  const top = prizes.slice(0, 3);
+  const rest = prizes.slice(3);
+  $('#prizeList').innerHTML = top.map((p, i) => `
+    <article class="prize prize--${esc(p.kind)} reveal" style="transition-delay:${i * 90}ms">
+      <span class="prize__badge">${esc(KIND_LABEL[p.kind] ?? 'Prize')}</span>
       <div>
         <div class="prize__place">${esc(p.place)}</div>
         <h3 class="prize__title">${esc(p.title)}</h3>
-        <p class="prize__detail">${esc(p.detail)}</p>
+        ${p.detail ? `<p class="prize__detail">${esc(p.detail)}</p>` : ''}
+        ${p.value ? `<p class="prize__value">${esc(p.value)}</p>` : ''}
+        ${p.sponsor ? `<p class="prize__sponsor">Sponsored by ${esc(p.sponsor)}</p>` : ''}
       </div>
     </article>`).join('');
+
+  const board = $('#prizeBoard');
+  board.style.setProperty('--rows', Math.ceil(rest.length / 2));
+  board.innerHTML = rest.map((p) => `
+    <li class="board__row">
+      <span class="board__place">${esc(p.place)}</span>
+      <span class="board__prize">
+        <strong>${esc(p.title)}</strong>
+        ${p.detail ? `<span>${esc(p.detail)}</span>` : ''}
+        <small>${p.sponsor ? `Sponsored by ${esc(p.sponsor)}` : 'Provided by the venue'}</small>
+      </span>
+      <span class="board__meta">
+        ${p.value ? `<span class="board__value">${esc(p.value)}</span>` : ''}
+        <span class="board__kind board__kind--${esc(p.kind)}">${esc(KIND_LABEL[p.kind] ?? '')}</span>
+      </span>
+    </li>`).join('');
   observeReveals();
 }
 

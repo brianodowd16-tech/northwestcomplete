@@ -1,8 +1,8 @@
-# St Michael's GAA & LGFA — Christmas Fuel Draw
+# St Michael's GAA & LGFA — Christmas Holiday & Fuel Draw
 
-Online ticket sales for the club's Christmas Fuel Draw, with payment through **Stripe Checkout**.
+Online ticket sales for the club's Christmas Holiday & Fuel Draw, with payment through **Stripe Checkout**.
 
-- **Landing page** (`public/index.html`): a fuel-gauge hero showing tickets sold against the target, a countdown, mystery prize cards, a pump-style ticket picker with bundle pricing, a sticky mobile buy bar, and an FAQ.
+- **Landing page** (`public/index.html`): a fuel-gauge hero showing tickets sold against the target, a countdown, the 16 prizes (top three as feature cards, the rest on a prize board), a pump-style ticket picker with bundle pricing, a sticky mobile buy bar, and an FAQ.
 - **Checkout**: Stripe-hosted, so card, Apple Pay and Google Pay all work. It collects the buyer's full name, phone and email, plus an optional "club member who sent you" field so sellers get credit.
 - **Fulfilment**: a signature-verified webhook allocates sequential ticket numbers. The success page "prints" them on a receipt and has WhatsApp and Facebook share buttons.
 - **Admin**: `GET /api/admin/tickets.csv` exports one row per ticket for running the draw (needs `ADMIN_TOKEN`).
@@ -39,7 +39,7 @@ Everything lives in `config/draw.json`:
 |---|---|
 | `drawDate`, `salesCloseDate` | Countdown, and checkout closes automatically at `salesCloseDate` |
 | `bundles` | Ticket options. Prices are in cents. Mark one `"featured": true` |
-| `prizes` | Set `"revealed": true` with a real title and detail to unveil each prize |
+| `prizes` | In order, 1st first. Each has `title`, optional `detail`, `value` and `sponsor`, and a `kind` (`holiday`, `fuel` or `home`) |
 | `ticketTarget` | The "F" on the fuel gauge |
 | `ticketsSoldOffset` | Adds paper or offline sales to the gauge |
 | `licenceNote` | Lottery licence or permit number, shown in the footer |
