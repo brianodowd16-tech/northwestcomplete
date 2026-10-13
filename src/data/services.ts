@@ -48,18 +48,19 @@ export const services: Service[] = [
     short: "Multi-stage cut, polish & protect to bring tired gelcoat back to a deep gloss.",
     icon: "sparkle",
     intro:
-      "Oxidised, chalky gelcoat is restored with a multi-stage machine compound and polish, finished with a marine wax or ceramic coating for long-lasting UV protection. Priced per foot of boat length.",
+      "Oxidised, chalky gelcoat is restored with a machine compound and polish, finished with a marine wax for long-lasting UV protection. Choose the whole hull, topsides or bottomsides only, or a chemical machine wash & wax. Priced per foot of boat length.",
     includes: [
       "Wash, decontamination and oxidation assessment",
       "Single or multi-stage compound and polish",
-      "Marine wax or ceramic coating protection",
+      "Marine wax protection",
       "Topsides, superstructure and decks",
       "Stainless and brightwork polishing",
     ],
     options: [
-      { id: "polish-wax", name: "Machine polish & wax (topsides)", description: "Single-stage polish and premium marine wax. Price per foot.", price: 2800, unit: "per-foot" },
-      { id: "polish-restore", name: "Oxidation restoration (multi-stage)", description: "Heavy cut, refine and wax for badly oxidised gelcoat. Price per foot.", price: 4500, unit: "per-foot" },
-      { id: "polish-ceramic", name: "Ceramic coating upgrade", description: "Add a 2-year marine ceramic coating after polishing. Price per foot.", price: 3500, unit: "per-foot" },
+      { id: "polish-full", name: "Full machine polish (topsides & bottomsides)", description: "Multi-stage machine polish of the whole hull, topsides and bottomsides. Price per foot.", price: 4000, unit: "per-foot" },
+      { id: "polish-topsides", name: "Machine polish — topsides only", description: "Machine polish of the hull above the waterline. Price per foot.", price: 3000, unit: "per-foot" },
+      { id: "polish-bottomsides", name: "Machine polish — bottomsides only", description: "Machine polish of the hull below the waterline. Price per foot.", price: 3000, unit: "per-foot" },
+      { id: "polish-wash-wax", name: "Chemical machine wash & wax", description: "Chemical wash to lift dirt and staining, then a machine-applied wax. Price per foot.", price: 1500, unit: "per-foot" },
     ],
   },
   {
@@ -79,7 +80,7 @@ export const services: Service[] = [
     ],
     options: [
       { id: "grp-inspection", name: "GRP damage inspection & quote", description: "On-site inspection, moisture readings and fixed written quote. Deducted from the job if you go ahead.", price: 12000, unit: "fixed" },
-      { id: "grp-antifoul", name: "Hull scrub & antifoul", description: "Pressure wash, prep and two coats of antifouling. Price per foot, paint included.", price: 3800, unit: "per-foot" },
+      { id: "grp-antifoul", name: "Antifouling", description: "Hull prep and antifouling. Price per foot.", price: 1500, unit: "per-foot" },
       { id: "grp-deposit", name: "Restoration booking deposit", description: "Secures your slot in the workshop schedule.", price: 25000, unit: "deposit" },
     ],
   },
