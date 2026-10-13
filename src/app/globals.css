@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-slate-50 text-slate-800 antialiased;
+}
+
+.hero-bg {
+  background:
+    radial-gradient(1200px 400px at 85% -10%, rgba(51, 187, 168, 0.35), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(47, 94, 163, 0.45), transparent 60%),
+    linear-gradient(160deg, #081224 0%, #152d52 55%, #10665e 130%);
+}
+
+.waves {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 80'%3E%3Cpath fill='%23f8fafc' d='M0 40c120 20 240 30 360 20s240-40 360-40 240 30 360 40 240-10 360-20v80H0z'/%3E%3C/svg%3E");
+  background-size: 100% 100%;
+}
+
+.product-tile {
+  background: linear-gradient(135deg, #1b3b6d 0%, #10665e 100%);
+}
+
+.prose-legal h2 {
+  @apply mt-8 font-display text-xl font-semibold text-navy-900;
+}
+.prose-legal p,
+.prose-legal li {
+  @apply mt-3 leading-relaxed text-slate-700;
+}
+.prose-legal ul {
+  @apply list-disc pl-6;
+}
