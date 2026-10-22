@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { PageHeader } from "@/components/PageHeader";
@@ -21,9 +22,20 @@ export default function ServicesPage() {
       <section className="mx-auto max-w-7xl space-y-6 px-4 py-14 sm:px-6">
         {services.map((s) => (
           <article key={s.slug} className="grid gap-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-[auto_1fr_auto] md:items-center">
-            <span className="grid h-14 w-14 place-items-center rounded-xl bg-navy-50 text-navy-700">
-              <Icon name={s.icon} className="h-7 w-7" />
-            </span>
+            {s.image ? (
+              <Image
+                src={s.image.src}
+                alt={s.image.alt}
+                width={s.image.width}
+                height={s.image.height}
+                sizes="112px"
+                className="h-20 w-28 rounded-xl object-cover"
+              />
+            ) : (
+              <span className="grid h-14 w-14 place-items-center rounded-xl bg-navy-50 text-navy-700">
+                <Icon name={s.icon} className="h-7 w-7" />
+              </span>
+            )}
             <div>
               <h2 className="font-display text-xl font-semibold text-navy-900">{s.name}</h2>
               <p className="mt-1 text-slate-600">{s.short}</p>

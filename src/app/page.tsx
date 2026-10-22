@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { ProductCard } from "@/components/ProductCard";
@@ -12,8 +13,17 @@ export default function HomePage() {
 
   return (
     <>
-      <section className="hero-bg relative text-white">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 pb-28 pt-16 sm:px-6 sm:pt-24 lg:grid-cols-[1.3fr_1fr] lg:items-center">
+      <section className="relative overflow-hidden bg-navy-950 text-white">
+        <Image
+          src="/images/hero-yacht.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-navy-950/95 via-navy-950/75 to-navy-950/30" aria-hidden="true" />
+        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 pb-28 pt-16 sm:px-6 sm:pt-24 lg:grid-cols-[1.3fr_1fr] lg:items-center">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm text-sea-200">
               <Icon name="pin" className="h-4 w-4" /> {site.region}
@@ -71,8 +81,19 @@ export default function HomePage() {
               <Link
                 key={s.slug}
                 href={`/services/${s.slug}`}
-                className="group rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-sea-300 hover:shadow-md"
+                className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-sea-300 hover:shadow-md"
               >
+                {s.image && (
+                  <Image
+                    src={s.image.src}
+                    alt={s.image.alt}
+                    width={s.image.width}
+                    height={s.image.height}
+                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                    className="aspect-[16/9] w-full object-cover"
+                  />
+                )}
+                <div className="p-6">
                 <span className="grid h-12 w-12 place-items-center rounded-lg bg-navy-50 text-navy-700 group-hover:bg-sea-500 group-hover:text-white">
                   <Icon name={s.icon} />
                 </span>
@@ -81,6 +102,7 @@ export default function HomePage() {
                 <p className="mt-4 text-sm font-semibold text-sea-700">
                   From {formatPrice(from)}{perFoot ? " / ft" : ""}
                 </p>
+                </div>
               </Link>
             );
           })}

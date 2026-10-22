@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/AddToCartButton";
@@ -32,6 +33,16 @@ export default async function ServicePage({ params }: { params: Params }) {
       <PageHeader eyebrow="Services" title={service.name} intro={service.intro} />
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_1.2fr]">
         <section>
+          {service.image && (
+            <Image
+              src={service.image.src}
+              alt={service.image.alt}
+              width={service.image.width}
+              height={service.image.height}
+              sizes="(min-width: 1024px) 45vw, 100vw"
+              className="mb-8 aspect-[4/3] w-full rounded-2xl object-cover shadow-sm"
+            />
+          )}
           <h2 className="font-display text-2xl font-bold text-navy-900">What&apos;s included</h2>
           <ul className="mt-5 space-y-3">
             {service.includes.map((line) => (

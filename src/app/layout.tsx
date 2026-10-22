@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     siteName: site.name,
     locale: "en_IE",
     url: site.url,
+    images: [{ url: "/images/hero-yacht.webp", width: 1600, height: 901 }],
   },
 };
 

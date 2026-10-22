@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -24,10 +25,15 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-white/10 bg-navy-950/95 text-white backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-sea-500 text-navy-950">
-            <Icon name="anchor" className="h-5 w-5" />
-          </span>
-          <span className="font-display text-sm font-bold leading-tight sm:text-base">
+          <Image
+            src="/images/northwest-boat-maintenance-logo.png"
+            alt="Northwest Boat Maintenance logo"
+            width={489}
+            height={246}
+            priority
+            className="h-11 w-auto"
+          />
+          <span className="hidden font-display text-sm font-bold leading-tight sm:block sm:text-base">
             Northwest
             <span className="block text-xs font-medium text-sea-300 sm:text-sm">Boat Maintenance</span>
           </span>

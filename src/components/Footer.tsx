@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { services } from "@/data/services";
 import { site } from "@/lib/site";
@@ -8,6 +9,13 @@ export function Footer() {
     <footer className="bg-navy-950 text-white/80">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4">
         <div>
+          <Image
+            src="/images/northwest-boat-maintenance-logo.png"
+            alt="Northwest Boat Maintenance logo"
+            width={489}
+            height={246}
+            className="mb-4 h-20 w-auto"
+          />
           <p className="font-display text-lg font-bold text-white">{site.name}</p>
           <p className="mt-3 text-sm leading-relaxed">{site.tagline}.</p>
           <p className="mt-3 text-sm">Serving {site.areas.slice(0, 4).join(", ")} and beyond.</p>

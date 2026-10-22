@@ -17,11 +17,14 @@ export type Service = {
   intro: string;
   includes: string[];
   options: ServiceOption[];
+  /** Photo from public/images, shown on service cards and the service page. */
+  image?: { src: string; alt: string; width: number; height: number };
 };
 
 export const services: Service[] = [
   {
     slug: "mechanical-services",
+    image: { src: "/images/mechanical-engine-servicing.webp", alt: "Twin Mercury V8 inboard engines in a boat engine bay during servicing", width: 403, height: 301 },
     name: "Mechanical Services",
     short: "Inboard & outboard servicing, diagnostics, repowers and winterisation.",
     icon: "wrench",
@@ -44,6 +47,7 @@ export const services: Service[] = [
   },
   {
     slug: "machine-polishing",
+    image: { src: "/images/machine-polishing-gelcoat.webp", alt: "Machine polishing gelcoat on a boat superstructure to a mirror finish", width: 575, height: 468 },
     name: "Machine Polishing",
     short: "Multi-stage cut, polish & protect to bring tired gelcoat back to a deep gloss.",
     icon: "sparkle",
@@ -65,6 +69,7 @@ export const services: Service[] = [
   },
   {
     slug: "fiberglass-restoration",
+    image: { src: "/images/antifouling-hull-painting.webp", alt: "Technician in protective suit applying antifouling to a hull out of the water", width: 300, height: 227 },
     name: "Fiberglass Restoration",
     short: "Gelcoat & GRP repairs, osmosis treatment, keel and structural work.",
     icon: "layers",
