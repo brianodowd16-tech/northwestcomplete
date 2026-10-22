@@ -24,6 +24,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_1.6fr]">
         <aside className="space-y-5">
           {[
+            ["whatsapp", `WhatsApp ${site.contactName}`, site.phone, site.whatsapp],
             ["phone", "Call", site.phone, `tel:${site.phone.replace(/[^+\d]/g, "")}`],
             ["mail", "Email", site.email, `mailto:${site.email}`],
             ["pin", "Area covered", site.region, undefined],

@@ -3,8 +3,11 @@ export const site = {
   domain: "northwestboatmaintenance.com",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://northwestboatmaintenance.com",
   tagline: "Marine engineering, restoration & brokerage in the North West of Ireland",
-  email: "info@northwestboatmaintenance.com",
-  phone: "+353 (0)00 000 0000",
+  email: "brian@northwestboatmaintenance.com",
+  phone: "+353 86 452 3131",
+  contactName: "Brían",
+  /** WhatsApp click-to-chat link (number in international format, digits only). */
+  whatsapp: "https://wa.me/353864523131",
   region: "North West of Ireland — Donegal, Sligo, Leitrim & Mayo",
   areas: ["Donegal", "Sligo", "Leitrim", "Mayo", "Lough Erne", "Lough Gill", "Killybegs", "Mullaghmore"],
   currency: "eur",

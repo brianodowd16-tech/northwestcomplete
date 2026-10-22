@@ -6,7 +6,7 @@ type Email = { subject: string; text: string; replyTo?: string; to?: string };
  */
 export async function sendEmail({ subject, text, replyTo, to }: Email) {
   const apiKey = process.env.RESEND_API_KEY;
-  const recipient = to ?? process.env.NOTIFY_EMAIL ?? "info@northwestboatmaintenance.com";
+  const recipient = to ?? process.env.NOTIFY_EMAIL ?? "brian@northwestboatmaintenance.com";
   const from = process.env.FROM_EMAIL ?? "Northwest Boat Maintenance <noreply@northwestboatmaintenance.com>";
 
   if (!apiKey) {
