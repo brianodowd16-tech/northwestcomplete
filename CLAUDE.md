@@ -13,22 +13,23 @@ Round is a white-label version of Revolut Order & Pay with a full loyalty progra
 - **Loyalty:** only card-paid app orders earn. Revolut POS counter sales, credit-funded amounts and gift card purchases earn nothing.
 - **Alcohol:** guests must be 18+ by date of birth to create an account. A bar docket with alcohol for an account without a staff ID check cannot be marked collected until staff record **ID checked** or **Refused**. Never store ID images or document numbers.
 - **Routing:** drinks → bar (collected); food → kitchen (run to a table). Food is never collect-at-bar.
-- **Inventory:** out of scope. Don't build stock, recipe, stocktake, PO, MarketMan or counter-POS features in Phase 1. Sold-out is a manual staff toggle. Send `line_items` on every Revolut order.
+- **Inventory:** out of scope. Don't build stock, recipe, stocktake, PO, MarketMan or counter-POS features in Phase 1. Sold-out is a manual staff toggle. Send `line_items` on every Revolut order, except when loyalty credit reduces the charge (Revolut requires line totals to equal the amount).
 - **Billing:** venues pay a monthly subscription plus `app_fee_bps` (default 100 = 1%) of completed app payments net of refunds. Compute it from Round's own order records.
 - **GDPR:** EU hosting, separate marketing consent, data export and deletion.
 
 ## Stack and layout
 
-Turborepo · Next.js + TypeScript · Postgres (EU) · Drizzle · pg-boss · WebSockets.
+Turborepo (pnpm) · Next.js 15 + TypeScript · Postgres 16 (EU) · Drizzle · Server-sent events over Postgres LISTEN/NOTIFY.
 
 ```
-apps/guest    guest PWA
-apps/staff    bar + kitchen screens (tablet)
-apps/office   venue back office + platform admin
-packages/db   schema, migrations, RLS policies, seed
-packages/core pricing, VAT, loyalty engine, billing, PaymentProvider (Revolut)
-packages/ui   shared components
+apps/web       one Next.js app: guest PWA (/v/...), staff screens (/staff/...), back office (/office/...)
+packages/db    schema, migrations, RLS policies (sql/rls.sql), seed, domain services
+packages/core  pricing, VAT, loyalty engine, billing, sessions, PaymentProvider (Revolut + mock)
 ```
+
+Prototype shortcuts to replace before launch: background jobs run on `setInterval` in `apps/web/jobs.ts` (move to pg-boss); OTP codes are shown on screen in dev (wire an SMS provider); the app connects as the DB owner and drops to `round_app` per request (use a dedicated login role in production). Split `apps/web` into guest/staff/office apps only if deployment needs it.
+
+Commands: `pnpm db:reset` (wipe + migrate + seed), `pnpm dev`, `pnpm test`, `pnpm typecheck`. After changing `packages/db/src/schema.ts`, run `pnpm --filter @round/db generate`.
 
 ## Working rules
 

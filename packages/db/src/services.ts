@@ -40,6 +40,12 @@ export async function venueBySlug(slug: string): Promise<Venue> {
   return v;
 }
 
+export async function venueById(id: string): Promise<Venue> {
+  const [v] = await systemDb().select().from(t.venue).where(eq(t.venue.id, id));
+  if (!v) throw new NotFound("Venue not found");
+  return v;
+}
+
 export async function allVenues() {
   return systemDb().select().from(t.venue).orderBy(asc(t.venue.name));
 }

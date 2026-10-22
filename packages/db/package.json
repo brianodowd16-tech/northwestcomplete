@@ -2,7 +2,11 @@
   "name": "@round/db",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts", "./schema": "./src/schema.ts" },
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema.ts",
+    "./services": "./src/services.ts"
+  },
   "scripts": {
     "generate": "drizzle-kit generate",
     "reset": "tsx src/setup.ts",
