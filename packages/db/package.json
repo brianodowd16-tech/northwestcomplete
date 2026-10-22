@@ -1,0 +1,25 @@
+{
+  "name": "@round/db",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts", "./schema": "./src/schema.ts" },
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "reset": "tsx src/setup.ts",
+    "test": "vitest run --no-file-parallelism",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@round/core": "workspace:*",
+    "drizzle-orm": "0.45.4",
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/pg": "8.23.1",
+    "drizzle-kit": "0.31.11",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vitest": "4.0.5"
+  }
+}
