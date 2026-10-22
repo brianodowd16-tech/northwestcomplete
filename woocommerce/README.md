@@ -31,6 +31,16 @@ What it does:
 All products import as drafts. Then set the currency to Euro and add delivery zones by hand
 (WooCommerce → Settings → General / Shipping).
 
+## Photos and logo
+
+`npm run woo:images` uploads the photos in `public/images/` to the WordPress Media Library with
+alt text, sets the logo as the site logo, and attaches each service photo to its products
+(mechanical → engine bay, polishing → polished gelcoat, fiberglass/antifouling → antifouling photo).
+Run it after `woo:sync`. It needs a WordPress **Application Password** (Users → Profile →
+Application Passwords) as `WP_USERNAME` and `WP_APP_PASSWORD`; the WooCommerce key can't upload media.
+
+Without access, upload the five files in `public/images/` by hand at **Media → Add New**.
+
 ## Per-foot services
 
 Polishing, antifouling and cleaning are priced per foot: the product says "set the quantity to your boat

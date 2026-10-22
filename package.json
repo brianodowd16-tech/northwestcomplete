@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "woo:csv": "node --no-warnings --experimental-strip-types woocommerce/export-csv.mjs",
-    "woo:sync": "node --no-warnings --experimental-strip-types woocommerce/sync.mjs"
+    "woo:sync": "node --no-warnings --experimental-strip-types woocommerce/sync.mjs",
+    "woo:images": "node woocommerce/upload-images.mjs"
   },
   "engines": {
     "node": ">=18.18"
