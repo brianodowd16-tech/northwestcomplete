@@ -64,10 +64,13 @@ A white-label SaaS for Irish (then EU) pubs, bars and venues. Guests scan a QR a
 | Payments | Guests pay in-app, upfront, per order. No split bills. No card terminals required. Revolut Merchant API primary, Stripe fallback. Revolut POS app is the fallback till. |
 | Routing | Drinks → bar printer + bar POS, guest collects. Food → kitchen screen + kitchen printer, runner to table. |
 | Loyalty | All features: spend-based levels, points per €, birthday credit, level-up bonus points, bonus credits, double-points transactions, referral points, sign-up credit, gift cards, points-to-credit conversion. No card-linked earning at the till. |
-| Inventory | Item counts + recipe-level deduction, supplier POs, stocktakes with variance, multiple stock locations. MarketMan optional. |
+| Inventory | **MarketMan is the system of record** (already linked to Revolut POS at both venues). Recipes, counts, stocktakes, POs and suppliers stay in MarketMan. Round pushes app sales to MarketMan. Native inventory is deferred. |
 | Guest app | QR web app (PWA) first, native iOS/Android later from the same backend. |
 | V1 extras | Events + ticketing, gig guide, live sport listings, table bookings, venue finder. |
 | Connectivity | Assume online. Backup 4G/eSIM at venue. Revolut POS app as manual fallback. No offline mode in v1. |
+| Pilot venues | MJ O'Connor's and Drumhierny Woodland Hideaway only. O'Dowd's / odowdscarrick.com is **not** part of this project. |
+| Guest accounts | Account required to order (for retention). Age verification at sign-up. Saved card or Apple/Google Pay for fast repeat checkout. |
+| Walk-up sales | Staff ring up the sale and the guest pays on the Revolut POS app. Walk-ups earn **no** loyalty. |
 
 ## 3. Architecture
 
@@ -111,9 +114,9 @@ Tenancy: every row carries `tenant_id` (operator/group) and most carry `venue_id
 ### 5.1 Table order and payment (Revolut)
 1. Guest scans QR → `/v/{venueSlug}/t/{qrToken}`. Server resolves venue + table.
 2. Cart is priced **server-side**. Client prices are display only.
-3. Age gate: if the cart contains alcohol, require an 18+ confirmation per session. Staff can still check ID at collection.
+3. Age gate: the guest's account must be age-verified (18+) at sign-up before alcohol can be ordered. Staff can still check ID at collection.
 4. Server creates a Revolut order via the Merchant API (amount in minor units, EUR, `merchant_order_data.reference` = our order ID) and returns its token.
-5. Client mounts the Revolut checkout widget (Apple Pay / Google Pay / Revolut Pay / card). Apple Pay needs the domain registered with Revolut per venue domain.
+5. Client mounts the Revolut checkout widget (Apple Pay / Google Pay / Revolut Pay / card). Apple Pay needs the domain registered with Revolut per venue domain. Link the order to a Revolut customer so a card can be saved and reused on later orders (confirm the saved-payment-method flow in the sandbox).
 6. Revolut sends webhooks. **Only release dockets on `ORDER_COMPLETED`** (or `ORDER_AUTHORISED` if you capture later). Events can arrive out of order, so make handlers idempotent and keyed on the Revolut order ID. Verify the signature and timestamp.
 7. On completion, in one transaction: mark order paid, create bar/kitchen dockets, write stock movements from recipes, write loyalty ledger entries. Then enqueue printing and MarketMan sync.
 8. A reconciliation job polls Revolut for any order stuck in `pending` for more than a few minutes.
@@ -138,7 +141,11 @@ How you charge venues is an open decision (see 9). Stripe Connect supports a pla
 - Purchase orders: suggest items below a threshold of par, quantity rounded up to pack size, grouped by supplier. Draft → sent (email PDF to supplier) → received (receipt movements, optional cost update).
 - Units to support from day one: litres (kegs, spirits by 35.5 ml measure), bottles, kg, each.
 
-### 5.5 MarketMan (optional per venue)
+### 5.5 MarketMan (required for the pilot)
+
+Pilot decision: both venues already run MarketMan linked to Revolut POS, so MarketMan owns inventory. Round sends it the app sales; walk-up sales already reach it through Revolut POS. Auto sell-out in v1 is a manual sold-out toggle on the staff screens unless MarketMan's on-hand levels can be read back reliably (see 9).
+
+Background from research:
 - MarketMan has a REST API (v3) covering inventory, recipes, menu items, sales and POs. API access needs a higher-tier plan and partner credentials from their account team, so confirm cost before relying on it.
 - Integration is effectively **one-way**: push menu items and each completed sale to MarketMan. Recipes, POs and counts then live in MarketMan.
 - MarketMan cannot sell out items in a POS automatically, so keep our own stock mirror and recipe table for auto sell-out even when MarketMan is on.
@@ -175,21 +182,22 @@ Must have:
 1. Venue onboarding (manual by you): menu, tables + QR codes, Revolut keys, printers, programme rules
 2. Guest PWA: menu, cart, age gate, pay, live order status, account with points/credit/level, rewards page, events, tickets, bookings
 3. Bar screen + walk-up POS; kitchen screen; cloud printing to one bar and one kitchen printer
-4. Back office: menu + prices + availability, loyalty rules and levels, stock with locations, stocktake, POs, events, bookings, sales overview
+4. Back office: menu + prices + availability, loyalty rules and levels, events, bookings, sales overview (stock, stocktakes and POs live in MarketMan)
 5. Revolut payments with webhooks and reconciliation
-6. Recipe deduction and auto sell-out
+6. Push every paid app order to MarketMan; sold-out toggles on staff screens
+7. Guest accounts with age verification and saved payment methods
 
-Later: Stripe provider, MarketMan connector, native apps, push notifications, multi-venue reporting, modifiers depth, refunds UI, staff roles beyond admin/staff.
+Later: Stripe provider, native inventory (recipes, stocktakes, POs) for venues without MarketMan, native apps, push notifications, multi-venue reporting, modifiers depth, refunds UI, staff roles beyond admin/staff.
 
-Done when: a guest at either pilot venue can order and pay from a table, the docket prints and shows at the right station within 3 seconds of payment, stock and points update correctly, and a manager can run a stocktake and send a PO without help.
+Done when: a guest at either pilot venue can order and pay from a table, the docket prints and shows at the right station within 3 seconds of payment, points update correctly, and the sale appears in MarketMan.
 
 ## 8. Build order for Claude Code
 
-1. Monorepo, auth (staff email login + guest magic link or phone OTP), tenancy, seed script with the prototype's example data.
+1. Monorepo, auth (staff email login + required guest account with age verification), tenancy, seed script with the prototype's example data for MJ O'Connor's and Drumhierny.
 2. Menu + table + QR model, guest menu and cart (server-priced).
 3. `PaymentProvider` + Revolut sandbox: create order, widget, webhook endpoint with signature check, reconciliation job.
 4. Dockets + realtime bar/kitchen screens; then cloud printing.
-5. Stock movements, recipes, auto sell-out; stocktake; POs.
+5. MarketMan sales push (queued, retried, idempotent) + sold-out toggles.
 6. Loyalty ledger + rules engine + rewards UI; birthday/bonus-credit jobs.
 7. Events, tickets with QR scan, bookings.
 8. Back office reporting.
@@ -200,7 +208,10 @@ Suggested first prompt: "Read SPEC.md. Scaffold step 1 and 2 as a Turborepo with
 ## 9. Open questions to settle
 
 - How venues pay you: monthly SaaS fee, per-order fee, or both (affects Revolut vs Stripe Connect).
-- Do guests need an account to order, or can they check out as guests and join later?
+- Age verification method: date of birth declared at sign-up, or a document/selfie check through a provider (e.g. Yoti, Veriff)?
+- Walk-ups: if they're rung on Revolut POS (which already feeds MarketMan), does the bar POS in Round need a walk-up grid at all? Ringing them in both would double-count stock.
+- MarketMan: are the venues on a plan with API access, and how will app sales reach it (MarketMan API directly, or through Revolut POS)?
+- Drumhierny: are some ordering points cabins or lodges rather than tables (delivery, opening hours)?
 - Service charge or tipping in the app?
 - Modifiers (e.g. "no ice", steak cooking) needed in v1?
 - Who confirms bookings and how far ahead can people book?
