@@ -49,6 +49,7 @@ const paths: Record<string, React.ReactNode> = {
   arrow: <path d="M5 12h14m-6-6 6 6-6 6" />,
   shield: <path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Z" />,
   boat: <path d="M3 17h18l-2 4H5l-2-4Zm2-1V9h6V3l7 6h-7v7" />,
+  dock: <path d="M3 21h18M5 21V10m14 11V10M3 10h18M8 10V6m8 4V6M6 6h12M2 17c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0" />,
 };
 
 export function Icon({ name, className = "h-6 w-6" }: { name: string; className?: string }) {

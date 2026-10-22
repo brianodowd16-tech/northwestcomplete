@@ -90,22 +90,23 @@ export const services: Service[] = [
     ],
   },
   {
-    slug: "welding",
-    name: "Welding & Fabrication",
-    short: "Stainless & aluminium TIG/MIG welding, rails, arches, brackets and repairs.",
-    icon: "flame",
+    slug: "boat-brokerage",
+    image: { src: "/images/hero-yacht.webp", alt: "Motor yacht at anchor on calm blue water", width: 1600, height: 901 },
+    name: "Boat Brokerage & Sales",
+    short: "Sell your boat with us or find your next one — prepared, presented and sold.",
+    icon: "anchor",
     intro:
-      "Marine-grade stainless steel and aluminium fabrication and repair — on-site or in the workshop. Bespoke pulpits, rails, radar arches, solar frames, davits and engine brackets made to measure.",
+      "We list, prepare, photograph and sell boats on behalf of owners throughout the North West. Because we're engineers first, every boat we sell is inspected and buyers get an honest picture of what they're getting.",
     includes: [
-      "316 stainless steel TIG welding & polishing",
-      "Aluminium hull and tank repairs",
-      "Custom pulpits, pushpits, guard rails and stanchions",
-      "Solar and radar arches, davits and bimini frames",
-      "Outboard brackets, ladders and fittings",
+      "Free valuation and listing advice",
+      "Professional photography and listing on our site and major portals",
+      "Pre-sale inspection, valet and polish packages",
+      "Viewings, sea trials and negotiation handled for you",
+      "Sale paperwork, deposits and handover",
+      "Part-exchange and sourcing for buyers",
     ],
     options: [
-      { id: "weld-callout", name: "Mobile welding call-out (first hour)", description: "On-site repair. Further time billed at the hourly rate.", price: 15000, unit: "fixed" },
-      { id: "weld-design", name: "Custom fabrication design & measure", description: "Site visit, measurements and drawings for a bespoke arch, rail or frame.", price: 17500, unit: "fixed" },
+      { id: "broker-listing", name: "Brokerage listing fee", description: "Photography, write-up and 6-month listing. Commission payable on sale.", price: 19500, unit: "fixed" },
     ],
   },
   {
@@ -170,22 +171,22 @@ export const services: Service[] = [
     ],
   },
   {
-    slug: "boat-brokerage",
-    name: "Boat Brokerage & Sales",
-    short: "Sell your boat with us or find your next one — prepared, presented and sold.",
-    icon: "anchor",
+    slug: "welding",
+    name: "Welding & Fabrication",
+    short: "Stainless & aluminium TIG/MIG welding, rails, arches, brackets and repairs.",
+    icon: "flame",
     intro:
-      "We list, prepare, photograph and sell boats on behalf of owners throughout the North West. Because we're engineers first, every boat we sell is inspected and buyers get an honest picture of what they're getting.",
+      "Marine-grade stainless steel and aluminium fabrication and repair — on-site or in the workshop. Bespoke pulpits, rails, radar arches, solar frames, davits and engine brackets made to measure.",
     includes: [
-      "Free valuation and listing advice",
-      "Professional photography and listing on our site and major portals",
-      "Pre-sale inspection, valet and polish packages",
-      "Viewings, sea trials and negotiation handled for you",
-      "Sale paperwork, deposits and handover",
-      "Part-exchange and sourcing for buyers",
+      "316 stainless steel TIG welding & polishing",
+      "Aluminium hull and tank repairs",
+      "Custom pulpits, pushpits, guard rails and stanchions",
+      "Solar and radar arches, davits and bimini frames",
+      "Outboard brackets, ladders and fittings",
     ],
     options: [
-      { id: "broker-listing", name: "Brokerage listing fee", description: "Photography, write-up and 6-month listing. Commission payable on sale.", price: 19500, unit: "fixed" },
+      { id: "weld-callout", name: "Mobile welding call-out (first hour)", description: "On-site repair. Further time billed at the hourly rate.", price: 15000, unit: "fixed" },
+      { id: "weld-design", name: "Custom fabrication design & measure", description: "Site visit, measurements and drawings for a bespoke arch, rail or frame.", price: 17500, unit: "fixed" },
     ],
   },
   {
@@ -204,6 +205,25 @@ export const services: Service[] = [
     ],
     options: [
       { id: "engine-sourcing-fee", name: "Engine search deposit", description: "Refundable against purchase. Covers our search and sourcing report.", price: 10000, unit: "deposit" },
+    ],
+  },
+  {
+    slug: "marina-design-consultancy",
+    name: "Marina Design Consultancy",
+    short: "Planning and layout advice for new and expanding marinas, pontoons and moorings.",
+    icon: "dock",
+    intro:
+      "Planning a new marina, extending pontoons or improving a harbour's facilities? We bring hands-on experience of how boats are berthed, serviced and powered to help you design a marina that works for boat owners and operators alike.",
+    includes: [
+      "Site visit and feasibility assessment",
+      "Berth layout, pontoon and fairway planning",
+      "Shore power, lighting, water and fuel services planning",
+      "Boat lift, slipway, hard-standing and workshop areas",
+      "Solar and battery options for marina facilities",
+      "Liaison with engineers, contractors and planners",
+    ],
+    options: [
+      { id: "marina-consultation", name: "Initial consultation & site visit", description: "On-site meeting, assessment of the site and a written summary of options and next steps.", price: 35000, unit: "fixed" },
     ],
   },
 ];

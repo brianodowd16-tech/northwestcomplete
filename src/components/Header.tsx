@@ -77,7 +77,7 @@ export function Header() {
           <Link
             key={item.href}
             href={item.href}
-            className={`rounded-md px-3 py-2 text-sm font-medium transition hover:bg-slate-100 ${
+            className={`rounded-md px-4 py-2 text-base font-medium transition hover:bg-slate-100 xl:text-lg ${
               pathname.startsWith(item.href) ? "font-semibold text-sea-700" : "text-navy-800"
             }`}
           >

@@ -29,7 +29,7 @@ export default function ServicesPage() {
                 width={s.image.width}
                 height={s.image.height}
                 sizes="112px"
-                className="h-20 w-28 rounded-xl object-cover"
+                className="h-[104px] w-28 rounded-xl object-cover"
               />
             ) : (
               <span className="grid h-14 w-14 place-items-center rounded-xl bg-navy-50 text-navy-700">

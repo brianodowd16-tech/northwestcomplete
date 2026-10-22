@@ -90,7 +90,7 @@ export default function HomePage() {
                     width={s.image.width}
                     height={s.image.height}
                     sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                    className="aspect-[16/9] w-full object-cover"
+                    className="aspect-[16/11.7] w-full object-cover"
                   />
                 )}
                 <div className="p-6">
