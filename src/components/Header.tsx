@@ -22,38 +22,31 @@ export function Header() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-navy-950/95 text-white backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
+    <header className="relative z-40 border-b border-white/10 bg-navy-950 text-white">
+      <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 pt-4 sm:px-6">
+        <div>
+          <button
+            className="rounded-md p-2 hover:bg-white/10 lg:hidden"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-label="Toggle menu"
+          >
+            <Icon name={open ? "close" : "menu"} />
+          </button>
+        </div>
+
+        <Link href="/" onClick={() => setOpen(false)} aria-label="Northwest Boat Maintenance — home">
           <Image
             src="/images/northwest-boat-maintenance-logo.png"
-            alt="Northwest Boat Maintenance logo"
+            alt="Northwest Boat Maintenance"
             width={489}
             height={246}
             priority
-            className="h-11 w-auto"
+            className="h-20 w-auto sm:h-28 lg:h-32"
           />
-          <span className="hidden font-display text-sm font-bold leading-tight sm:block sm:text-base">
-            Northwest
-            <span className="block text-xs font-medium text-sea-300 sm:text-sm">Boat Maintenance</span>
-          </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`rounded-md px-3 py-2 text-sm font-medium transition hover:bg-white/10 ${
-                pathname.startsWith(item.href) ? "text-sea-300" : "text-white/85"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-2">
           <Link
             href="/contact?type=quote"
             className="hidden rounded-md bg-brass-500 px-4 py-2 text-sm font-semibold text-navy-950 transition hover:bg-brass-400 sm:inline-block"
@@ -68,16 +61,23 @@ export function Header() {
               </span>
             )}
           </Link>
-          <button
-            className="rounded-md p-2 hover:bg-white/10 lg:hidden"
-            onClick={() => setOpen((v) => !v)}
-            aria-expanded={open}
-            aria-label="Toggle menu"
-          >
-            <Icon name={open ? "close" : "menu"} />
-          </button>
         </div>
       </div>
+
+      <nav className="mx-auto mt-3 hidden max-w-7xl justify-center gap-1 border-t border-white/10 px-4 py-2 lg:flex" aria-label="Main">
+        {nav.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`rounded-md px-3 py-2 text-sm font-medium transition hover:bg-white/10 ${
+              pathname.startsWith(item.href) ? "text-sea-300" : "text-white/85"
+            }`}
+          >
+            {item.label}
+          </Link>
+        ))}
+      </nav>
+      <div className="h-3 lg:hidden" />
 
       {open && (
         <nav className="border-t border-white/10 px-4 pb-4 lg:hidden" aria-label="Mobile">
