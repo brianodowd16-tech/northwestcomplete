@@ -314,13 +314,17 @@ details p { padding: 0 22px 22px; color: var(--muted); }
 .values p { color: var(--muted); font-size: 0.95rem; }
 
 .team { display: grid; gap: 16px; grid-template-columns: 1fr; }
-@media (min-width: 680px) { .team { grid-template-columns: repeat(2, 1fr); } .team__card--join { grid-column: span 2; } }
-@media (min-width: 1000px) { .team { grid-template-columns: repeat(3, 1fr); } .team__card--join { grid-column: auto; } }
-.team__card--lead { grid-column: 1 / -1; }
+.team__card--lead, .team__card--join { grid-column: 1 / -1; }
 @media (min-width: 680px) {
-  .team__card--lead { grid-template-columns: auto 1fr; gap: 36px; align-items: center; padding: 40px; }
+  .team__card--lead, .team__card--join { grid-template-columns: auto 1fr; gap: 36px; align-items: center; padding: 40px; }
   .team__card--lead .team__avatar { width: 128px; height: 128px; border-radius: 34px; font-size: 2.2rem; }
   .team__card--lead .team__name { font-size: 1.9rem; }
+  .team__card--lead p:not(.team__role):not(.eyebrow) { font-size: 1.08rem; max-width: 64ch; }
+  .team__card--join p { max-width: 60ch; }
+}
+.team__card--lead .tags { margin-top: 20px; }
+.team__card--lead .eyebrow { margin-bottom: 10px; }
+.team__name { font-size: 1.9rem; }
   .team__card--lead p:not(.team__role) { font-size: 1.08rem; max-width: 64ch; }
 }
 .team__name { font: 600 1.2rem/1.2 var(--font-display); letter-spacing: -0.02em; }
@@ -397,3 +401,15 @@ details p { padding: 0 22px 22px; color: var(--muted); }
   .section { padding: 80px 0; }
   .card { padding: 24px; }
 }
+
+/* Founder's note */
+.note { margin: 0; display: grid; gap: 22px; max-width: 880px; padding: 36px 24px; border-radius: 28px; border: 1px solid var(--line-strong);
+  background: radial-gradient(90% 120% at 0% 0%, rgba(94, 234, 212, 0.1), transparent 60%), var(--surface); }
+@media (min-width: 720px) { .note { padding: 56px; } }
+.note .eyebrow { margin: 0; }
+.note__body { display: grid; gap: 18px; }
+.note__body p { font-size: 1.18rem; line-height: 1.7; max-width: 60ch; }
+.note__body p:first-child { font: 600 clamp(1.3rem, 2.6vw, 1.7rem)/1.4 var(--font-display); letter-spacing: -0.015em; }
+.note__sign { display: grid; gap: 2px; padding-top: 22px; border-top: 1px solid var(--line); }
+.note__sign strong { font: 600 1.15rem var(--font-display); }
+.note__sign span { color: var(--muted); font-size: 0.95rem; }
