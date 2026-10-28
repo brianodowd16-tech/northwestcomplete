@@ -43,6 +43,11 @@ if (!$agreed) {
 
 $c = nwc_config();
 
+// Until the Revolut keys are added, say so plainly instead of failing with a generic error.
+if ($c['revolut_secret_key'] === '') {
+    fail('Online payment is being set up. Please send us a message using the contact form and we will invoice you directly.', 503);
+}
+
 // At most 10 checkout attempts per visitor per hour.
 $rateFile = sys_get_temp_dir() . '/nwc_checkout_' . hash('sha256', $_SERVER['REMOTE_ADDR'] ?? 'unknown');
 $now = time();
