@@ -53,6 +53,21 @@ document.querySelectorAll("[data-service]").forEach((link) => {
   });
 });
 
+// Remember which campaign link brought the visitor here, so enquiries show their source.
+try {
+  const q = new URLSearchParams(location.search);
+  if (q.has("utm_source")) {
+    sessionStorage.setItem("nwc_utm", JSON.stringify([q.get("utm_source"), q.get("utm_medium"), q.get("utm_campaign"), q.get("utm_content")].filter(Boolean)));
+  }
+} catch { /* storage unavailable: enquiries simply show no source */ }
+const addSource = (formEl) => {
+  let v = "";
+  try { v = (JSON.parse(sessionStorage.getItem("nwc_utm") || "[]") || []).join(" / "); } catch { /* ignore */ }
+  let input = formEl.querySelector('input[name="source"]');
+  if (!input) { input = document.createElement("input"); input.type = "hidden"; input.name = "source"; formEl.appendChild(input); }
+  input.value = v;
+};
+
 // Contact details
 document.querySelectorAll("[data-contact-email]").forEach((a) => {
   a.href = `mailto:${CONTACT_EMAIL}`;
@@ -90,6 +105,7 @@ if (form) {
       return;
     }
 
+    addSource(form);
     submitBtn.disabled = true;
     setStatus("Sending…");
     try {
@@ -132,6 +148,7 @@ if (checkoutForm) {
       status.classList.add("is-error");
       return;
     }
+    addSource(checkoutForm);
     button.disabled = true;
     status.classList.remove("is-error");
     status.textContent = "Taking you to secure payment…";

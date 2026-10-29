@@ -422,3 +422,5 @@ details p { padding: 0 22px 22px; color: var(--muted); }
 .social:hover { border-color: var(--accent); color: var(--accent); background: rgba(94, 234, 212, 0.08); }
 
 img.team__avatar { background: var(--surface-2); object-position: center 20%; }
+
+.footer__social { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }

@@ -287,7 +287,8 @@ function send_team_notification(array $r): string
           . "Name:      {$r['name']}\n"
           . "Business:  " . ($r['business'] ?: '-') . "\n"
           . "Email:     {$r['email']}\n"
-          . "Phone:     " . ($r['phone'] ?: '-') . "\n\n"
+          . "Phone:     " . ($r['phone'] ?: '-') . "\n"
+          . "Source:    " . (($r['source'] ?? '') !== '' ? $r['source'] : 'direct / unknown') . "\n\n"
           . "Notes:\n" . ($r['notes'] ?: '-') . "\n\n"
           . "Automation:\n" . implode('', array_map(
                 fn ($k, $v) => sprintf("  %-13s %s\n", $k . ':', is_array($v) ? json_encode($v) : $v),
@@ -320,6 +321,7 @@ function post_automation_event(array $r): string
             'business' => $r['business'],
             'phone'    => $r['phone'],
             'notes'    => $r['notes'],
+            'source'   => $r['source'] ?? '',
         ],
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $timestamp = (string) time();

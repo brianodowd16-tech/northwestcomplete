@@ -32,6 +32,7 @@ $email    = one_line((string) ($_POST['email'] ?? ''), 200);
 $business = one_line((string) ($_POST['business'] ?? ''), 150);
 $phone    = one_line((string) ($_POST['phone'] ?? ''), 40);
 $notes    = mb_substr(trim((string) ($_POST['notes'] ?? '')), 0, 3000);
+$source   = one_line((string) ($_POST['source'] ?? ''), 200);
 $agreed   = !empty($_POST['agree']);
 
 if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -85,6 +86,7 @@ try {
         'business'         => $business,
         'phone'            => $phone,
         'notes'            => $notes,
+        'source'           => $source,
         'revolut_order_id' => (string) $order['id'],
     ]);
 } catch (Throwable $e) {

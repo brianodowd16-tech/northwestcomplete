@@ -44,5 +44,6 @@ jobs:
             **/.git*/**
             .github/**
             dist/**
+            marketing/**
             nwc-config.sample.php
             **/*.md

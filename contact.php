@@ -62,6 +62,7 @@ $business = oneLine(field('business', 150));
 $email    = oneLine(field('email', 200));
 $service  = oneLine(field('service', 100));
 $message  = field('message', 5000);
+$source   = oneLine(field('source', 200));   // campaign link the visitor arrived from, if any
 
 if ($name === '' || $message === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     respond(false, 'Please fill in your name, a valid email and a message.', 422);
@@ -87,7 +88,8 @@ $body = "New enquiry from northwestcomplete.com\n\n"
       . "Name:     $name\n"
       . "Business: " . ($business !== '' ? $business : '-') . "\n"
       . "Email:    $email\n"
-      . "Service:  " . ($service !== '' ? $service : '-') . "\n\n"
+      . "Service:  " . ($service !== '' ? $service : '-') . "\n"
+      . "Source:   " . ($source !== '' ? $source : 'direct / unknown') . "\n\n"
       . "Message:\n$message\n\n"
       . "--\nSent " . gmdate('Y-m-d H:i') . " UTC from IP $ip\n";
 
