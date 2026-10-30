@@ -452,3 +452,5 @@ img.team__avatar { background: var(--surface-2); object-position: center 20%; }
 .fq .eyebrow { margin-bottom: 14px; }
 .fq__bio { margin-top: 18px; color: var(--muted); max-width: 60ch; }
 .fq__actions { align-items: center; }
+#founder .story__quote { margin-top: 24px; }
+#founder .story__quote p { color: var(--text, #eef2ff); }
