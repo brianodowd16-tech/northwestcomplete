@@ -78,10 +78,29 @@ await rm(tmp, { recursive: true, force: true });
 
 const inline = (s) => s.replace(/<\/(script|style)/gi, '<\\/$1');
 // The viewer fetches tour.json and products.json; answer those from memory.
+// It also fetch()es each panorama (to show progress). Those are data: URLs here,
+// and sandboxed hosts often forbid fetching data: URLs (CSP connect-src), so
+// decode them in the page instead of making a request.
 const shim = `window.__TOUR_PREVIEW__ = ${inline(JSON.stringify({ [`tours/${args.tour}/tour.json`]: tour, [`tours/${args.tour}/products.json`]: catalog }))};
 const realFetch = window.fetch.bind(window);
+const fromDataUrl = (url) => {
+  const comma = url.indexOf(',');
+  const meta = url.slice(5, comma);
+  const payload = url.slice(comma + 1);
+  const type = meta.split(';')[0] || 'application/octet-stream';
+  let bytes;
+  if (meta.endsWith(';base64')) {
+    const bin = atob(payload);
+    bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  } else {
+    bytes = new TextEncoder().encode(decodeURIComponent(payload));
+  }
+  return new Response(new Blob([bytes], { type }), { headers: { 'Content-Type': type, 'Content-Length': String(bytes.length) } });
+};
 window.fetch = (input, init) => {
   const url = String(input instanceof Request ? input.url : input);
+  if (url.startsWith('data:')) return Promise.resolve(fromDataUrl(url));
   const hit = Object.keys(window.__TOUR_PREVIEW__).find((k) => url.split('?')[0].endsWith(k));
   return hit ? Promise.resolve(new Response(JSON.stringify(window.__TOUR_PREVIEW__[hit]), { headers: { 'Content-Type': 'application/json' } })) : realFetch(input, init);
 };`;
