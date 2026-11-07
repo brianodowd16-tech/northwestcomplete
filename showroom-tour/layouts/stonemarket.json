@@ -7,30 +7,35 @@
   "pinRadiusFt": 20,
   "labels": false,
   "floors": {
-    "ground": { "widthFt": 19.69, "depthFt": 16.4, "ceilingFt": 11.5, "tileFt": 2, "wallColour": "#e7d3a8", "floorColour": "#a8957a", "door": { "wall": "front", "from": 3.3, "to": 6.6 }, "partition": { "x": 9.84, "doorFrom": 8.5, "doorTo": 12.5, "doorHeightFt": 7.5 }, "lights": [[4.9, 5], [4.9, 12], [14.8, 5], [14.8, 12]] }
+    "ground": { "widthFt": 19.69, "depthFt": 16.4, "apronFt": 5, "ceilingFt": 11.5, "tileFt": 2, "wallColour": "#e7d3a8", "floorColour": "#a8957a", "doors": [{ "wall": "front", "from": 2.5, "to": 7.5 }, { "wall": "front", "from": 12.2, "to": 17.2 }], "partition": { "x": 9.84, "doorFrom": 7.5, "doorTo": 11.5, "doorHeightFt": 7.5 }, "lights": [[4.9, 5], [4.9, 13], [14.8, 5], [14.8, 13]] }
   },
   "stops": [
-    { "id": "s-entrance", "name": "Entrance", "floor": "ground", "at": [4.9, 13], "links": ["s-left", "s-right"] },
-    { "id": "s-left", "name": "Left room", "floor": "ground", "at": [4.9, 6], "links": ["s-entrance"] },
-    { "id": "s-right", "name": "Right room", "floor": "ground", "at": [14.8, 8.5], "links": ["s-entrance"] }
+    { "id": "s-outside", "name": "Shopfront", "floor": "ground", "at": [9.84, 20.4], "heading": 180, "captured": true, "links": ["s-left", "s-right"], "pins": [
+      { "sku": "sm-o1", "kind": "rack", "name": "Boho Maxi Skirt", "price": 22, "yaw": -84.6, "pitch": -36 },
+      { "sku": "sm-o2", "kind": "rack", "name": "Cotton Wrap Skirt", "price": 18, "yaw": 59.4, "pitch": -27 },
+      { "sku": "sm-o3", "kind": "bags", "name": "Patchwork Hemp Backpack", "price": 35, "yaw": 124.2, "pitch": -18 },
+      { "sku": "sm-o4", "kind": "bags", "name": "Leather Sandals", "price": 25, "yaw": 100.8, "pitch": -39.6 },
+      { "sku": "sm-o5", "kind": "hanging", "name": "Dreamcatcher, Large", "price": 18, "yaw": 158.4, "pitch": 9 },
+      { "sku": "sm-o6", "kind": "hanging", "name": "Chakra Wall Hanging", "price": 16, "yaw": -120.6, "pitch": -10.8 },
+      { "sku": "sm-o7", "kind": "rack", "name": "Printed Cotton Dress", "price": 28, "yaw": -156.6, "pitch": -18 }
+    ] },
+    { "id": "s-left", "name": "Left room", "floor": "ground", "at": [4.9, 9.5], "links": ["s-outside", "s-right"] },
+    { "id": "s-right", "name": "Right room", "floor": "ground", "at": [14.8, 9.5], "links": ["s-outside", "s-left"] }
   ],
   "displays": [
-    { "floor": "ground", "wall": "left", "at": 2.5, "kind": "shelf", "sku": "sm-01", "name": "Amethyst Cluster, Brazil", "price": 45 },
-    { "floor": "ground", "wall": "left", "at": 6.5, "kind": "shelf", "sku": "sm-02", "name": "Rose Quartz Heart", "price": 12 },
-    { "floor": "ground", "wall": "left", "at": 12, "kind": "cabinet", "sku": "sm-03", "name": "Sterling Silver Amethyst Pendant", "price": 65 },
-    { "floor": "ground", "wall": "back", "at": 3.2, "kind": "shelf", "sku": "sm-04", "name": "Clear Quartz Point", "price": 18 },
-    { "floor": "ground", "wall": "back", "at": 7, "kind": "shelf", "sku": "sm-05", "name": "Citrine Cluster", "price": 38 },
-    { "floor": "ground", "wall": "partition-left", "at": 3, "kind": "bins", "sku": "sm-06", "name": "Tumbled Stones Mix (per 100 g)", "price": 6 },
-    { "floor": "ground", "wall": "partition-left", "at": 14.5, "kind": "wallart", "sku": "sm-07", "name": "Ammonite Fossil Pair", "price": 48 },
-    { "floor": "ground", "wall": "front", "at": 8.2, "kind": "geode", "sku": "sm-08", "name": "Amethyst Geode Cathedral, Large", "price": 480 },
-    { "floor": "ground", "wall": "front", "at": 1.6, "kind": "wallart", "sku": "sm-09", "name": "Framed Butterfly Agate Slice", "price": 75 },
-    { "floor": "ground", "wall": "back", "at": 12.6, "kind": "shelf", "sku": "sm-10", "name": "Selenite Tower 20 cm", "price": 22 },
-    { "floor": "ground", "wall": "back", "at": 16.6, "kind": "shelf", "sku": "sm-11", "name": "Labradorite Palm Stone", "price": 16 },
-    { "floor": "ground", "wall": "right", "at": 3, "kind": "shelf", "sku": "sm-12", "name": "Black Obsidian Sphere 6 cm", "price": 35 },
-    { "floor": "ground", "wall": "right", "at": 8.5, "kind": "cabinet", "sku": "sm-13", "name": "Malachite Bead Bracelet", "price": 28 },
-    { "floor": "ground", "wall": "right", "at": 13.5, "kind": "geode", "sku": "sm-14", "name": "Desert Rose Selenite Rosette", "price": 42 },
-    { "floor": "ground", "wall": "partition-right", "at": 3.5, "kind": "bins", "sku": "sm-15", "name": "Maltese Limestone Coaster", "price": 9 },
-    { "floor": "ground", "wall": "partition-right", "at": 14.5, "kind": "shelf", "sku": "sm-16", "name": "Himalayan Salt Lamp", "price": 32 },
-    { "floor": "ground", "wall": "front", "at": 14.8, "kind": "cabinet", "sku": "sm-17", "name": "Lapis Lazuli Silver Earrings", "price": 55 }
+    { "floor": "ground", "wall": "left", "at": 3, "kind": "bags", "sku": "sm-01", "name": "Woven Shoulder Bag", "price": 19 },
+    { "floor": "ground", "wall": "left", "at": 7.5, "kind": "bags", "sku": "sm-02", "name": "Embroidered Cross-body Bag", "price": 22 },
+    { "floor": "ground", "wall": "left", "at": 12.5, "kind": "hanging", "sku": "sm-03", "name": "Feather Wind Chime", "price": 15 },
+    { "floor": "ground", "wall": "back", "at": 3.2, "kind": "shelf", "sku": "sm-04", "name": "Gemstone Bead Bracelet", "price": 8, "category": "Jewellery & stones" },
+    { "floor": "ground", "wall": "back", "at": 7, "kind": "cabinet", "sku": "sm-05", "name": "Silver Pendant with Stone", "price": 29 },
+    { "floor": "ground", "wall": "partition-left", "at": 3, "kind": "bins", "sku": "sm-06", "name": "Incense Sticks (pack)", "price": 3, "category": "Incense & gifts" },
+    { "floor": "ground", "wall": "partition-left", "at": 14, "kind": "hanging", "sku": "sm-07", "name": "Macramé Wall Hanging", "price": 26 },
+    { "floor": "ground", "wall": "back", "at": 12.6, "kind": "rack", "sku": "sm-08", "name": "Boho Maxi Dress", "price": 29 },
+    { "floor": "ground", "wall": "back", "at": 16.8, "kind": "rack", "sku": "sm-09", "name": "Cotton Harem Trousers", "price": 19 },
+    { "floor": "ground", "wall": "right", "at": 3, "kind": "shelf", "sku": "sm-10", "name": "Brass Singing Bowl", "price": 39, "category": "Gifts & home" },
+    { "floor": "ground", "wall": "right", "at": 8.5, "kind": "rack", "sku": "sm-11", "name": "Embroidered Kaftan", "price": 32 },
+    { "floor": "ground", "wall": "right", "at": 13.5, "kind": "hanging", "sku": "sm-12", "name": "Mandala Tapestry", "price": 24 },
+    { "floor": "ground", "wall": "partition-right", "at": 3.5, "kind": "bins", "sku": "sm-13", "name": "Silk Scarf", "price": 12, "category": "Scarves & accessories" },
+    { "floor": "ground", "wall": "partition-right", "at": 14, "kind": "shelf", "sku": "sm-14", "name": "Wooden Bead Necklace", "price": 9, "category": "Jewellery & stones" }
   ]
 }

@@ -156,14 +156,17 @@ as `"theme": { "accent": "#1f6b58" }`.
 | Tour | Status |
 | --- | --- |
 | `odowds` | O'Dowds Carrick: 2 floors, 80 × 30 ft, live WooCommerce catalogue + placeholders |
-| `stonemarket` | Stone Market Valletta: two side-by-side 3 × 5 m rooms joined by an archway (`layouts/stonemarket.json`), 17 crystal, gemstone and jewellery placeholders, Stone Market logo top right and Northwest Complete credit bottom right. Until Stone Market has its own shop, checkout and `sync-catalog` point at the O'Dowds WooCommerce site: switch with `node scripts/sync-catalog.mjs --tour stonemarket --woocommerce <stone market site>`. |
+| `stonemarket` | Stone Market Valletta: two side-by-side 3 × 5 m rooms, each with its own street door, joined by an archway (`layouts/stonemarket.json`). Starts at a real 360° shopfront photo (`s-outside`, a captured stop with 7 hand-placed pins); the two rooms are placeholders until photographed. Boho clothing and gift placeholder products. Logo top right, Northwest Complete credit bottom right. Checkout and `sync-catalog` point at the O'Dowds WooCommerce site until Stone Market has its own. |
 
 Branding per tour (`tour.json`): `"branding": { "logo": "brand/logo.png", "logoAlt": "…", "credit": { "logo": "…", "name": "…", "url": "…" } }`
 puts the logo in the top-right corner (in place of the name pill) and a credit badge bottom right.
 
 Layouts can describe two side-by-side rooms with `"partition": { "x", "doorFrom", "doorTo", "doorHeightFt" }` (displays on it use
 `wall: "partition-left"` / `"partition-right"`), and `"labels": false` leaves all painted labels out of panoramas and plans.
-Crystal shop displays: `shelf`, `cabinet`, `geode`, `bins`, `wallart`.
+A stop with `"captured": true` is a real 360 photo: `make-placeholders` never overwrites it, displays are not auto-pinned on it,
+and its pins come from the stop's own `pins` list (each can define a placeholder product with `name`, `price` and `kind`).
+`heading` sets which plan direction the photo's centre faces. Floors can have several front `doors` and an `apronFt`
+strip of street on the plan. Boho shop displays: `rack`, `bags`, `hanging`. Crystal shop displays: `shelf`, `cabinet`, `geode`, `bins`, `wallart`.
 
 Stone displays available in layouts: `slab`, `tile`, `mosaic`, `worktop`, `vanity`, `limestone`, `paving`, `carving`
 (each display can set its own `colour`). Floors can set `wallColour` and `floorColour`.

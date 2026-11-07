@@ -23,12 +23,13 @@ const catalog = JSON.parse(await readFile(path.join(root, 'products.json'), 'utf
 // ---- products: keep the shop's, regenerate the placeholders ----
 const real = catalog.products.filter((p) => !p.placeholder);
 const realSkus = new Set(real.map((p) => p.sku));
-const placeholders = layout.displays
+// Placeholder products come from wall displays and from pins placed by hand on captured photos.
+const placeholders = [...layout.displays, ...layout.stops.flatMap((s) => s.pins ?? [])]
   .filter((d) => d.name)
   .map((d) => ({
     sku: d.sku,
     name: d.name,
-    category: KINDS[d.kind].category,
+    category: d.category ?? KINDS[d.kind].category,
     price: d.price,
     image: KINDS[d.kind].image,
     url: '',
@@ -52,7 +53,8 @@ for (const floor of tour.floors) {
 const byId = new Map(tour.nodes.map((n) => [n.id, n]));
 const camH = layout.cameraHeightFt;
 const radius = layout.pinRadiusFt;
-const stopsByFloor = Map.groupBy(layout.stops, (s) => s.floor);
+// Captured stops (real 360 photos) get their pins by hand, so displays are pinned only at placeholder stops.
+const stopsByFloor = Map.groupBy(layout.stops.filter((s) => !s.captured), (s) => s.floor);
 
 // A display is pinned at every stop within the radius, and always at its nearest stop.
 const pinsByStop = new Map(layout.stops.map((s) => [s.id, []]));
@@ -79,13 +81,13 @@ tour.nodes = layout.stops.map((s) => {
     name: s.name,
     floor: s.floor,
     plan: ftToPlan(layout, s.at),
-    heading: 0,
+    heading: s.heading ?? 0,
+    ...(s.captured ? { captured: true } : {}),
     panorama: old.panorama ?? `panos/${s.id}.jpg`,
     thumbnail: old.thumbnail ?? `thumbs/${s.id}.jpg`,
     links: s.links.map((l) => (typeof l === 'string' ? { nodeId: l } : l)),
-    hotspots: pinsByStop
-      .get(s.id)
-      .sort((a, b) => a.yaw - b.yaw)
+    hotspots: (s.captured ? s.pins ?? [] : pinsByStop.get(s.id))
+      .toSorted((a, b) => a.yaw - b.yaw)
       .map(({ sku, yaw, pitch }) => ({ sku, yaw, pitch })),
   };
 });

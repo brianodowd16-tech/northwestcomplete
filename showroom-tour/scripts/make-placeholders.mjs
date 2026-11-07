@@ -131,6 +131,9 @@ function planSvg(floor) {
 }
 
 const productIcons = {
+  'clothing.svg': '<line x1="40" y1="40" x2="200" y2="40" stroke="#3d3530" stroke-width="6"/><path d="M60 42 l-14 140 h44 l-10 -140z" fill="#c2413b"/><path d="M105 42 l-16 140 h46 l-12 -140z" fill="#2f7f86"/><path d="M152 42 l-14 140 h44 l-10 -140z" fill="#e0a030"/>',
+  'bag.svg': '<path d="M85 70 q35 -50 70 0" fill="none" stroke="#6b5848" stroke-width="8"/><rect x="60" y="70" width="120" height="110" rx="14" fill="#7d3c8c"/><path d="M60 110 h120 M60 140 h120" stroke="#e0a030" stroke-width="8"/>',
+  'hanging.svg': '<circle cx="120" cy="80" r="50" fill="none" stroke="#a8743f" stroke-width="6"/><path d="M120 30 v100 M70 80 h100 M85 45 l70 70 M155 45 l-70 70" stroke="#d9c7ae" stroke-width="2"/><path d="M90 130 v50 M120 130 v60 M150 130 v50" stroke="#e8e0d4" stroke-width="10" stroke-linecap="round"/>',
   'crystal.svg': '<path d="M70 180 L95 70 L120 180 Z" fill="#9a7fc2" stroke="#6d5596" stroke-width="3"/><path d="M110 180 L140 40 L170 180 Z" fill="#b9a2d6" stroke="#6d5596" stroke-width="3"/><path d="M150 180 L170 100 L190 180 Z" fill="#8a6fb5" stroke="#6d5596" stroke-width="3"/><rect x="50" y="178" width="160" height="10" rx="4" fill="#6b4f3a"/>',
   'jewellery.svg': '<path d="M60 40 Q120 150 180 40" fill="none" stroke="#b8bfc4" stroke-width="5"/><path d="M120 120 L100 150 L120 185 L140 150 Z" fill="#9a7fc2" stroke="#6d5596" stroke-width="3"/><circle cx="120" cy="118" r="7" fill="#b8bfc4"/>',
   'slab.svg': '<rect x="50" y="20" width="140" height="170" rx="4" fill="#ece8e0" stroke="#b9b2a6" stroke-width="3"/><path d="M70 40 L120 110 L100 180 M150 30 L170 120" stroke="#9c958a" stroke-width="3" fill="none"/>',
@@ -151,6 +154,7 @@ async function writeIfMissing(file, data) {
 
 let written = 0;
 for (const node of tour.nodes) {
+  if (node.captured) continue; // a real 360 photo: never overwrite it
   const pano = path.join(root, node.panorama);
   if (!existsSync(pano) || args.force) {
     const img = sharp(Buffer.from(nodePanoramaSvg(node)));

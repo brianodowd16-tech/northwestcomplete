@@ -28,6 +28,10 @@ export const KINDS = {
   geode: { w: 1.6, h: 3.2, e: 0, off: 1.1, category: 'Geodes & specimens', image: 'products/crystal.svg', body: '#4b3b5c', inner: '#9a7fc2', glow: [0.15, 0.4, 0.7, 0.55] },
   bins: { w: 3, h: 2.6, e: 0, off: 1.3, category: 'Tumbled stones', image: 'products/crystal.svg', body: '#7a5c43', inner: '#c7b8a4', glow: [0.05, 0.75, 0.9, 0.2] },
   wallart: { w: 2.2, h: 2.2, e: 4, off: 0.1, category: 'Fossils & wall pieces', image: 'products/crystal.svg', body: '#2e2a27', inner: '#cdb48f', glow: [0.12, 0.12, 0.76, 0.76] },
+  // Boho clothing and gift shop displays.
+  rack: { w: 4.5, h: 4.6, e: 0, off: 1.6, category: 'Clothing', image: 'products/clothing.svg', body: '#3d3530', inner: '#00000000', glow: [0, 0.97, 1, 0.03] },
+  bags: { w: 3, h: 5, e: 0.5, off: 0.6, category: 'Bags & sandals', image: 'products/bag.svg', body: '#6b5848', inner: '#00000000', glow: [0, 0, 0, 0] },
+  hanging: { w: 2.5, h: 3, e: 3.5, off: 0.2, category: 'Dreamcatchers & wall hangings', image: 'products/hanging.svg', body: '#00000000', inner: '#00000000', glow: [0, 0, 0, 0] },
 };
 
 export function roomOf(layout, floorId) {
@@ -42,8 +46,9 @@ export function planToFt(layout, [px, py]) {
   return [(px - layout.margin) / layout.pxPerFt, (py - layout.margin) / layout.pxPerFt];
 }
 
+// `apronFt` adds a strip of street in front of the shop to the plan.
 export function planSize(layout, room) {
-  return [Math.round(room.widthFt * layout.pxPerFt + 2 * layout.margin), Math.round(room.depthFt * layout.pxPerFt + 2 * layout.margin)];
+  return [Math.round(room.widthFt * layout.pxPerFt + 2 * layout.margin), Math.round((room.depthFt + (room.apronFt ?? 0)) * layout.pxPerFt + 2 * layout.margin)];
 }
 
 // Display footprint: centre point on the floor, the wall it backs onto, and

@@ -9,6 +9,7 @@ const H = 2048;
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const WALL_COLOURS = { back: '#ebe4d8', front: '#e0d8ca', left: '#e6dfd2', right: '#ddd4c6', partition: '#e4ddd0' };
 const CRYSTALS = ['#9a7fc2', '#f1c6d3', '#e8eef2', '#f3c66b', '#7fb5a8', '#5b6fb3'];
+const BOHO = ['#c2413b', '#e0a030', '#2f7f86', '#7d3c8c', '#d9658f', '#3f6a3a', '#e2c36b'];
 
 export function roomPanoramaSvg({ layout, room, node, floorName, productName }) {
   const camH = layout.cameraHeightFt;
@@ -117,8 +118,7 @@ export function roomPanoramaSvg({ layout, room, node, floorName, productName }) 
   }
 
   const features = [];
-  if (room.door) {
-    const { from, to } = room.door;
+  for (const { from, to } of room.doors ?? (room.door ? [room.door] : [])) {
     const y = room.depthFt - 0.05;
     if (seen([(from + to) / 2, y, 3])) features.push(() => {
       poly([[from, y, 0], [to, y, 0], [to, y, 7], [from, y, 7]], 'fill="#a9c0cc" stroke="#3b2f25" stroke-width="5"');
@@ -212,6 +212,28 @@ export function roomPanoramaSvg({ layout, room, node, floorName, productName }) 
         }
       }
     }
+    if (d.kind === 'rack') {
+      line([face(0.02, 0.97), face(0.98, 0.97)], 'stroke="#2b2420" stroke-width="5"');
+      for (let i = 0; i < 12; i++) {
+        const u = 0.06 + i * 0.08;
+        poly([face(u - 0.035, 0.93), face(u + 0.035, 0.93), face(u + 0.045, 0.2 + (i % 3) * 0.08), face(u - 0.045, 0.2 + (i % 3) * 0.08)], `fill="${BOHO[(i + Math.round(d.at)) % BOHO.length]}" stroke="#00000030"`);
+      }
+    }
+    if (d.kind === 'bags') {
+      for (const [r, v] of [0.12, 0.42, 0.72].entries()) {
+        for (let c = 0; c < 3; c++) {
+          const u = 0.08 + c * 0.3;
+          poly([face(u, v), face(u + 0.24, v), face(u + 0.24, v + 0.22), face(u, v + 0.22)], `fill="${BOHO[(r * 3 + c + Math.round(d.at)) % BOHO.length]}" stroke="#00000035"`);
+        }
+      }
+    }
+    if (d.kind === 'hanging') {
+      for (const u of [0.2, 0.5, 0.8]) {
+        const ring = Array.from({ length: 16 }, (_, i) => face(u + 0.11 * Math.cos((i / 16) * Math.PI * 2), 0.72 + 0.16 * Math.sin((i / 16) * Math.PI * 2)));
+        poly(ring, 'fill="none" stroke="#a8743f" stroke-width="3"');
+        for (const du of [-0.05, 0, 0.05]) line([face(u + du, 0.56), face(u + du, 0.12)], 'stroke="#e8e0d4" stroke-width="5"');
+      }
+    }
     if (d.kind === 'cabinet') {
       for (const u of [0.25, 0.5, 0.75]) poly([face(u - 0.05, 0.68), face(u + 0.05, 0.68), face(u + 0.05, 0.74), face(u - 0.05, 0.74)], `fill="${CRYSTALS[Math.round(u * 8) % CRYSTALS.length]}"`);
     }
@@ -275,8 +297,10 @@ export function roomPlanSvg({ layout, room, floor, nodes }) {
     parts.push(`<rect x="${X(x0)}" y="${Y(y0)}" width="${(x1 - x0) * s}" height="${(y1 - y0) * s}" fill="${realProduct ? '#e2591f' : d.colour ?? KINDS[d.kind].body}" fill-opacity="${realProduct ? 0.9 : 0.55}" rx="2"/>`);
   }
 
-  if (room.door) {
-    const { from, to } = room.door;
+  if (room.apronFt) {
+    parts.push(`<rect x="0" y="${Y(room.depthFt) + 4}" width="${w}" height="${h - Y(room.depthFt) - 4}" fill="#e3ddd2"/>`);
+  }
+  for (const { from, to } of room.doors ?? (room.door ? [room.door] : [])) {
     parts.push(`<rect x="${X(from)}" y="${Y(room.depthFt) - 6}" width="${(to - from) * s}" height="12" fill="#fffdf9"/>`);
     parts.push(`<path d="M${X(from)} ${Y(room.depthFt)} a${((to - from) * s) / 2} ${((to - from) * s) / 2} 0 0 1 ${((to - from) * s) / 2} ${-((to - from) * s) / 2} M${X(to)} ${Y(room.depthFt)} a${((to - from) * s) / 2} ${((to - from) * s) / 2} 0 0 0 ${-((to - from) * s) / 2} ${-((to - from) * s) / 2}" fill="none" stroke="${ink}88" stroke-width="2" stroke-dasharray="5 4"/>`);
     if (showLabels) parts.push(`<text x="${X((from + to) / 2)}" y="${h - 12}" font-size="17" font-weight="700" fill="${ink}" text-anchor="middle" letter-spacing="3">ENTRANCE</text>`);
