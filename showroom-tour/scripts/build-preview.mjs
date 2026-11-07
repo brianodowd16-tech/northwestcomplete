@@ -46,7 +46,9 @@ async function remoteImage(url) {
 }
 
 for (const node of tour.nodes) {
-  node.panorama = await localAsset(node.panorama);
+  // Panoramas are re-encoded at 4096 px wide: sharp enough on screen, and it keeps
+  // a many-photo preview under single-file size limits.
+  node.panorama = dataUri(await sharp(path.join(root, node.panorama)).resize({ width: 4096, withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer(), 'image/jpeg');
   node.thumbnail = await localAsset(node.thumbnail);
 }
 for (const floor of tour.floors ?? []) floor.plan = await localAsset(floor.plan);

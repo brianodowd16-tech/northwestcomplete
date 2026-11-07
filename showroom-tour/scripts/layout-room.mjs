@@ -5,7 +5,7 @@
 //
 //   node scripts/layout-room.mjs [--tour odowds]
 //
-// This is for the placeholder tour. Once real Insta360 captures are imported,
+// This is for the placeholder tour. Once real 360 photos are imported,
 // pin products in the editor instead: re-running this overwrites stops and pins.
 
 import { readFile, writeFile } from 'node:fs/promises';

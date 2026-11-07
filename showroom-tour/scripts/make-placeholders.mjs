@@ -1,5 +1,5 @@
 // Generates stand-in panoramas, floor plans and product images so the tour
-// runs before any Insta360 captures exist. Real captures from `npm run ingest`
+// runs before any 360 photos exist. Real captures from `npm run ingest`
 // replace the panoramas one file at a time.
 //
 // When layouts/<tour>.json exists (see layout-room.mjs), floors it describes

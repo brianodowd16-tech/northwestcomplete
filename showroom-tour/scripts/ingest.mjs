@@ -1,6 +1,6 @@
-// Adds Insta360 captures to a tour.
+// Adds 360 camera captures to a tour.
 //
-// Export from Insta360 Studio first (the raw .insv/.insp files are not
+// Export from the camera's app first (the raw .insv/.insp files are not
 // stitched): photos as equirectangular JPG, videos as 360 MP4 with direction
 // lock / FlowState on so the front of the camera stays the walking direction.
 //
@@ -122,7 +122,7 @@ for (const file of files) {
     await ingestVideo(file);
     count++;
   } else if (/\.ins[vp]$/i.test(file)) {
-    console.warn(`skip  ${path.basename(file)}: export it from Insta360 Studio as an equirectangular JPG/MP4 first`);
+    console.warn(`skip  ${path.basename(file)}: export it from the camera's app as an equirectangular JPG/MP4 first`);
   }
 }
 

@@ -118,146 +118,6 @@
       "wooProductId": 32306
     },
     {
-      "sku": "sm-01",
-      "name": "Woven Shoulder Bag",
-      "category": "Bags & sandals",
-      "price": 19,
-      "image": "products/bag.svg",
-      "url": "",
-      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
-      "placeholder": true
-    },
-    {
-      "sku": "sm-02",
-      "name": "Embroidered Cross-body Bag",
-      "category": "Bags & sandals",
-      "price": 22,
-      "image": "products/bag.svg",
-      "url": "",
-      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
-      "placeholder": true
-    },
-    {
-      "sku": "sm-03",
-      "name": "Feather Wind Chime",
-      "category": "Dreamcatchers & wall hangings",
-      "price": 15,
-      "image": "products/hanging.svg",
-      "url": "",
-      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
-      "placeholder": true
-    },
-    {
-      "sku": "sm-04",
-      "name": "Gemstone Bead Bracelet",
-      "category": "Jewellery & stones",
-      "price": 8,
-      "image": "products/crystal.svg",
-      "url": "",
-      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
-      "placeholder": true
-    },
-    {
-      "sku": "sm-05",
-      "name": "Silver Pendant with Stone",
-      "category": "Jewellery",
-      "price": 29,
-      "image": "products/jewellery.svg",
-      "url": "",
-      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
-      "placeholder": true
-    },
-    {
-      "sku": "sm-06",
-      "name": "Incense Sticks (pack)",
-      "category": "Incense & gifts",
-      "price": 3,
-      "image": "products/crystal.svg",
-      "url": "",
-      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
-      "placeholder": true
-    },
-    {
-      "sku": "sm-07",
-      "name": "Macramé Wall Hanging",
-      "category": "Dreamcatchers & wall hangings",
-      "price": 26,
-      "image": "products/hanging.svg",
-      "url": "",
-      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
-      "placeholder": true
-    },
-    {
-      "sku": "sm-08",
-      "name": "Boho Maxi Dress",
-      "category": "Clothing",
-      "price": 29,
-      "image": "products/clothing.svg",
-      "url": "",
-      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
-      "placeholder": true
-    },
-    {
-      "sku": "sm-09",
-      "name": "Cotton Harem Trousers",
-      "category": "Clothing",
-      "price": 19,
-      "image": "products/clothing.svg",
-      "url": "",
-      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
-      "placeholder": true
-    },
-    {
-      "sku": "sm-10",
-      "name": "Brass Singing Bowl",
-      "category": "Gifts & home",
-      "price": 39,
-      "image": "products/crystal.svg",
-      "url": "",
-      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
-      "placeholder": true
-    },
-    {
-      "sku": "sm-11",
-      "name": "Embroidered Kaftan",
-      "category": "Clothing",
-      "price": 32,
-      "image": "products/clothing.svg",
-      "url": "",
-      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
-      "placeholder": true
-    },
-    {
-      "sku": "sm-12",
-      "name": "Mandala Tapestry",
-      "category": "Dreamcatchers & wall hangings",
-      "price": 24,
-      "image": "products/hanging.svg",
-      "url": "",
-      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
-      "placeholder": true
-    },
-    {
-      "sku": "sm-13",
-      "name": "Silk Scarf",
-      "category": "Scarves & accessories",
-      "price": 12,
-      "image": "products/crystal.svg",
-      "url": "",
-      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
-      "placeholder": true
-    },
-    {
-      "sku": "sm-14",
-      "name": "Wooden Bead Necklace",
-      "category": "Jewellery & stones",
-      "price": 9,
-      "image": "products/crystal.svg",
-      "url": "",
-      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
-      "placeholder": true
-    },
-    {
       "sku": "sm-o1",
       "name": "Boho Maxi Skirt",
       "category": "Clothing",
@@ -323,6 +183,246 @@
       "category": "Clothing",
       "price": 28,
       "image": "products/clothing.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-c1",
+      "name": "Cotton T-shirt",
+      "category": "Clothing",
+      "price": 15,
+      "image": "products/clothing.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-c2",
+      "name": "Patterned Harem Trousers",
+      "category": "Clothing",
+      "price": 19,
+      "image": "products/clothing.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-c3",
+      "name": "Incense Gift Box",
+      "category": "Incense & gifts",
+      "price": 6,
+      "image": "products/crystal.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-c4",
+      "name": "Embroidered Ceiling Parasol",
+      "category": "Lamps & ceiling pieces",
+      "price": 45,
+      "image": "products/hanging.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-c5",
+      "name": "Hamsa Macramé Dreamcatcher",
+      "category": "Dreamcatchers & wall hangings",
+      "price": 24,
+      "image": "products/hanging.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-c6",
+      "name": "Natural Soaps & Candles",
+      "category": "Incense & gifts",
+      "price": 5,
+      "image": "products/crystal.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-i1",
+      "name": "Incense Sticks",
+      "category": "Incense & gifts",
+      "price": 3.9,
+      "image": "products/crystal.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-i2",
+      "name": "Rainbow Macramé Dreamcatcher",
+      "category": "Dreamcatchers & wall hangings",
+      "price": 29,
+      "image": "products/hanging.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-i3",
+      "name": "Hand-painted Elephant",
+      "category": "Gifts & home",
+      "price": 14,
+      "image": "products/crystal.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-i4",
+      "name": "Carved Wooden Box",
+      "category": "Gifts & home",
+      "price": 12,
+      "image": "products/crystal.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-i5",
+      "name": "Evil Eye Dreamcatcher",
+      "category": "Dreamcatchers & wall hangings",
+      "price": 9,
+      "image": "products/hanging.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-i6",
+      "name": "Keyrings & Charms",
+      "category": "Scarves & accessories",
+      "price": 4,
+      "image": "products/crystal.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-h1",
+      "name": "Moroccan Pendant Lamp",
+      "category": "Lamps & ceiling pieces",
+      "price": 65,
+      "image": "products/hanging.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-h2",
+      "name": "Decorative Pyramid",
+      "category": "Gifts & home",
+      "price": 18,
+      "image": "products/crystal.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-h3",
+      "name": "Carved Ganesh Panel",
+      "category": "Gifts & home",
+      "price": 85,
+      "image": "products/hanging.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-h4",
+      "name": "Macramé Wall Curtain",
+      "category": "Dreamcatchers & wall hangings",
+      "price": 55,
+      "image": "products/hanging.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-h5",
+      "name": "White Cotton Blouse",
+      "category": "Clothing",
+      "price": 24,
+      "image": "products/clothing.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-h6",
+      "name": "Perfume Oils",
+      "category": "Incense & gifts",
+      "price": 8,
+      "image": "products/crystal.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-a1",
+      "name": "Gemstone Bead Bracelet",
+      "category": "Jewellery",
+      "price": 8,
+      "image": "products/jewellery.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-a2",
+      "name": "Lucky Charm Bracelet",
+      "category": "Jewellery",
+      "price": 6,
+      "image": "products/jewellery.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-a3",
+      "name": "Gemstone Tree",
+      "category": "Jewellery & stones",
+      "price": 22,
+      "image": "products/crystal.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-a4",
+      "name": "Moroccan Lantern",
+      "category": "Lamps & ceiling pieces",
+      "price": 28,
+      "image": "products/hanging.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-a5",
+      "name": "White Feather Dreamcatcher",
+      "category": "Dreamcatchers & wall hangings",
+      "price": 16,
+      "image": "products/hanging.svg",
+      "url": "",
+      "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
+      "placeholder": true
+    },
+    {
+      "sku": "sm-a6",
+      "name": "Polished Stones",
+      "category": "Jewellery & stones",
+      "price": 3,
+      "image": "products/crystal.svg",
       "url": "",
       "description": "Placeholder product, standing in for a real display in this spot. Pin a real product here in the editor (?edit) once the showroom is photographed.",
       "placeholder": true

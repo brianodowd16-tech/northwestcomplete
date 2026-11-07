@@ -10,7 +10,7 @@
     "ground": { "widthFt": 19.69, "depthFt": 16.4, "apronFt": 5, "ceilingFt": 11.5, "tileFt": 2, "wallColour": "#e7d3a8", "floorColour": "#a8957a", "doors": [{ "wall": "front", "from": 2.5, "to": 7.5 }, { "wall": "front", "from": 12.2, "to": 17.2 }], "partition": { "x": 9.84, "doorFrom": 7.5, "doorTo": 11.5, "doorHeightFt": 7.5 }, "lights": [[4.9, 5], [4.9, 13], [14.8, 5], [14.8, 13]] }
   },
   "stops": [
-    { "id": "s-outside", "name": "Shopfront", "floor": "ground", "at": [14.7, 20.4], "heading": 0, "captured": true, "links": ["s-right", { "nodeId": "s-left", "yaw": -70 }], "pins": [
+    { "id": "s-outside", "name": "Shopfront", "floor": "ground", "at": [14.7, 20.4], "heading": 0, "captured": true, "links": ["s-clothing", { "nodeId": "s-accessories", "yaw": -70 }], "pins": [
       { "sku": "sm-o1", "kind": "rack", "name": "Boho Maxi Skirt", "price": 22, "yaw": 95.4, "pitch": -36 },
       { "sku": "sm-o2", "kind": "rack", "name": "Cotton Wrap Skirt", "price": 18, "yaw": -120.6, "pitch": -27 },
       { "sku": "sm-o3", "kind": "bags", "name": "Patchwork Hemp Backpack", "price": 35, "yaw": -55.8, "pitch": -18 },
@@ -19,23 +19,38 @@
       { "sku": "sm-o6", "kind": "hanging", "name": "Chakra Wall Hanging", "price": 16, "yaw": 59.4, "pitch": -10.8 },
       { "sku": "sm-o7", "kind": "rack", "name": "Printed Cotton Dress", "price": 28, "yaw": 23.4, "pitch": -18 }
     ] },
-    { "id": "s-left", "name": "Left room", "floor": "ground", "at": [4.9, 9.5], "links": [{ "nodeId": "s-outside", "yaw": 180 }, "s-right"] },
-    { "id": "s-right", "name": "Right room", "floor": "ground", "at": [14.8, 9.5], "links": ["s-outside", "s-left"] }
+    { "id": "s-clothing", "name": "Clothing", "floor": "ground", "at": [14.8, 13], "heading": 110, "captured": true, "photo": "c00fbce084b51202696a7a7a7fe33159", "links": [{ "nodeId": "s-outside", "yaw": 68 }, { "nodeId": "s-incense", "yaw": -110 }], "pins": [
+      { "sku": "sm-c1", "kind": "rack", "name": "Cotton T-shirt", "price": 15, "yaw": -72, "pitch": -40 },
+      { "sku": "sm-c2", "kind": "rack", "name": "Patterned Harem Trousers", "price": 19, "yaw": 0, "pitch": -50 },
+      { "sku": "sm-c3", "kind": "bins", "name": "Incense Gift Box", "price": 6, "yaw": 32.4, "pitch": -21.6, "category": "Incense & gifts" },
+      { "sku": "sm-c4", "kind": "hanging", "name": "Embroidered Ceiling Parasol", "price": 45, "yaw": 45, "pitch": 58, "category": "Lamps & ceiling pieces" },
+      { "sku": "sm-c5", "kind": "hanging", "name": "Hamsa Macramé Dreamcatcher", "price": 24, "yaw": -138, "pitch": 43 },
+      { "sku": "sm-c6", "kind": "shelf", "name": "Natural Soaps & Candles", "price": 5, "yaw": 126, "pitch": -18, "category": "Incense & gifts" }
+    ] },
+    { "id": "s-incense", "name": "Incense", "floor": "ground", "at": [14.8, 5], "heading": 180, "captured": true, "photo": "90978b5a7b10463764f2f369db9e74ca", "links": [{ "nodeId": "s-clothing", "yaw": 0 }, { "nodeId": "s-hangables", "yaw": 149 }], "pins": [
+      { "sku": "sm-i1", "kind": "shelf", "name": "Incense Sticks", "price": 3.9, "yaw": -93.6, "pitch": -27, "category": "Incense & gifts" },
+      { "sku": "sm-i2", "kind": "hanging", "name": "Rainbow Macramé Dreamcatcher", "price": 29, "yaw": -138.4, "pitch": 39.6 },
+      { "sku": "sm-i3", "kind": "shelf", "name": "Hand-painted Elephant", "price": 14, "yaw": 57.6, "pitch": 7.2, "category": "Gifts & home" },
+      { "sku": "sm-i4", "kind": "shelf", "name": "Carved Wooden Box", "price": 12, "yaw": 54, "pitch": -21.6, "category": "Gifts & home" },
+      { "sku": "sm-i5", "kind": "hanging", "name": "Evil Eye Dreamcatcher", "price": 9, "yaw": 108, "pitch": -21.6 },
+      { "sku": "sm-i6", "kind": "bins", "name": "Keyrings & Charms", "price": 4, "yaw": -34, "pitch": -18, "category": "Scarves & accessories" }
+    ] },
+    { "id": "s-hangables", "name": "Hangables", "floor": "ground", "at": [4.9, 5], "heading": 36, "captured": true, "photo": "d7dc5a3510dd5ad2cc006a404731f620", "links": [{ "nodeId": "s-incense", "yaw": -45 }, { "nodeId": "s-accessories", "yaw": 144 }], "pins": [
+      { "sku": "sm-h1", "kind": "hanging", "name": "Moroccan Pendant Lamp", "price": 65, "yaw": -82.8, "pitch": 55.8, "category": "Lamps & ceiling pieces" },
+      { "sku": "sm-h2", "kind": "shelf", "name": "Decorative Pyramid", "price": 18, "yaw": -111.6, "pitch": 28.8, "category": "Gifts & home" },
+      { "sku": "sm-h3", "kind": "hanging", "name": "Carved Ganesh Panel", "price": 85, "yaw": -14.4, "pitch": -14.4, "category": "Gifts & home" },
+      { "sku": "sm-h4", "kind": "hanging", "name": "Macramé Wall Curtain", "price": 55, "yaw": 106, "pitch": 30.6 },
+      { "sku": "sm-h5", "kind": "rack", "name": "White Cotton Blouse", "price": 24, "yaw": 41.4, "pitch": -10.8 },
+      { "sku": "sm-h6", "kind": "shelf", "name": "Perfume Oils", "price": 8, "yaw": -126, "pitch": -10.8, "category": "Incense & gifts" }
+    ] },
+    { "id": "s-accessories", "name": "Accessories", "floor": "ground", "at": [4.9, 13], "heading": 0, "captured": true, "photo": "bc20aa03868c132d3861f6f7a855c50d", "links": [{ "nodeId": "s-hangables", "yaw": -18 }, { "nodeId": "s-outside", "yaw": 160 }], "pins": [
+      { "sku": "sm-a1", "kind": "cabinet", "name": "Gemstone Bead Bracelet", "price": 8, "yaw": -97, "pitch": -36 },
+      { "sku": "sm-a2", "kind": "cabinet", "name": "Lucky Charm Bracelet", "price": 6, "yaw": 45, "pitch": -36 },
+      { "sku": "sm-a3", "kind": "shelf", "name": "Gemstone Tree", "price": 22, "yaw": -140, "pitch": -10.8, "category": "Jewellery & stones" },
+      { "sku": "sm-a4", "kind": "hanging", "name": "Moroccan Lantern", "price": 28, "yaw": 48.6, "pitch": 0, "category": "Lamps & ceiling pieces" },
+      { "sku": "sm-a5", "kind": "hanging", "name": "White Feather Dreamcatcher", "price": 16, "yaw": -64.8, "pitch": 36 },
+      { "sku": "sm-a6", "kind": "shelf", "name": "Polished Stones", "price": 3, "yaw": 84.6, "pitch": -18, "category": "Jewellery & stones" }
+    ] }
   ],
-  "displays": [
-    { "floor": "ground", "wall": "left", "at": 3, "kind": "bags", "sku": "sm-01", "name": "Woven Shoulder Bag", "price": 19 },
-    { "floor": "ground", "wall": "left", "at": 7.5, "kind": "bags", "sku": "sm-02", "name": "Embroidered Cross-body Bag", "price": 22 },
-    { "floor": "ground", "wall": "left", "at": 12.5, "kind": "hanging", "sku": "sm-03", "name": "Feather Wind Chime", "price": 15 },
-    { "floor": "ground", "wall": "back", "at": 3.2, "kind": "shelf", "sku": "sm-04", "name": "Gemstone Bead Bracelet", "price": 8, "category": "Jewellery & stones" },
-    { "floor": "ground", "wall": "back", "at": 7, "kind": "cabinet", "sku": "sm-05", "name": "Silver Pendant with Stone", "price": 29 },
-    { "floor": "ground", "wall": "partition-left", "at": 3, "kind": "bins", "sku": "sm-06", "name": "Incense Sticks (pack)", "price": 3, "category": "Incense & gifts" },
-    { "floor": "ground", "wall": "partition-left", "at": 14, "kind": "hanging", "sku": "sm-07", "name": "Macramé Wall Hanging", "price": 26 },
-    { "floor": "ground", "wall": "back", "at": 12.6, "kind": "rack", "sku": "sm-08", "name": "Boho Maxi Dress", "price": 29 },
-    { "floor": "ground", "wall": "back", "at": 16.8, "kind": "rack", "sku": "sm-09", "name": "Cotton Harem Trousers", "price": 19 },
-    { "floor": "ground", "wall": "right", "at": 3, "kind": "shelf", "sku": "sm-10", "name": "Brass Singing Bowl", "price": 39, "category": "Gifts & home" },
-    { "floor": "ground", "wall": "right", "at": 8.5, "kind": "rack", "sku": "sm-11", "name": "Embroidered Kaftan", "price": 32 },
-    { "floor": "ground", "wall": "right", "at": 13.5, "kind": "hanging", "sku": "sm-12", "name": "Mandala Tapestry", "price": 24 },
-    { "floor": "ground", "wall": "partition-right", "at": 3.5, "kind": "bins", "sku": "sm-13", "name": "Silk Scarf", "price": 12, "category": "Scarves & accessories" },
-    { "floor": "ground", "wall": "partition-right", "at": 14, "kind": "shelf", "sku": "sm-14", "name": "Wooden Bead Necklace", "price": 9, "category": "Jewellery & stones" }
-  ]
+  "displays": []
 }

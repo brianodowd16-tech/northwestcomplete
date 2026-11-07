@@ -1,13 +1,13 @@
 # Showroom Tour
 
-A Street View–style 360° walkthrough of a shop, built from Insta360 captures.
+A Street View–style 360° walkthrough of a shop, built from 360° camera photos.
 Visitors walk between panoramas, switch floors on a floor plan, and tap price
 tags on products to see the name, price and description and add them to a cart.
 The cart hands off to the shop's own checkout.
 
 The pilot is **O'Dowds Carrick** (two floors: stoves, fireplaces, accessories),
 in `public/tours/odowds/`. Its products come from the live WooCommerce shop (`npm run sync-catalog`),
-but they are pinned in **placeholder panoramas** until the real Insta360 captures are added.
+but they are pinned in **placeholder panoramas** until the real 360 photos are added.
 
 Built with [Photo Sphere Viewer](https://photo-sphere-viewer.js.org) (virtual
 tour + markers plugins) and Vite. No backend.
@@ -33,13 +33,13 @@ Useful URLs:
 
 ## Pilot workflow
 
-### 1. Capture (Insta360)
+### 1. Capture (360 camera)
 
 - Use a tripod or monopod at about 1.5 m. Hide behind a display or step out of the room for each shot.
 - **Photos** give the best quality. Take one in each spot a customer would stand: entrance, each aisle or display,
   stair bottom, stair top, upstairs landing, each upstairs room. Around 15–25 spots covers a two-floor showroom.
 - **Video** gives smooth Street View walking. Walk slowly (about 0.5 m/s) holding the camera above your head, with FlowState/direction lock on.
-- In Insta360 Studio, export photos as **equirectangular JPG** and videos as **360 MP4** (the raw `.insp`/`.insv` files are not stitched).
+- In the camera's app, export photos as **equirectangular JPG** and videos as **360 MP4** (the raw `.insp`/`.insv` files are not stitched).
 - Turn up the lights and avoid mixing daylight with spotlights, or the stoves look orange.
 
 ### 2. Import
