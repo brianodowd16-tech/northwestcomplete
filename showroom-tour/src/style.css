@@ -5,7 +5,7 @@
   --line: #e4dcd2;
   --accent: #e2591f;
   --accent-ink: #ffffff;
-  --glass: rgba(24, 20, 17, 0.72);
+  --glass: rgba(18, 16, 14, 0.55);
   --radius: 14px;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -36,30 +36,50 @@ button {
 
 /* ---------- top bar ---------- */
 
+.glass {
+  background: var(--glass);
+  color: #fff;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
 .topbar {
   position: fixed;
-  top: max(12px, env(safe-area-inset-top));
-  left: 16px;
-  right: 16px;
+  top: max(14px, env(safe-area-inset-top));
+  left: max(14px, env(safe-area-inset-left));
+  right: max(14px, env(safe-area-inset-right));
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 10px;
   pointer-events: none;
   z-index: 100;
 }
 
-.brand,
-.cart-btn {
+.topbar-left,
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.topbar-left > *,
+.topbar-right > * {
   pointer-events: auto;
-  background: var(--glass);
-  color: #fff;
-  backdrop-filter: blur(8px);
+}
+
+.brand {
   border-radius: 999px;
-  padding: 8px 14px;
+  padding: 7px 14px;
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 600;
+  font-size: 14px;
+  min-width: 0;
 }
 
 #brandName {
@@ -68,32 +88,102 @@ button {
   white-space: nowrap;
 }
 
-.brand {
-  min-width: 0;
-  max-width: calc(100vw - 120px);
-}
-
 .brand-mark {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
+  background: var(--accent);
+  flex: none;
+}
+
+.roomchip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 999px;
+  padding: 5px 5px 5px 14px;
+  font-size: 14px;
+  min-width: 0;
+  max-width: 60vw;
+}
+
+#roomName {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#roomProducts {
+  border: 0;
+  border-radius: 999px;
+  padding: 5px 11px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-weight: 600;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+#roomProducts:hover {
   background: var(--accent);
 }
 
 .cart-btn {
-  border: 0;
+  border-radius: 999px;
+  padding: 7px 10px 7px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
 }
 
 #cartCount {
-  min-width: 22px;
-  height: 22px;
-  border-radius: 11px;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
   background: var(--accent);
   display: inline-grid;
   place-items: center;
-  font-size: 12px;
+  font-size: 11px;
   padding: 0 6px;
+}
+
+.logo {
+  height: 46px;
+  width: auto;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  display: block;
+}
+
+.credit {
+  position: fixed;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: max(14px, env(safe-area-inset-bottom));
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 5px 10px 5px 5px;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.credit img {
+  height: 26px;
+  width: auto;
+  border-radius: 6px;
+  display: block;
+}
+
+.credit[hidden] {
+  display: none;
 }
 
 /* ---------- hotspots ---------- */
@@ -103,29 +193,35 @@ button {
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  transform: translateX(calc(50% - 11px));
+  transform: translateX(calc(50% - 8px));
 }
 
 .hs-dot {
-  width: 22px;
-  height: 22px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--accent);
-  border: 3px solid #fff;
+  border: 2px solid #fff;
   box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 70%, transparent);
-  animation: pulse 2s infinite;
+  animation: pulse 2.4s infinite;
   flex: none;
 }
 
 .hs-tag {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
   color: var(--ink);
   font-weight: 700;
-  font-size: 13px;
-  padding: 4px 9px;
+  font-size: 12px;
+  padding: 3px 8px;
   border-radius: 999px;
-  box-shadow: var(--shadow);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.hotspot:hover .hs-tag {
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
 .hotspot.is-out .hs-dot {
@@ -135,7 +231,7 @@ button {
 
 @keyframes pulse {
   70% {
-    box-shadow: 0 0 0 14px transparent;
+    box-shadow: 0 0 0 12px transparent;
   }
   100% {
     box-shadow: 0 0 0 0 transparent;
@@ -152,12 +248,15 @@ button {
 
 .plan {
   position: fixed;
-  left: 16px;
-  bottom: 64px;
-  width: min(360px, calc(100vw - 32px));
-  background: var(--paper);
+  left: max(14px, env(safe-area-inset-left));
+  bottom: max(14px, env(safe-area-inset-bottom));
+  width: min(300px, calc(100vw - 28px));
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.22);
   overflow: hidden;
   z-index: 90;
 }
@@ -165,7 +264,6 @@ button {
 .plan-head {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid var(--line);
 }
 
 .plan-tabs {
@@ -173,16 +271,17 @@ button {
   flex: 1;
 }
 
+.plan-tabs:empty {
+  display: none;
+}
+
 .plan-tabs button,
 .plan-toggle {
   border: 0;
   background: none;
-  padding: 9px 10px;
-  font-size: 13px;
+  padding: 8px 10px;
+  font-size: 12px;
   color: var(--ink-soft);
-}
-
-.plan-tabs button {
   white-space: nowrap;
 }
 
@@ -190,6 +289,21 @@ button {
   color: var(--ink);
   font-weight: 700;
   box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+/* With one floor the toggle floats over the plan's corner. */
+.plan-tabs:empty + .plan-toggle {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  display: grid;
+  place-items: center;
 }
 
 .plan-map {
@@ -208,26 +322,32 @@ button {
   display: none;
 }
 
+.plan.is-collapsed {
+  width: auto;
+}
+
 .plan.is-collapsed .plan-toggle {
+  position: static;
   transform: rotate(180deg);
 }
 
 .plan-dot {
   position: absolute;
-  width: 16px;
-  height: 16px;
-  margin: -8px 0 0 -8px;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
   border-radius: 50%;
   border: 2px solid #fff;
   background: var(--ink-soft);
   padding: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 .plan-dot.is-here {
   background: var(--accent);
-  width: 20px;
-  height: 20px;
-  margin: -10px 0 0 -10px;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
 }
 
 .plan-cone {
@@ -242,53 +362,12 @@ button {
 .plan-cone::before {
   content: '';
   position: absolute;
-  left: -22px;
-  top: -44px;
-  border-left: 22px solid transparent;
-  border-right: 22px solid transparent;
-  border-bottom: 44px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  transform-origin: 22px 44px;
-}
-
-/* ---------- room bar ---------- */
-
-.roombar {
-  position: fixed;
-  left: 50%;
-  top: max(12px, env(safe-area-inset-top));
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--glass);
-  color: #fff;
-  padding: 6px 6px 6px 16px;
-  border-radius: 999px;
-  backdrop-filter: blur(8px);
-  z-index: 80;
-  white-space: nowrap;
-  max-width: calc(100vw - 32px);
-}
-
-#roomName {
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-#roomProducts {
-  border: 0;
-  border-radius: 999px;
-  padding: 6px 12px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-weight: 600;
-  font-size: 13px;
-}
-
-#roomProducts:disabled {
-  background: #ffffff33;
-  cursor: default;
+  left: -20px;
+  top: -40px;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 40px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  transform-origin: 20px 40px;
 }
 
 /* ---------- drawer ---------- */
@@ -692,20 +771,56 @@ button {
   }
 
   .plan {
-    width: 220px;
+    width: 190px;
   }
 
   .plan-tabs button {
     padding: 8px 7px;
-    font-size: 12px;
   }
 
-  .roombar {
-    top: calc(max(12px, env(safe-area-inset-top)) + 50px);
+  .topbar {
+    gap: 6px;
+  }
+
+  .topbar-right {
+    gap: 6px;
+    flex: none;
+  }
+
+  .logo {
+    height: 28px;
+    border-radius: 7px;
+  }
+
+  .cart-btn {
+    padding: 6px 8px 6px 10px;
+  }
+
+  .roomchip {
+    max-width: none;
+    padding-left: 12px;
+    gap: 8px;
+    font-size: 13px;
+  }
+
+  #roomProducts {
+    padding: 4px 9px;
+  }
+
+  .credit span {
+    display: none;
+  }
+
+  .credit {
+    padding: 4px;
+  }
+
+  .credit img {
+    height: 22px;
   }
 
   .toast {
-    top: 120px;
+    top: 64px;
   }
 
   .drawer {

@@ -131,6 +131,8 @@ function planSvg(floor) {
 }
 
 const productIcons = {
+  'crystal.svg': '<path d="M70 180 L95 70 L120 180 Z" fill="#9a7fc2" stroke="#6d5596" stroke-width="3"/><path d="M110 180 L140 40 L170 180 Z" fill="#b9a2d6" stroke="#6d5596" stroke-width="3"/><path d="M150 180 L170 100 L190 180 Z" fill="#8a6fb5" stroke="#6d5596" stroke-width="3"/><rect x="50" y="178" width="160" height="10" rx="4" fill="#6b4f3a"/>',
+  'jewellery.svg': '<path d="M60 40 Q120 150 180 40" fill="none" stroke="#b8bfc4" stroke-width="5"/><path d="M120 120 L100 150 L120 185 L140 150 Z" fill="#9a7fc2" stroke="#6d5596" stroke-width="3"/><circle cx="120" cy="118" r="7" fill="#b8bfc4"/>',
   'slab.svg': '<rect x="50" y="20" width="140" height="170" rx="4" fill="#ece8e0" stroke="#b9b2a6" stroke-width="3"/><path d="M70 40 L120 110 L100 180 M150 30 L170 120" stroke="#9c958a" stroke-width="3" fill="none"/>',
   'tile.svg': '<g stroke="#a99b85" stroke-width="4"><rect x="40" y="30" width="160" height="160" fill="#d8cbb6"/><line x1="120" y1="30" x2="120" y2="190"/><line x1="40" y1="110" x2="200" y2="110"/></g>',
   'worktop.svg': '<rect x="20" y="70" width="200" height="22" fill="#3a3a3c"/><rect x="30" y="92" width="180" height="90" fill="#cfc8bc"/><rect x="95" y="58" width="50" height="12" rx="3" fill="#8f8a82"/>',

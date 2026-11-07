@@ -156,7 +156,14 @@ as `"theme": { "accent": "#1f6b58" }`.
 | Tour | Status |
 | --- | --- |
 | `odowds` | O'Dowds Carrick: 2 floors, 80 × 30 ft, live WooCommerce catalogue + placeholders |
-| `stonemarket` | Stone Market Valletta: 1 floor, 70 × 35 ft placeholder showroom (`layouts/stonemarket.json`) with 27 stone placeholder products. Until Stone Market has its own shop, checkout and `sync-catalog` point at the O'Dowds WooCommerce site: switch with `node scripts/sync-catalog.mjs --tour stonemarket --woocommerce <stone market site>`. |
+| `stonemarket` | Stone Market Valletta: two side-by-side 3 × 5 m rooms joined by an archway (`layouts/stonemarket.json`), 17 crystal, gemstone and jewellery placeholders, Stone Market logo top right and Northwest Complete credit bottom right. Until Stone Market has its own shop, checkout and `sync-catalog` point at the O'Dowds WooCommerce site: switch with `node scripts/sync-catalog.mjs --tour stonemarket --woocommerce <stone market site>`. |
+
+Branding per tour (`tour.json`): `"branding": { "logo": "brand/logo.png", "logoAlt": "…", "credit": { "logo": "…", "name": "…", "url": "…" } }`
+puts the logo in the top-right corner (in place of the name pill) and a credit badge bottom right.
+
+Layouts can describe two side-by-side rooms with `"partition": { "x", "doorFrom", "doorTo", "doorHeightFt" }` (displays on it use
+`wall: "partition-left"` / `"partition-right"`), and `"labels": false` leaves all painted labels out of panoramas and plans.
+Crystal shop displays: `shelf`, `cabinet`, `geode`, `bins`, `wallart`.
 
 Stone displays available in layouts: `slab`, `tile`, `mosaic`, `worktop`, `vanity`, `limestone`, `paving`, `carving`
 (each display can set its own `colour`). Floors can set `wallColour` and `floorColour`.

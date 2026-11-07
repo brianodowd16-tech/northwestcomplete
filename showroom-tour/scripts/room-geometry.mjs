@@ -22,6 +22,12 @@ export const KINDS = {
   limestone: { w: 3, h: 3, e: 0, off: 1.5, category: 'Maltese limestone', image: 'products/stone.svg', body: '#d9b77e', inner: '#00000014', glow: [0, 0.5, 1, 0.03] },
   paving: { w: 4, h: 1.6, e: 0, off: 2, category: 'Paving & outdoor stone', image: 'products/stone.svg', body: '#a39a8c', inner: '#00000018', glow: [0, 0.48, 1, 0.04] },
   carving: { w: 2, h: 4, e: 0, off: 1.5, category: 'Carvings & garden stone', image: 'products/stone.svg', body: '#e1cfa8', inner: '#00000012', glow: [0.3, 0.55, 0.4, 0.3] },
+  // Crystal and gemstone shop displays.
+  shelf: { w: 3, h: 6, e: 0, off: 0.9, category: 'Crystals & minerals', image: 'products/crystal.svg', body: '#6b4f3a', inner: '#b9a2d6', glow: [0.08, 0.1, 0.84, 0.8] },
+  cabinet: { w: 4, h: 3.3, e: 0, off: 1.6, category: 'Jewellery', image: 'products/jewellery.svg', body: '#3b3430', inner: '#d9e6ea', glow: [0.05, 0.62, 0.9, 0.33] },
+  geode: { w: 1.6, h: 3.2, e: 0, off: 1.1, category: 'Geodes & specimens', image: 'products/crystal.svg', body: '#4b3b5c', inner: '#9a7fc2', glow: [0.15, 0.4, 0.7, 0.55] },
+  bins: { w: 3, h: 2.6, e: 0, off: 1.3, category: 'Tumbled stones', image: 'products/crystal.svg', body: '#7a5c43', inner: '#c7b8a4', glow: [0.05, 0.75, 0.9, 0.2] },
+  wallart: { w: 2.2, h: 2.2, e: 4, off: 0.1, category: 'Fossils & wall pieces', image: 'products/crystal.svg', body: '#2e2a27', inner: '#cdb48f', glow: [0.12, 0.12, 0.76, 0.76] },
 };
 
 export function roomOf(layout, floorId) {
@@ -54,6 +60,11 @@ export function displayGeometry(room, d) {
       return { ...k, cx: off, cy: d.at, tx: 0, ty: -1 };
     case 'right':
       return { ...k, cx: room.widthFt - off, cy: d.at, tx: 0, ty: 1 };
+    // Either face of an interior wall (room.partition) between two side-by-side rooms.
+    case 'partition-left':
+      return { ...k, cx: room.partition.x - off, cy: d.at, tx: 0, ty: 1 };
+    case 'partition-right':
+      return { ...k, cx: room.partition.x + off, cy: d.at, tx: 0, ty: -1 };
     default:
       throw new Error(`unknown wall ${d.wall}`);
   }
@@ -87,5 +98,29 @@ export function rayToWall(room, cam, bearingDeg) {
   if (vy > 0) hits.push({ t: (room.depthFt - cam[1]) / vy, wall: 'front' });
   if (vx < 0) hits.push({ t: -cam[0] / vx, wall: 'left' });
   if (vx > 0) hits.push({ t: (room.widthFt - cam[0]) / vx, wall: 'right' });
+  const p = room.partition;
+  if (p && vx !== 0) {
+    const t = (p.x - cam[0]) / vx;
+    const y = cam[1] + vy * t;
+    if (t > 0 && !(y >= p.doorFrom && y <= p.doorTo)) hits.push({ t, wall: 'partition' });
+  }
   return hits.reduce((a, c) => (c.t < a.t ? c : a));
+}
+
+// Whether a point can be seen from the camera, i.e. not behind the partition
+// (only through its doorway).
+export function visibleFrom(room, cam, point) {
+  const p = room.partition;
+  if (!p) return true;
+  const a = cam[0] - p.x;
+  const b = point[0] - p.x;
+  if (a * b >= 0) return true;
+  const t = a / (a - b);
+  const y = cam[1] + (point[1] - cam[1]) * t;
+  return y >= p.doorFrom && y <= p.doorTo;
+}
+
+// Back-to-wall direction for a display, as a unit vector.
+export function backVector(wall) {
+  return { back: [0, -1], front: [0, 1], left: [-1, 0], right: [1, 0], 'partition-left': [1, 0], 'partition-right': [-1, 0] }[wall];
 }

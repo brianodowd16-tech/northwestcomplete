@@ -1,5 +1,4 @@
 import { Viewer } from '@photo-sphere-viewer/core';
-import { GyroscopePlugin } from '@photo-sphere-viewer/gyroscope-plugin';
 import { MarkersPlugin } from '@photo-sphere-viewer/markers-plugin';
 import { VirtualTourPlugin } from '@photo-sphere-viewer/virtual-tour-plugin';
 import '@photo-sphere-viewer/core/index.css';
@@ -112,11 +111,10 @@ app.viewer = new Viewer({
   defaultZoomLvl: 30,
   touchmoveTwoFingers: false,
   mousewheelCtrlKey: false,
-  navbar: ['zoom', 'move', 'caption', 'gyroscope', 'fullscreen'],
+  navbar: false,
   loadingTxt: 'Loading showroom…',
   plugins: [
     MarkersPlugin,
-    GyroscopePlugin,
     [
       VirtualTourPlugin,
       {
@@ -168,7 +166,8 @@ function renderPlan() {
   const floor = floors.find((f) => f.id === shownFloor) ?? floors[0];
   const [w, h] = floor.size ?? [1000, 600];
 
-  $('#planTabs').innerHTML = floors
+  // Floor tabs only when there is more than one floor.
+  $('#planTabs').innerHTML = floors.length < 2 ? '' : floors
     .map((f) => `<button type="button" data-floor="${esc(f.id)}" aria-pressed="${f.id === floor.id}">${esc(f.name)}</button>`)
     .join('');
 
@@ -235,7 +234,8 @@ function renderRoomBar() {
   const node = app.currentNode();
   const items = roomProducts();
   $('#roomName').textContent = node?.name ?? '';
-  $('#roomProducts').textContent = items.length ? `${items.length} product${items.length > 1 ? 's' : ''} here` : 'No products here';
+  $('#roomProducts').textContent = `${items.length} product${items.length === 1 ? '' : 's'}`;
+  $('#roomProducts').hidden = !items.length;
   $('#roomProducts').disabled = !items.length;
 }
 
@@ -371,6 +371,20 @@ app.toast = toast;
 // ---------- boot ----------
 
 $('#brandName').textContent = app.tour.name;
+const branding = app.tour.branding ?? {};
+if (branding.logo) {
+  $('#logo').src = asset(branding.logo);
+  $('#logo').alt = branding.logoAlt ?? app.tour.name;
+  $('#logo').hidden = false;
+  $('#brand').hidden = true;
+}
+if (branding.credit) {
+  $('#credit').href = branding.credit.url ?? '#';
+  $('#creditLogo').src = asset(branding.credit.logo);
+  $('#creditName').textContent = branding.credit.name ?? '';
+  $('#credit').setAttribute('aria-label', `Built by ${branding.credit.name ?? ''}`);
+  $('#credit').hidden = false;
+}
 if (app.tour.theme?.accent) document.documentElement.style.setProperty('--accent', app.tour.theme.accent);
 document.title = app.tour.name;
 

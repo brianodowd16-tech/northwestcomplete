@@ -50,6 +50,8 @@ for (const node of tour.nodes) {
   node.thumbnail = await localAsset(node.thumbnail);
 }
 for (const floor of tour.floors ?? []) floor.plan = await localAsset(floor.plan);
+if (tour.branding?.logo) tour.branding.logo = await localAsset(tour.branding.logo);
+if (tour.branding?.credit?.logo) tour.branding.credit.logo = await localAsset(tour.branding.credit.logo);
 for (const p of catalog.products) {
   if (!p.image) continue;
   p.image = /^https?:/.test(p.image) ? await remoteImage(p.image) : await localAsset(p.image);

@@ -2,19 +2,23 @@
 // the placeholder tour looks like the real space: walls, floor grid, door, desk,
 // stairs and product displays all in true perspective from each stop.
 
-import { KINDS, displayGeometry, planToFt, project, rayToWall } from './room-geometry.mjs';
+import { KINDS, backVector, displayGeometry, planToFt, project, rayToWall, visibleFrom } from './room-geometry.mjs';
 
 const W = 4096;
 const H = 2048;
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-const WALL_COLOURS = { back: '#ebe4d8', front: '#e0d8ca', left: '#e6dfd2', right: '#ddd4c6' };
+const WALL_COLOURS = { back: '#ebe4d8', front: '#e0d8ca', left: '#e6dfd2', right: '#ddd4c6', partition: '#e4ddd0' };
+const CRYSTALS = ['#9a7fc2', '#f1c6d3', '#e8eef2', '#f3c66b', '#7fb5a8', '#5b6fb3'];
 
 export function roomPanoramaSvg({ layout, room, node, floorName, productName }) {
   const camH = layout.cameraHeightFt;
   const cam = [...planToFt(layout, node.plan), camH];
   const heading = node.heading ?? 0;
   const ceiling = room.ceilingFt ?? 10;
-  const wallColours = room.wallColour ? { back: room.wallColour, front: room.wallColour, left: room.wallColour, right: room.wallColour } : WALL_COLOURS;
+  const wallColours = room.wallColour ? { back: room.wallColour, front: room.wallColour, left: room.wallColour, right: room.wallColour, partition: room.wallColour } : WALL_COLOURS;
+  // `labels: false` in the layout leaves every painted label out.
+  const showLabels = layout.labels !== false;
+  const seen = (p) => visibleFrom(room, cam, p);
   const parts = [`<rect width="${W}" height="${H}" fill="${room.floorColour ?? '#8a7764'}"/>`];
 
   const toXY = (p) => {
@@ -55,7 +59,21 @@ export function roomPanoramaSvg({ layout, room, node, floorName, productName }) 
     const xy = path2d(pts3, false);
     if (xy.length > 1) parts.push(copies(`<polyline points="${pts(xy)}" fill="none" ${attrs}/>`));
   };
+  // A line that stops where the partition hides it.
+  const visibleLine = (a, b, attrs) => {
+    let run = [];
+    for (let i = 0; i <= 60; i++) {
+      const p = a.map((v, k) => v + ((b[k] - v) * i) / 60);
+      if (seen(p)) run.push(p);
+      else if (run.length) {
+        if (run.length > 1) line(run, attrs);
+        run = [];
+      }
+    }
+    if (run.length > 1) line(run, attrs);
+  };
   const label = (p, text, size, fill = '#2b2420') => {
+    if (!showLabels) return;
     const [x, y] = toXY(p);
     for (const dx of [-W, 0, W]) parts.push(`<text x="${(x + dx).toFixed(1)}" y="${y.toFixed(1)}" font-size="${size}" fill="${fill}" text-anchor="middle" font-weight="600">${esc(text)}</text>`);
   };
@@ -83,22 +101,26 @@ export function roomPanoramaSvg({ layout, room, node, floorName, productName }) 
   parts.push(`<polyline points="${cols.map((c) => `${c.x.toFixed(1)},${c.bottom.toFixed(1)}`).join(' ')}" fill="none" stroke="#5e5043" stroke-width="4"/>`);
   parts.push(`<polyline points="${cols.map((c) => `${c.x.toFixed(1)},${c.top.toFixed(1)}`).join(' ')}" fill="none" stroke="#00000020" stroke-width="2"/>`);
 
-  // Floor tiles, 5 ft.
-  for (let x = 5; x < room.widthFt; x += 5) line([[x, 0, 0], [x, room.depthFt, 0]], 'stroke="#00000022" stroke-width="2"');
-  for (let y = 5; y < room.depthFt; y += 5) line([[0, y, 0], [room.widthFt, y, 0]], 'stroke="#00000022" stroke-width="2"');
+  // Floor tiles (5 ft unless the room sets tileFt).
+  const tile = room.tileFt ?? 5;
+  for (let x = tile; x < room.widthFt; x += tile) visibleLine([x, 0, 0], [x, room.depthFt, 0], 'stroke="#00000022" stroke-width="2"');
+  for (let y = tile; y < room.depthFt; y += tile) visibleLine([0, y, 0], [room.widthFt, y, 0], 'stroke="#00000022" stroke-width="2"');
 
   // Ceiling lights, for depth.
-  for (let x = 10; x < room.widthFt; x += 20) {
-    for (const y of [room.depthFt * 0.3, room.depthFt * 0.7]) {
-      poly([[x - 1, y - 1, ceiling], [x + 1, y - 1, ceiling], [x + 1, y + 1, ceiling], [x - 1, y + 1, ceiling]], 'fill="#fffbe8" stroke="#00000018"');
-    }
+  const lights = room.lights ?? [];
+  if (!room.lights) {
+    for (let x = 10; x < room.widthFt; x += 20) for (const y of [room.depthFt * 0.3, room.depthFt * 0.7]) lights.push([x, y]);
+  }
+  for (const [x, y] of lights) {
+    // A light right overhead smears across the whole top of the view: skip it.
+    if (Math.hypot(x - cam[0], y - cam[1]) > 3 && seen([x, y, ceiling])) poly([[x - 1, y - 1, ceiling], [x + 1, y - 1, ceiling], [x + 1, y + 1, ceiling], [x - 1, y + 1, ceiling]], 'fill="#fffbe8" stroke="#00000018"');
   }
 
   const features = [];
   if (room.door) {
     const { from, to } = room.door;
     const y = room.depthFt - 0.05;
-    features.push(() => {
+    if (seen([(from + to) / 2, y, 3])) features.push(() => {
       poly([[from, y, 0], [to, y, 0], [to, y, 7], [from, y, 7]], 'fill="#a9c0cc" stroke="#3b2f25" stroke-width="5"');
       line([[(from + to) / 2, y, 0], [(from + to) / 2, y, 7]], 'stroke="#3b2f25" stroke-width="4"');
       label([(from + to) / 2, y, 7.6], 'ENTRANCE', 30, '#3b2f25');
@@ -151,12 +173,13 @@ export function roomPanoramaSvg({ layout, room, node, floorName, productName }) 
   const displays = (layout.displays ?? [])
     .filter((d) => d.floor === node.floor)
     .map((d) => ({ d, g: displayGeometry(room, d) }))
+    .filter(({ g }) => seen([g.cx, g.cy, g.e + g.h / 2]))
     .map((o) => ({ ...o, dist: Math.hypot(o.g.cx - cam[0], o.g.cy - cam[1]) }))
     .sort((a, b) => b.dist - a.dist);
   for (const { d, g, dist } of displays) {
     const [tx, ty] = [g.tx, g.ty];
     // Unit vector from the face back to the wall.
-    const back = { back: [0, -1], front: [0, 1], left: [-1, 0], right: [1, 0] }[d.wall];
+    const back = backVector(d.wall);
     const depth = g.off;
     const face = (u, v) => [g.cx + tx * (u - 0.5) * g.w, g.cy + ty * (u - 0.5) * g.w, g.e + v * g.h];
     const toWall = (p) => [p[0] + back[0] * depth, p[1] + back[1] * depth, p[2]];
@@ -179,6 +202,19 @@ export function roomPanoramaSvg({ layout, room, node, floorName, productName }) 
     }
     const [u0, v0, uw, vh] = g.glow;
     poly([face(u0, v0), face(u0 + uw, v0), face(u0 + uw, v0 + vh), face(u0, v0 + vh)], `fill="${g.inner}"`);
+    if (d.kind === 'shelf') {
+      // Shelves with small crystal clusters on them.
+      for (const v of [0.12, 0.34, 0.56, 0.78]) {
+        line([face(0.08, v), face(0.92, v)], 'stroke="#4a3626" stroke-width="3"');
+        for (const [i, u] of [0.18, 0.38, 0.58, 0.78].entries()) {
+          const c = CRYSTALS[(i + Math.round(v * 10) + d.at) % CRYSTALS.length | 0] ?? CRYSTALS[0];
+          poly([face(u - 0.07, v), face(u + 0.07, v), face(u, v + 0.14)], `fill="${c}" stroke="#00000030"`);
+        }
+      }
+    }
+    if (d.kind === 'cabinet') {
+      for (const u of [0.25, 0.5, 0.75]) poly([face(u - 0.05, 0.68), face(u + 0.05, 0.68), face(u + 0.05, 0.74), face(u - 0.05, 0.74)], `fill="${CRYSTALS[Math.round(u * 8) % CRYSTALS.length]}"`);
+    }
     if (d.kind === 'stove' || d.kind === 'gas') {
       const top = face(0.5, 1);
       const flueBase = [top[0] + back[0] * depth * 0.5, top[1] + back[1] * depth * 0.5, top[2]];
@@ -192,7 +228,11 @@ export function roomPanoramaSvg({ layout, room, node, floorName, productName }) 
     }
   }
 
-  for (const yaw of [0, 180]) {
+  // Lintel over the archway in the partition.
+  const p = room.partition;
+  if (p) poly([[p.x, p.doorFrom, p.doorHeightFt ?? 7], [p.x, p.doorTo, p.doorHeightFt ?? 7], [p.x, p.doorTo, ceiling], [p.x, p.doorFrom, ceiling]], `fill="${wallColours.partition}" stroke="#00000020"`);
+
+  for (const yaw of showLabels ? [0, 180] : []) {
     const x = (yaw / 360 + 0.5) * W;
     for (const dx of [-W, 0, W]) {
       parts.push(`<text x="${x + dx}" y="${H * 0.16}" font-size="64" font-weight="700" fill="#3b2f25" text-anchor="middle">${esc(node.name)}</text>`);
@@ -211,12 +251,20 @@ export function roomPlanSvg({ layout, room, floor, nodes }) {
   const ink = '#3b2f25';
   const parts = [`<rect width="${w}" height="${h}" fill="#f7f4ef"/>`];
   parts.push(`<rect x="${m}" y="${m}" width="${room.widthFt * s}" height="${room.depthFt * s}" fill="#fffdf9" stroke="${ink}" stroke-width="8"/>`);
-  parts.push(`<text x="${w / 2}" y="${m - 12}" font-size="16" fill="${ink}99" text-anchor="middle" letter-spacing="2">BACK · ${room.widthFt} ft</text>`);
-  parts.push(`<text transform="translate(${m - 14} ${h / 2}) rotate(-90)" font-size="16" fill="${ink}99" text-anchor="middle" letter-spacing="2">${room.depthFt} ft</text>`);
+  const showLabels = layout.labels !== false;
+  if (showLabels) {
+    parts.push(`<text x="${w / 2}" y="${m - 12}" font-size="16" fill="${ink}99" text-anchor="middle" letter-spacing="2">BACK · ${room.widthFt} ft</text>`);
+    parts.push(`<text transform="translate(${m - 14} ${h / 2}) rotate(-90)" font-size="16" fill="${ink}99" text-anchor="middle" letter-spacing="2">${room.depthFt} ft</text>`);
+  }
+  if (room.partition) {
+    const pp = room.partition;
+    parts.push(`<line x1="${X(pp.x)}" x2="${X(pp.x)}" y1="${Y(0)}" y2="${Y(pp.doorFrom)}" stroke="${ink}" stroke-width="8"/>`);
+    parts.push(`<line x1="${X(pp.x)}" x2="${X(pp.x)}" y1="${Y(pp.doorTo)}" y2="${Y(room.depthFt)}" stroke="${ink}" stroke-width="8"/>`);
+  }
 
   for (const d of layout.displays.filter((x) => x.floor === floor.id)) {
     const g = displayGeometry(room, d);
-    const back = { back: [0, -1], front: [0, 1], left: [-1, 0], right: [1, 0] }[d.wall];
+    const back = backVector(d.wall);
     const xs = [g.cx - Math.abs(g.tx) * g.w / 2, g.cx + Math.abs(g.tx) * g.w / 2, g.cx + back[0] * g.off];
     const ys = [g.cy - Math.abs(g.ty) * g.w / 2, g.cy + Math.abs(g.ty) * g.w / 2, g.cy + back[1] * g.off];
     const x0 = Math.min(...xs);
@@ -231,7 +279,7 @@ export function roomPlanSvg({ layout, room, floor, nodes }) {
     const { from, to } = room.door;
     parts.push(`<rect x="${X(from)}" y="${Y(room.depthFt) - 6}" width="${(to - from) * s}" height="12" fill="#fffdf9"/>`);
     parts.push(`<path d="M${X(from)} ${Y(room.depthFt)} a${((to - from) * s) / 2} ${((to - from) * s) / 2} 0 0 1 ${((to - from) * s) / 2} ${-((to - from) * s) / 2} M${X(to)} ${Y(room.depthFt)} a${((to - from) * s) / 2} ${((to - from) * s) / 2} 0 0 0 ${-((to - from) * s) / 2} ${-((to - from) * s) / 2}" fill="none" stroke="${ink}88" stroke-width="2" stroke-dasharray="5 4"/>`);
-    parts.push(`<text x="${X((from + to) / 2)}" y="${h - 12}" font-size="17" font-weight="700" fill="${ink}" text-anchor="middle" letter-spacing="3">ENTRANCE</text>`);
+    if (showLabels) parts.push(`<text x="${X((from + to) / 2)}" y="${h - 12}" font-size="17" font-weight="700" fill="${ink}" text-anchor="middle" letter-spacing="3">ENTRANCE</text>`);
   }
   if (room.desk) {
     const { from, to, depthFt: dd } = room.desk;
@@ -246,7 +294,7 @@ export function roomPlanSvg({ layout, room, floor, nodes }) {
     for (let y = from + 1.25; y < to; y += 1.25) parts.push(`<line x1="${X(x)}" x2="${X(x + sw)}" y1="${Y(y)}" y2="${Y(y)}" stroke="${ink}" stroke-width="1"/>`);
     parts.push(`<path d="M${X(x + sw * 0.7)} ${Y(to) - 10} V${Y(from) + 14} m-7 9 l7 -9 l7 9" fill="none" stroke="${ink}" stroke-width="2.5"/>`);
   }
-  for (const n of nodes.filter((node) => node.floor === floor.id && node.plan)) {
+  for (const n of showLabels ? nodes.filter((node) => node.floor === floor.id && node.plan) : []) {
     parts.push(`<text x="${n.plan[0]}" y="${n.plan[1] - 16}" font-size="15" fill="${ink}" text-anchor="middle">${esc(n.name)}</text>`);
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" font-family="Helvetica, Arial, sans-serif">${parts.join('')}</svg>`;

@@ -11,7 +11,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
-import { KINDS, ftToPlan, pinPoint, planSize, project } from './room-geometry.mjs';
+import { KINDS, ftToPlan, pinPoint, planSize, project, visibleFrom } from './room-geometry.mjs';
 
 const { values: args } = parseArgs({ options: { tour: { type: 'string', default: 'odowds' } } });
 
@@ -59,7 +59,10 @@ const pinsByStop = new Map(layout.stops.map((s) => [s.id, []]));
 for (const d of layout.displays) {
   const room = layout.floors[d.floor];
   const point = pinPoint(room, d);
-  const seen = (stopsByFloor.get(d.floor) ?? []).map((s) => ({ s, ...project([...s.at, camH], 0, point) }));
+  // Stops that can see the display (not from behind a partition).
+  const seen = (stopsByFloor.get(d.floor) ?? [])
+    .filter((s) => visibleFrom(room, [...s.at, camH], point))
+    .map((s) => ({ s, ...project([...s.at, camH], 0, point) }));
   if (!seen.length) continue;
   const nearest = seen.reduce((a, c) => (c.dist < a.dist ? c : a));
   for (const v of seen) {
