@@ -10,17 +10,17 @@
     "ground": { "widthFt": 19.69, "depthFt": 16.4, "apronFt": 5, "ceilingFt": 11.5, "tileFt": 2, "wallColour": "#e7d3a8", "floorColour": "#a8957a", "doors": [{ "wall": "front", "from": 2.5, "to": 7.5 }, { "wall": "front", "from": 12.2, "to": 17.2 }], "partition": { "x": 9.84, "doorFrom": 7.5, "doorTo": 11.5, "doorHeightFt": 7.5 }, "lights": [[4.9, 5], [4.9, 13], [14.8, 5], [14.8, 13]] }
   },
   "stops": [
-    { "id": "s-outside", "name": "Shopfront", "floor": "ground", "at": [9.84, 20.4], "heading": 180, "captured": true, "links": ["s-left", "s-right"], "pins": [
-      { "sku": "sm-o1", "kind": "rack", "name": "Boho Maxi Skirt", "price": 22, "yaw": -84.6, "pitch": -36 },
-      { "sku": "sm-o2", "kind": "rack", "name": "Cotton Wrap Skirt", "price": 18, "yaw": 59.4, "pitch": -27 },
-      { "sku": "sm-o3", "kind": "bags", "name": "Patchwork Hemp Backpack", "price": 35, "yaw": 124.2, "pitch": -18 },
-      { "sku": "sm-o4", "kind": "bags", "name": "Leather Sandals", "price": 25, "yaw": 100.8, "pitch": -39.6 },
-      { "sku": "sm-o5", "kind": "hanging", "name": "Dreamcatcher, Large", "price": 18, "yaw": 158.4, "pitch": 9 },
-      { "sku": "sm-o6", "kind": "hanging", "name": "Chakra Wall Hanging", "price": 16, "yaw": -120.6, "pitch": -10.8 },
-      { "sku": "sm-o7", "kind": "rack", "name": "Printed Cotton Dress", "price": 28, "yaw": -156.6, "pitch": -18 }
+    { "id": "s-outside", "name": "Shopfront", "floor": "ground", "at": [5, 20.4], "heading": 0, "captured": true, "links": ["s-left"], "pins": [
+      { "sku": "sm-o1", "kind": "rack", "name": "Boho Maxi Skirt", "price": 22, "yaw": 95.4, "pitch": -36 },
+      { "sku": "sm-o2", "kind": "rack", "name": "Cotton Wrap Skirt", "price": 18, "yaw": -120.6, "pitch": -27 },
+      { "sku": "sm-o3", "kind": "bags", "name": "Patchwork Hemp Backpack", "price": 35, "yaw": -55.8, "pitch": -18 },
+      { "sku": "sm-o4", "kind": "bags", "name": "Leather Sandals", "price": 25, "yaw": -79.2, "pitch": -39.6 },
+      { "sku": "sm-o5", "kind": "hanging", "name": "Dreamcatcher, Large", "price": 18, "yaw": -21.6, "pitch": 9 },
+      { "sku": "sm-o6", "kind": "hanging", "name": "Chakra Wall Hanging", "price": 16, "yaw": 59.4, "pitch": -10.8 },
+      { "sku": "sm-o7", "kind": "rack", "name": "Printed Cotton Dress", "price": 28, "yaw": 23.4, "pitch": -18 }
     ] },
     { "id": "s-left", "name": "Left room", "floor": "ground", "at": [4.9, 9.5], "links": ["s-outside", "s-right"] },
-    { "id": "s-right", "name": "Right room", "floor": "ground", "at": [14.8, 9.5], "links": ["s-outside", "s-left"] }
+    { "id": "s-right", "name": "Right room", "floor": "ground", "at": [14.8, 9.5], "links": ["s-left"] }
   ],
   "displays": [
     { "floor": "ground", "wall": "left", "at": 3, "kind": "bags", "sku": "sm-01", "name": "Woven Shoulder Bag", "price": 19 },

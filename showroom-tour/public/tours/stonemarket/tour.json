@@ -17,20 +17,20 @@
       "id": "s-outside",
       "name": "Shopfront",
       "floor": "ground",
-      "plan": [319, 636],
-      "heading": 180,
+      "plan": [174, 636],
+      "heading": 0,
       "captured": true,
       "panorama": "panos/s-outside.jpg",
       "thumbnail": "thumbs/s-outside.jpg",
-      "links": [{ "nodeId": "s-left" }, { "nodeId": "s-right" }],
+      "links": [{ "nodeId": "s-left" }],
       "hotspots": [
-        { "sku": "sm-o7", "yaw": -156.6, "pitch": -18 },
-        { "sku": "sm-o6", "yaw": -120.6, "pitch": -10.8 },
-        { "sku": "sm-o1", "yaw": -84.6, "pitch": -36 },
-        { "sku": "sm-o2", "yaw": 59.4, "pitch": -27 },
-        { "sku": "sm-o4", "yaw": 100.8, "pitch": -39.6 },
-        { "sku": "sm-o3", "yaw": 124.2, "pitch": -18 },
-        { "sku": "sm-o5", "yaw": 158.4, "pitch": 9 }
+        { "sku": "sm-o2", "yaw": -120.6, "pitch": -27 },
+        { "sku": "sm-o4", "yaw": -79.2, "pitch": -39.6 },
+        { "sku": "sm-o3", "yaw": -55.8, "pitch": -18 },
+        { "sku": "sm-o5", "yaw": -21.6, "pitch": 9 },
+        { "sku": "sm-o7", "yaw": 23.4, "pitch": -18 },
+        { "sku": "sm-o6", "yaw": 59.4, "pitch": -10.8 },
+        { "sku": "sm-o1", "yaw": 95.4, "pitch": -36 }
       ]
     },
     {
@@ -62,7 +62,7 @@
       "heading": 0,
       "panorama": "panos/s-right.jpg",
       "thumbnail": "thumbs/s-right.jpg",
-      "links": [{ "nodeId": "s-outside" }, { "nodeId": "s-left" }],
+      "links": [{ "nodeId": "s-left" }],
       "hotspots": [
         { "sku": "sm-14", "yaw": -137.9, "pitch": -15.7 },
         { "sku": "sm-03", "yaw": -101.6, "pitch": 0.6 },
