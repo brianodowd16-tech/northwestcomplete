@@ -131,6 +131,10 @@ function planSvg(floor) {
 }
 
 const productIcons = {
+  'slab.svg': '<rect x="50" y="20" width="140" height="170" rx="4" fill="#ece8e0" stroke="#b9b2a6" stroke-width="3"/><path d="M70 40 L120 110 L100 180 M150 30 L170 120" stroke="#9c958a" stroke-width="3" fill="none"/>',
+  'tile.svg': '<g stroke="#a99b85" stroke-width="4"><rect x="40" y="30" width="160" height="160" fill="#d8cbb6"/><line x1="120" y1="30" x2="120" y2="190"/><line x1="40" y1="110" x2="200" y2="110"/></g>',
+  'worktop.svg': '<rect x="20" y="70" width="200" height="22" fill="#3a3a3c"/><rect x="30" y="92" width="180" height="90" fill="#cfc8bc"/><rect x="95" y="58" width="50" height="12" rx="3" fill="#8f8a82"/>',
+  'stone.svg': '<rect x="40" y="90" width="80" height="50" fill="#d9b77e" stroke="#a88a55" stroke-width="3"/><rect x="120" y="90" width="80" height="50" fill="#d9b77e" stroke="#a88a55" stroke-width="3"/><rect x="80" y="140" width="80" height="50" fill="#d9b77e" stroke="#a88a55" stroke-width="3"/><rect x="80" y="40" width="80" height="50" fill="#e1cfa8" stroke="#a88a55" stroke-width="3"/>',
   'stove.svg': '<rect x="70" y="40" width="100" height="20" fill="#2b2420"/><rect x="55" y="60" width="130" height="130" rx="8" fill="#2b2420"/><rect x="80" y="85" width="80" height="70" rx="4" fill="#e86a2a"/><rect x="110" y="0" width="20" height="40" fill="#2b2420"/>',
   'fireplace.svg': '<rect x="20" y="40" width="200" height="24" fill="#cbb89f"/><rect x="40" y="64" width="40" height="126" fill="#cbb89f"/><rect x="160" y="64" width="40" height="126" fill="#cbb89f"/><rect x="80" y="100" width="80" height="90" fill="#2b2420"/><path d="M120 180 q-25 -30 0 -60 q25 30 0 60z" fill="#e86a2a"/>',
   'accessory.svg': '<rect x="40" y="110" width="160" height="80" rx="10" fill="#7a6a58"/><circle cx="80" cy="110" r="22" fill="#a68a6d"/><circle cx="125" cy="105" r="22" fill="#a68a6d"/><circle cx="165" cy="112" r="22" fill="#a68a6d"/><rect x="200" y="20" width="6" height="170" fill="#2b2420"/>',

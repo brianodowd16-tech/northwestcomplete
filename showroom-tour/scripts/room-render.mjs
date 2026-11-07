@@ -14,7 +14,8 @@ export function roomPanoramaSvg({ layout, room, node, floorName, productName }) 
   const cam = [...planToFt(layout, node.plan), camH];
   const heading = node.heading ?? 0;
   const ceiling = room.ceilingFt ?? 10;
-  const parts = [`<rect width="${W}" height="${H}" fill="#8a7764"/>`];
+  const wallColours = room.wallColour ? { back: room.wallColour, front: room.wallColour, left: room.wallColour, right: room.wallColour } : WALL_COLOURS;
+  const parts = [`<rect width="${W}" height="${H}" fill="${room.floorColour ?? '#8a7764'}"/>`];
 
   const toXY = (p) => {
     const { yaw, pitch } = project(cam, heading, p);
@@ -73,7 +74,7 @@ export function roomPanoramaSvg({ layout, room, node, floorName, productName }) 
     if (i === cols.length || cols[i].wall !== cols[start].wall) {
       const seg = cols.slice(start, Math.min(i + 1, cols.length));
       const d = seg.map((c) => `${c.x.toFixed(1)},${c.top.toFixed(1)}`).concat(seg.reverse().map((c) => `${c.x.toFixed(1)},${c.bottom.toFixed(1)}`));
-      parts.push(`<polygon points="${d.join(' ')}" fill="${WALL_COLOURS[cols[start].wall]}"/>`);
+      parts.push(`<polygon points="${d.join(' ')}" fill="${wallColours[cols[start].wall]}"/>`);
       if (i < cols.length) parts.push(`<line x1="${cols[i].x}" x2="${cols[i].x}" y1="${cols[i].top}" y2="${cols[i].bottom}" stroke="#00000030" stroke-width="2"/>`);
       start = i;
     }
@@ -165,9 +166,17 @@ export function roomPanoramaSvg({ layout, room, node, floorName, productName }) 
     const D = face(0, 1);
     // Side facing the camera, then top, then front.
     const side = (cam[0] - g.cx) * tx + (cam[1] - g.cy) * ty > 0 ? [B, C] : [A, D];
-    poly([side[0], toWall(side[0]), toWall(side[1]), side[1]], `fill="${g.body}" fill-opacity="0.8" stroke="#00000040"`);
-    if (g.e + g.h < camH) poly([D, C, toWall(C), toWall(D)], `fill="${g.body}" fill-opacity="0.65"`);
-    poly([A, B, C, D], `fill="${g.body}" stroke="#00000055" stroke-width="2"`);
+    const body = d.colour ?? g.body;
+    poly([side[0], toWall(side[0]), toWall(side[1]), side[1]], `fill="${body}" fill-opacity="0.8" stroke="#00000040"`);
+    if (g.e + g.h < camH) poly([D, C, toWall(C), toWall(D)], `fill="${body}" fill-opacity="0.65"`);
+    poly([A, B, C, D], `fill="${body}" stroke="#00000055" stroke-width="2"`);
+    if (d.kind === 'slab' || d.kind === 'tile') {
+      // A few veins or grout lines so stone reads as stone.
+      for (let i = 1; i < 4; i++) {
+        const u = d.kind === 'tile' ? i / 4 : 0.15 + i * 0.22;
+        line([face(u, 0.05), face(d.kind === 'tile' ? u : u + 0.12, 0.95)], `stroke="${d.kind === 'tile' ? '#00000030' : '#00000022'}" stroke-width="2"`);
+      }
+    }
     const [u0, v0, uw, vh] = g.glow;
     poly([face(u0, v0), face(u0 + uw, v0), face(u0 + uw, v0 + vh), face(u0, v0 + vh)], `fill="${g.inner}"`);
     if (d.kind === 'stove' || d.kind === 'gas') {
@@ -215,7 +224,7 @@ export function roomPlanSvg({ layout, room, floor, nodes }) {
     const x1 = Math.max(...xs, x0 + 0.4);
     const y1 = Math.max(...ys, y0 + 0.4);
     const realProduct = !d.name;
-    parts.push(`<rect x="${X(x0)}" y="${Y(y0)}" width="${(x1 - x0) * s}" height="${(y1 - y0) * s}" fill="${realProduct ? '#e2591f' : KINDS[d.kind].body}" fill-opacity="${realProduct ? 0.9 : 0.55}" rx="2"/>`);
+    parts.push(`<rect x="${X(x0)}" y="${Y(y0)}" width="${(x1 - x0) * s}" height="${(y1 - y0) * s}" fill="${realProduct ? '#e2591f' : d.colour ?? KINDS[d.kind].body}" fill-opacity="${realProduct ? 0.9 : 0.55}" rx="2"/>`);
   }
 
   if (room.door) {

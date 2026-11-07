@@ -147,6 +147,20 @@ To show it inside an existing page:
 <iframe src="https://odowdscarrick.com/tour/" style="width:100%;height:80vh;border:0" allow="fullscreen; gyroscope; accelerometer"></iframe>
 ```
 
+## Tours
+
+Each tour is a folder under `public/tours/<id>/`, opened with `?tour=<id>` (default `odowds`). Every script takes
+`--tour <id>`, e.g. `node scripts/build-preview.mjs --tour stonemarket`. A tour can set its accent colour in `tour.json`
+as `"theme": { "accent": "#1f6b58" }`.
+
+| Tour | Status |
+| --- | --- |
+| `odowds` | O'Dowds Carrick: 2 floors, 80 × 30 ft, live WooCommerce catalogue + placeholders |
+| `stonemarket` | Stone Market Valletta: 1 floor, 70 × 35 ft placeholder showroom (`layouts/stonemarket.json`) with 27 stone placeholder products. Until Stone Market has its own shop, checkout and `sync-catalog` point at the O'Dowds WooCommerce site: switch with `node scripts/sync-catalog.mjs --tour stonemarket --woocommerce <stone market site>`. |
+
+Stone displays available in layouts: `slab`, `tile`, `mosaic`, `worktop`, `vanity`, `limestone`, `paving`, `carving`
+(each display can set its own `colour`). Floors can set `wallColour` and `floorColour`.
+
 ## Data format
 
 `tour.json`:

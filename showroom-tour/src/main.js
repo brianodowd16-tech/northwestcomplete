@@ -12,7 +12,9 @@ import { checkout } from './checkout.js';
 import { indexNodes, indexProducts, linkYaw } from './tour-model.js';
 
 const params = new URLSearchParams(location.search);
-const tourId = /^[\w-]+$/.test(params.get('tour') ?? '') ? params.get('tour') : 'odowds';
+// ?tour= picks a tour; a single-file preview names its own tour in window.__TOUR_ID__.
+const requestedTour = params.get('tour') ?? window.__TOUR_ID__ ?? '';
+const tourId = /^[\w-]+$/.test(requestedTour) ? requestedTour : 'odowds';
 const editMode = params.has('edit');
 const base = `${import.meta.env.BASE_URL}tours/${tourId}/`;
 
@@ -369,6 +371,7 @@ app.toast = toast;
 // ---------- boot ----------
 
 $('#brandName').textContent = app.tour.name;
+if (app.tour.theme?.accent) document.documentElement.style.setProperty('--accent', app.tour.theme.accent);
 document.title = app.tour.name;
 
 app.cart = createCart(tourId, app.products);

@@ -13,6 +13,15 @@ export const KINDS = {
   accessory: { w: 2, h: 3, e: 0, off: 1, category: 'Accessories', image: 'products/accessory.svg', body: '#7a6a58', inner: '#a68a6d', glow: [0.15, 0.55, 0.7, 0.35] },
   fuel: { w: 3, h: 3.5, e: 0, off: 1, category: 'Fuel & log storage', image: 'products/accessory.svg', body: '#8a6a45', inner: '#b88b5a', glow: [0.1, 0.1, 0.8, 0.8] },
   outdoor: { w: 3, h: 2.8, e: 0, off: 1.5, category: 'Outdoor & garden', image: 'products/accessory.svg', body: '#4a4744', inner: '#e86a2a', glow: [0.25, 0.6, 0.5, 0.25] },
+  // Stone showroom displays (a display's own `colour` overrides `body`).
+  slab: { w: 6, h: 5, e: 0.4, off: 1.2, category: 'Slabs', image: 'products/slab.svg', body: '#ece8e0', inner: '#00000012', glow: [0.1, 0.15, 0.8, 0.12] },
+  tile: { w: 3, h: 4, e: 0.6, off: 0.3, category: 'Tiles', image: 'products/tile.svg', body: '#d8cbb6', inner: '#00000018', glow: [0.5, 0, 0.02, 1] },
+  mosaic: { w: 2.5, h: 2.5, e: 3, off: 0.15, category: 'Mosaics & feature walls', image: 'products/tile.svg', body: '#c9d3d6', inner: '#ffffff40', glow: [0.25, 0.25, 0.5, 0.5] },
+  worktop: { w: 6, h: 3, e: 0, off: 2, category: 'Worktops', image: 'products/worktop.svg', body: '#3a3a3c', inner: '#ffffff22', glow: [0, 0.92, 1, 0.08] },
+  vanity: { w: 3.5, h: 2.8, e: 0, off: 1.6, category: 'Bathroom vanities', image: 'products/worktop.svg', body: '#efebe4', inner: '#b8b2a8', glow: [0.3, 0.85, 0.4, 0.1] },
+  limestone: { w: 3, h: 3, e: 0, off: 1.5, category: 'Maltese limestone', image: 'products/stone.svg', body: '#d9b77e', inner: '#00000014', glow: [0, 0.5, 1, 0.03] },
+  paving: { w: 4, h: 1.6, e: 0, off: 2, category: 'Paving & outdoor stone', image: 'products/stone.svg', body: '#a39a8c', inner: '#00000018', glow: [0, 0.48, 1, 0.04] },
+  carving: { w: 2, h: 4, e: 0, off: 1.5, category: 'Carvings & garden stone', image: 'products/stone.svg', body: '#e1cfa8', inner: '#00000012', glow: [0.3, 0.55, 0.4, 0.3] },
 };
 
 export function roomOf(layout, floorId) {

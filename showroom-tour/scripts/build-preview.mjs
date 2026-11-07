@@ -81,7 +81,8 @@ const inline = (s) => s.replace(/<\/(script|style)/gi, '<\\/$1');
 // It also fetch()es each panorama (to show progress). Those are data: URLs here,
 // and sandboxed hosts often forbid fetching data: URLs (CSP connect-src), so
 // decode them in the page instead of making a request.
-const shim = `window.__TOUR_PREVIEW__ = ${inline(JSON.stringify({ [`tours/${args.tour}/tour.json`]: tour, [`tours/${args.tour}/products.json`]: catalog }))};
+const shim = `window.__TOUR_ID__ = ${JSON.stringify(args.tour)};
+window.__TOUR_PREVIEW__ = ${inline(JSON.stringify({ [`tours/${args.tour}/tour.json`]: tour, [`tours/${args.tour}/products.json`]: catalog }))};
 const realFetch = window.fetch.bind(window);
 const fromDataUrl = (url) => {
   const comma = url.indexOf(',');

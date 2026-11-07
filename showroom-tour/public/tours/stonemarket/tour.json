@@ -1,0 +1,181 @@
+{
+  "id": "stonemarket",
+  "name": "Stone Market Valletta",
+  "theme": { "accent": "#1f6b58" },
+  "startNodeId": "s-entrance",
+  "floors": [
+    {
+      "id": "ground",
+      "name": "Showroom",
+      "plan": "plans/ground.svg",
+      "size": [920, 500],
+      "room": { "widthFt": 70, "depthFt": 35 }
+    }
+  ],
+  "nodes": [
+    {
+      "id": "s-entrance",
+      "name": "Entrance",
+      "floor": "ground",
+      "plan": [460, 388],
+      "heading": 0,
+      "panorama": "panos/s-entrance.jpg",
+      "thumbnail": "thumbs/s-entrance.jpg",
+      "links": [
+        { "nodeId": "s-granite" },
+        { "nodeId": "s-marble" },
+        { "nodeId": "s-onyx" },
+        { "nodeId": "s-tiles" },
+        { "nodeId": "s-outdoor" }
+      ],
+      "hotspots": [
+        { "sku": "sm-16", "yaw": -133.5, "pitch": -14.9 },
+        { "sku": "sm-15", "yaw": -117.4, "pitch": -10.1 },
+        { "sku": "sm-14", "yaw": -109.6, "pitch": -7.4 },
+        { "sku": "sm-19", "yaw": 103.3, "pitch": -8.2 },
+        { "sku": "sm-18", "yaw": 107.1, "pitch": -16.9 },
+        { "sku": "sm-17", "yaw": 119.7, "pitch": -27.1 }
+      ]
+    },
+    {
+      "id": "s-tiles",
+      "name": "Tiles",
+      "floor": "ground",
+      "plan": [232, 352],
+      "heading": 0,
+      "panorama": "panos/s-tiles.jpg",
+      "thumbnail": "thumbs/s-tiles.jpg",
+      "links": [{ "nodeId": "s-entrance" }, { "nodeId": "s-reception" }, { "nodeId": "s-marble" }],
+      "hotspots": [
+        { "sku": "sm-13", "yaw": -167.1, "pitch": -13.8 },
+        { "sku": "sm-12", "yaw": -141.2, "pitch": -11.1 },
+        { "sku": "sm-11", "yaw": -125.9, "pitch": -8.4 },
+        { "sku": "sm-23", "yaw": -100.7, "pitch": -2.2 },
+        { "sku": "sm-16", "yaw": 123.8, "pitch": -8 },
+        { "sku": "sm-15", "yaw": 137.4, "pitch": -10.5 },
+        { "sku": "sm-14", "yaw": 161, "pitch": -13.4 }
+      ]
+    },
+    {
+      "id": "s-reception",
+      "name": "Reception & desk",
+      "floor": "ground",
+      "plan": [136, 244],
+      "heading": 0,
+      "panorama": "panos/s-reception.jpg",
+      "thumbnail": "thumbs/s-reception.jpg",
+      "links": [{ "nodeId": "s-tiles" }, { "nodeId": "s-marble" }],
+      "hotspots": [
+        { "sku": "sm-11", "yaw": -167.3, "pitch": -6.9 },
+        { "sku": "sm-23", "yaw": -146.8, "pitch": -2.5 },
+        { "sku": "sm-22", "yaw": -33.2, "pitch": -2.5 },
+        { "sku": "sm-01", "yaw": -10.8, "pitch": -6.6 },
+        { "sku": "sm-02", "yaw": 14.2, "pitch": -6.5 },
+        { "sku": "sm-03", "yaw": 34.8, "pitch": -5.5 },
+        { "sku": "sm-13", "yaw": 161.3, "pitch": -6.7 },
+        { "sku": "sm-12", "yaw": 176.8, "pitch": -7.1 }
+      ]
+    },
+    {
+      "id": "s-marble",
+      "name": "Marble",
+      "floor": "ground",
+      "plan": [220, 184],
+      "heading": 0,
+      "panorama": "panos/s-marble.jpg",
+      "thumbnail": "thumbs/s-marble.jpg",
+      "links": [
+        { "nodeId": "s-reception" },
+        { "nodeId": "s-tiles" },
+        { "nodeId": "s-granite" },
+        { "nodeId": "s-entrance" }
+      ],
+      "hotspots": [
+        { "sku": "sm-22", "yaw": -64.8, "pitch": -2.2 },
+        { "sku": "sm-01", "yaw": -42.8, "pitch": -7.2 },
+        { "sku": "sm-02", "yaw": -15.5, "pitch": -9.4 },
+        { "sku": "sm-03", "yaw": 20.3, "pitch": -9.1 },
+        { "sku": "sm-04", "yaw": 45.5, "pitch": -6.8 }
+      ]
+    },
+    {
+      "id": "s-granite",
+      "name": "Granite & quartz",
+      "floor": "ground",
+      "plan": [460, 196],
+      "heading": 0,
+      "panorama": "panos/s-granite.jpg",
+      "thumbnail": "thumbs/s-granite.jpg",
+      "links": [{ "nodeId": "s-marble" }, { "nodeId": "s-onyx" }, { "nodeId": "s-entrance" }],
+      "hotspots": [
+        { "sku": "sm-03", "yaw": -53.6, "pitch": -5.3 },
+        { "sku": "sm-04", "yaw": -37.3, "pitch": -7.1 },
+        { "sku": "sm-05", "yaw": -9.6, "pitch": -8.8 },
+        { "sku": "sm-06", "yaw": 23, "pitch": -8.2 },
+        { "sku": "sm-07", "yaw": 45.5, "pitch": -6.3 }
+      ]
+    },
+    {
+      "id": "s-onyx",
+      "name": "Onyx, travertine & limestone",
+      "floor": "ground",
+      "plan": [712, 184],
+      "heading": 0,
+      "panorama": "panos/s-onyx.jpg",
+      "thumbnail": "thumbs/s-onyx.jpg",
+      "links": [{ "nodeId": "s-granite" }, { "nodeId": "s-kitchens" }, { "nodeId": "s-entrance" }],
+      "hotspots": [
+        { "sku": "sm-06", "yaw": -56, "pitch": -5.5 },
+        { "sku": "sm-07", "yaw": -39.8, "pitch": -7.5 },
+        { "sku": "sm-08", "yaw": -10.5, "pitch": -9.6 },
+        { "sku": "sm-09", "yaw": 24.8, "pitch": -8.8 },
+        { "sku": "sm-10", "yaw": 46.3, "pitch": -12.4 },
+        { "sku": "sm-24", "yaw": 59.7, "pitch": -13.6 },
+        { "sku": "sm-25", "yaw": 94.8, "pitch": -15.5 },
+        { "sku": "sm-26", "yaw": 126, "pitch": -12.7 }
+      ]
+    },
+    {
+      "id": "s-kitchens",
+      "name": "Worktops & bathrooms",
+      "floor": "ground",
+      "plan": [784, 280],
+      "heading": 0,
+      "panorama": "panos/s-kitchens.jpg",
+      "thumbnail": "thumbs/s-kitchens.jpg",
+      "links": [{ "nodeId": "s-onyx" }, { "nodeId": "s-outdoor" }],
+      "hotspots": [
+        { "sku": "sm-20", "yaw": -171.6, "pitch": -11.6 },
+        { "sku": "sm-19", "yaw": -149.3, "pitch": -10.1 },
+        { "sku": "sm-18", "yaw": -132.9, "pitch": -12.2 },
+        { "sku": "sm-09", "yaw": -3, "pitch": -5.6 },
+        { "sku": "sm-10", "yaw": 15.1, "pitch": -9.9 },
+        { "sku": "sm-24", "yaw": 21.8, "pitch": -11.7 },
+        { "sku": "sm-25", "yaw": 40.6, "pitch": -20 },
+        { "sku": "sm-26", "yaw": 98.9, "pitch": -28.1 },
+        { "sku": "sm-27", "yaw": 144.6, "pitch": -17.4 },
+        { "sku": "sm-21", "yaw": 163.5, "pitch": -11.2 }
+      ]
+    },
+    {
+      "id": "s-outdoor",
+      "name": "Outdoor & garden stone",
+      "floor": "ground",
+      "plan": [688, 364],
+      "heading": 0,
+      "panorama": "panos/s-outdoor.jpg",
+      "thumbnail": "thumbs/s-outdoor.jpg",
+      "links": [{ "nodeId": "s-kitchens" }, { "nodeId": "s-entrance" }],
+      "hotspots": [
+        { "sku": "sm-19", "yaw": -180, "pitch": -23.3 },
+        { "sku": "sm-18", "yaw": -135, "pitch": -25.9 },
+        { "sku": "sm-17", "yaw": -116.6, "pitch": -17.1 },
+        { "sku": "sm-25", "yaw": 45, "pitch": -9.6 },
+        { "sku": "sm-26", "yaw": 67.4, "pitch": -12.5 },
+        { "sku": "sm-27", "yaw": 97.9, "pitch": -13.4 },
+        { "sku": "sm-21", "yaw": 118.4, "pitch": -11.6 },
+        { "sku": "sm-20", "yaw": 137.3, "pitch": -17.6 }
+      ]
+    }
+  ]
+}
