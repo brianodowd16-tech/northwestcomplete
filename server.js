@@ -28,5 +28,5 @@ const app = createApp({
 });
 
 app.listen(PORT, () => {
-  console.log(`Christmas Holiday & Fuel Draw running on ${PUBLIC_URL}${stripe ? '' : '  (DEMO MODE — no Stripe key, payments are simulated)'}`);
+  console.log(`Super Fuel & Holiday Draw running on ${PUBLIC_URL}${stripe ? '' : '  (DEMO MODE — no Stripe key, payments are simulated)'}`);
 });

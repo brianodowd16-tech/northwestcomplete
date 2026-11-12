@@ -4,45 +4,59 @@
   "clubArea": "Ardcarne",
   "address": "Ardcarne, Boyle, Co. Roscommon",
   "mapsUrl": "https://maps.app.goo.gl/2Lv2M7Hi25sKk2rZA",
-  "drawName": "Christmas Holiday & Fuel Draw",
+  "drawName": "Super Fuel & Holiday Draw",
   "currency": "eur",
-  "drawDate": "2026-12-20T20:00:00Z",
-  "drawLocation": "Live on the club Facebook page",
-  "salesCloseDate": "2026-12-20T18:00:00Z",
+  "drawDate": "2026-12-30T21:00:00Z",
+  "drawLocation": "Beirne's of Battlebridge",
+  "salesCloseDate": "2026-12-30T19:00:00Z",
   "ticketTarget": 2000,
   "ticketsSoldOffset": 0,
   "ticketStartNumber": 1001,
   "facebookUrl": "https://www.facebook.com/stmichaelsgaaardcarne/",
   "contactEmail": "secretary.stmichaels.roscommon@gaa.ie",
-  "licenceNote": "Lottery licence details available on request.",
+  "licenceNote": "Lottery licence granted. Details available on request.",
   "bundles": [
     {
       "id": "single",
       "tickets": 1,
-      "price": 1000,
-      "label": "Single fill",
+      "price": 500,
+      "label": "Single line",
       "tag": null
     },
     {
-      "id": "triple",
+      "id": "three",
       "tickets": 3,
-      "price": 2500,
-      "label": "Three-pack",
+      "price": 1000,
+      "label": "Top-up",
       "tag": "Save €5"
     },
     {
-      "id": "family",
+      "id": "seven",
       "tickets": 7,
-      "price": 5000,
-      "label": "Family tank",
+      "price": 2000,
+      "label": "Half tank",
       "tag": "Most popular",
       "featured": true
     },
     {
-      "id": "bulk",
+      "id": "eleven",
+      "tickets": 11,
+      "price": 3000,
+      "label": "Three-quarter tank",
+      "tag": "Save €25"
+    },
+    {
+      "id": "fifteen",
       "tickets": 15,
-      "price": 10000,
-      "label": "Full tanker",
+      "price": 4000,
+      "label": "Full tank",
+      "tag": "Save €35"
+    },
+    {
+      "id": "twenty",
+      "tickets": 20,
+      "price": 5000,
+      "label": "Tanker",
       "tag": "Best value"
     }
   ],
@@ -58,26 +72,26 @@
     },
     {
       "place": "2nd",
-      "title": "Big Match Package: Roscommon v New York",
-      "detail": "Flights, 5 nights' accommodation and match tickets",
-      "value": null,
+      "title": "Trip for 2 to New York",
+      "detail": "Flights and 5 nights' accommodation",
+      "value": "€2,500",
       "sponsor": "Rostrim Construction & The Irish Bank Bar & Restaurant, Hartsdale, NY",
       "kind": "holiday"
     },
     {
       "place": "3rd",
       "title": "Bumper tractor trailer of firewood",
-      "detail": "A full trailer load delivered for the winter",
+      "detail": null,
       "value": null,
       "sponsor": "Joe Tansey, Greenbelt",
       "kind": "fuel"
     },
     {
       "place": "4th",
-      "title": "4-day trip to EuroDisney Paris",
-      "detail": "With JourneysByDesign",
-      "value": "Up to €2,300",
-      "sponsor": "King & Moffatt Electrical",
+      "title": "3-day trip to EuroDisney Paris",
+      "detail": null,
+      "value": "Up to €2,000",
+      "sponsor": "King & Moffatt Electrical and Connaught Contractors Ltd, Ballinlough",
       "kind": "holiday"
     },
     {
@@ -90,11 +104,11 @@
     },
     {
       "place": "6th",
-      "title": "Center Parcs Longford holiday voucher",
-      "detail": null,
-      "value": "€1,000",
-      "sponsor": "Padraic McKiernan",
-      "kind": "holiday"
+      "title": "2 VIP tickets to Amble",
+      "detail": "Malahide Castle, June 2027, plus B&B in the White Sands Hotel",
+      "value": null,
+      "sponsor": "O'Dowd's Fireplaces & Stoves and Gasworks House Accommodation",
+      "kind": "event"
     },
     {
       "place": "7th",
@@ -109,7 +123,7 @@
       "title": "Weekend break in Riverhaven Log Cabins",
       "detail": null,
       "value": null,
-      "sponsor": "John & Martin Burke",
+      "sponsor": "Martin Burke",
       "kind": "holiday"
     },
     {
@@ -146,30 +160,22 @@
     },
     {
       "place": "13th",
-      "title": "Dinner for 2 + B&B",
-      "detail": "MacNean House & Restaurant, Blacklion",
+      "title": "B&B + dinner for two",
+      "detail": "Wineport Lodge, Glasson, Athlone",
       "value": null,
-      "sponsor": null,
+      "sponsor": "Michael Moore Mercedes-Benz, Athlone",
       "kind": "holiday"
     },
     {
       "place": "14th",
       "title": "B&B + dinner for two",
-      "detail": "Slieve Russell Hotel",
+      "detail": "Kilronan Castle",
       "value": null,
-      "sponsor": null,
+      "sponsor": "Kilronan Castle Estate & Spa",
       "kind": "holiday"
     },
     {
       "place": "15th",
-      "title": "B&B for two",
-      "detail": "Knightsbrook Hotel, Trim",
-      "value": null,
-      "sponsor": null,
-      "kind": "holiday"
-    },
-    {
-      "place": "16th",
       "title": "B&B for two",
       "detail": "Glen Royal Hotel, Maynooth",
       "value": null,

@@ -37,13 +37,13 @@ function render(order) {
   });
 
   const url = location.origin;
-  const text = `I just entered the St Michael's GAA & LGFA Christmas Holiday & Fuel Draw. 16 prizes including a trip to Australia. Support the club: ${url}`;
+  const text = `I just entered the St Michael's GAA & LGFA Super Fuel & Holiday Draw. 15 prizes including trips to Australia and New York. Lines from €5. Support the club: ${url}`;
   $('#shareWhatsapp').href = `https://wa.me/?text=${encodeURIComponent(text)}`;
   $('#shareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
   if (navigator.share) {
     const btn = $('#shareNative');
     btn.hidden = false;
-    btn.addEventListener('click', () => navigator.share({ title: 'Christmas Holiday & Fuel Draw', text, url }).catch(() => {}));
+    btn.addEventListener('click', () => navigator.share({ title: 'Super Fuel & Holiday Draw', text, url }).catch(() => {}));
   }
 }
 

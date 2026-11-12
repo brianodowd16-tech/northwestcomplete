@@ -62,7 +62,7 @@ function bindText(d) {
   });
 }
 
-const KIND_LABEL = { holiday: 'Holiday', fuel: 'Fuel', home: 'Home' };
+const KIND_LABEL = { holiday: 'Holiday', fuel: 'Fuel', home: 'Home', event: 'Event' };
 
 function renderPrizes(prizes) {
   const top = prizes.slice(0, 3);

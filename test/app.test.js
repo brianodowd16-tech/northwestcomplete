@@ -47,13 +47,13 @@ test('demo checkout issues tickets and order lookup returns them', async () => {
   await withServer({ config, store, stripe: null, publicUrl: 'http://x' }, async (base) => {
     const res = await fetch(`${base}/api/checkout`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ bundleId: 'family', quantity: 2 }),
+      body: JSON.stringify({ bundleId: 'seven', quantity: 2 }),
     });
     const { url } = await res.json();
     const id = new URL(url, base).searchParams.get('session_id');
     const order = await (await fetch(`${base}/api/order/${id}`)).json();
     assert.equal(order.tickets.length, 14);
-    assert.equal(order.amount, 10000);
+    assert.equal(order.amount, 4000);
 
     const draw = await (await fetch(`${base}/api/draw`)).json();
     assert.equal(draw.ticketsSold, 14);
@@ -81,11 +81,11 @@ test('Stripe checkout session is built server-side from config prices', async ()
   await withServer({ config, store: new OrderStore(tmpFile()), stripe, publicUrl: 'https://draw.example' }, async (base) => {
     const res = await fetch(`${base}/api/checkout`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ bundleId: 'triple', quantity: 2, price: 1 }),
+      body: JSON.stringify({ bundleId: 'three', quantity: 2, price: 1 }),
     });
     assert.equal((await res.json()).url, 'https://checkout.stripe.com/x');
   });
-  assert.equal(params.line_items[0].price_data.unit_amount, 2500);
+  assert.equal(params.line_items[0].price_data.unit_amount, 1000);
   assert.equal(params.line_items[0].quantity, 2);
   assert.equal(params.metadata.ticketCount, '6');
   assert.match(params.success_url, /^https:\/\/draw\.example\/success\.html\?session_id=\{CHECKOUT_SESSION_ID\}$/);
@@ -98,7 +98,7 @@ test('webhook fulfils paid sessions using signature-verified events', async () =
   const store = new OrderStore(tmpFile());
   const session = {
     id: 'cs_test_1', payment_status: 'paid', amount_total: 5000, currency: 'eur',
-    metadata: { bundleId: 'family', ticketCount: '7' },
+    metadata: { bundleId: 'seven', ticketCount: '7' },
     customer_details: { email: 'mary@example.com', phone: '+353870000000', name: 'Card Name' },
     custom_fields: [{ key: 'fullname', text: { value: 'Mary Murphy' } }, { key: 'soldby', text: { value: 'Seán' } }],
   };
