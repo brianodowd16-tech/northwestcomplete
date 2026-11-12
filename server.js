@@ -12,9 +12,18 @@ const {
   PORT = 3000, PUBLIC_URL = `http://localhost:${PORT}`, DATA_FILE = './data/orders.json', NODE_ENV,
 } = process.env;
 
-if (!STRIPE_SECRET_KEY && NODE_ENV === 'production') {
-  console.error('STRIPE_SECRET_KEY is required in production.');
-  process.exit(1);
+if (NODE_ENV === 'production') {
+  const problems = [
+    !STRIPE_SECRET_KEY && 'STRIPE_SECRET_KEY is not set',
+    !STRIPE_WEBHOOK_SECRET && 'STRIPE_WEBHOOK_SECRET is not set (paid orders would not get ticket numbers reliably)',
+    (!ADMIN_TOKEN || ADMIN_TOKEN.length < 24) && 'ADMIN_TOKEN must be at least 24 characters',
+    !PUBLIC_URL.startsWith('https://') && 'PUBLIC_URL must be the site\'s https:// address',
+  ].filter(Boolean);
+  if (problems.length) {
+    console.error(`Refusing to start in production:\n- ${problems.join('\n- ')}`);
+    process.exit(1);
+  }
+  if (STRIPE_SECRET_KEY.startsWith('sk_test_')) console.warn('Warning: using a Stripe TEST key. No real payments will be taken.');
 }
 
 const stripe = STRIPE_SECRET_KEY ? Stripe(STRIPE_SECRET_KEY) : null;

@@ -51,6 +51,16 @@ class OrderStore {
     return Object.values(this.data.orders).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   }
 
+  /** Remember that the Stripe payment now carries this order's ticket numbers. */
+  markLabelled(id) {
+    return this.#exclusive(() => {
+      const order = this.data.orders[id];
+      if (!order || order.stripeLabelled) return;
+      order.stripeLabelled = true;
+      this.#persist();
+    });
+  }
+
   /**
    * Record a paid order and allocate ticket numbers. Idempotent per id, so the
    * webhook and the success-page fallback can both call it safely.

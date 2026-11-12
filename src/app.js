@@ -1,6 +1,7 @@
 'use strict';
 
 const crypto = require('node:crypto');
+const fs = require('node:fs');
 const path = require('node:path');
 const express = require('express');
 
@@ -11,13 +12,40 @@ const express = require('express');
 function createApp({ config, store, stripe, webhookSecret, publicUrl, adminToken, demoMode = !stripe }) {
   const app = express();
   app.disable('x-powered-by');
+  // Hosts such as Render and Railway sit behind one proxy; this makes req.ip the visitor's address.
+  app.set('trust proxy', 1);
+  const publicDir = path.join(__dirname, '..', 'public');
+  const isHttps = publicUrl.startsWith('https://');
+
+  app.use((_req, res, next) => {
+    res.set({
+      'X-Content-Type-Options': 'nosniff',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'X-Frame-Options': 'DENY',
+      'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+      'Content-Security-Policy': [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src https://fonts.gstatic.com",
+        "img-src 'self' data:",
+        "connect-src 'self'",
+        "frame-ancestors 'none'",
+        "base-uri 'self'",
+      ].join('; '),
+    });
+    if (isHttps) res.set('Strict-Transport-Security', 'max-age=31536000');
+    next();
+  });
+
+  app.get('/healthz', (_req, res) => res.json({ ok: true }));
 
   const ticketsForSession = (session) => Number.parseInt(session.metadata?.ticketCount, 10);
 
   async function fulfilSession(session) {
     if (session.payment_status !== 'paid') return null;
     const field = (key) => session.custom_fields?.find((f) => f.key === key)?.text?.value?.trim() || null;
-    return store.fulfil({
+    const order = await store.fulfil({
       id: session.id,
       ticketCount: ticketsForSession(session),
       amount: session.amount_total,
@@ -30,6 +58,20 @@ function createApp({ config, store, stripe, webhookSecret, publicUrl, adminToken
         phone: session.customer_details?.phone ?? null,
       },
     });
+    if (!order.stripeLabelled) labelPayment(session.payment_intent, order);
+    return order;
+  }
+
+  // Write the ticket numbers onto the payment in Stripe, so the club can see them in the
+  // Dashboard (and resend the receipt with them) even without this server's data file.
+  function labelPayment(paymentIntentId, order) {
+    if (!stripe?.paymentIntents || typeof paymentIntentId !== 'string') return;
+    const range = ticketRange(order.tickets);
+    stripe.paymentIntents.update(paymentIntentId, {
+      description: `${config.drawName}: ticket${order.tickets.length > 1 ? 's' : ''} ${range}`,
+      metadata: { tickets: range, ticketCount: String(order.tickets.length) },
+    }).then(() => store.markLabelled(order.id))
+      .catch((err) => console.error(`Could not label payment ${paymentIntentId} with tickets ${range}:`, err.message));
   }
 
   // Stripe needs the raw body to verify the signature, so this route is registered before express.json().
@@ -66,7 +108,19 @@ function createApp({ config, store, stripe, webhookSecret, publicUrl, adminToken
     });
   });
 
+  // A light per-visitor limit on starting checkouts, to stop scripted abuse.
+  const checkoutHits = new Map();
+  const rateLimited = (ip) => {
+    const now = Date.now();
+    const recent = (checkoutHits.get(ip) ?? []).filter((t) => now - t < 60_000);
+    recent.push(now);
+    checkoutHits.set(ip, recent);
+    if (checkoutHits.size > 5000) checkoutHits.clear();
+    return recent.length > 20;
+  };
+
   app.post('/api/checkout', async (req, res) => {
+    if (rateLimited(req.ip)) return res.status(429).json({ error: 'Too many attempts. Please wait a minute and try again.' });
     const bundle = config.bundles.find((b) => b.id === req.body?.bundleId);
     const quantity = Number.parseInt(req.body?.quantity ?? 1, 10);
     if (!bundle) return res.status(400).json({ error: 'Please choose a ticket option.' });
@@ -162,9 +216,24 @@ function createApp({ config, store, stripe, webhookSecret, publicUrl, adminToken
     res.type('text/csv').attachment('fuel-draw-tickets.csv').send(rows.join('\n'));
   });
 
-  app.use(express.static(path.join(__dirname, '..', 'public'), { extensions: ['html'] }));
+  // The landing page needs absolute URLs in its share tags (Facebook and WhatsApp ignore relative ones).
+  const indexHtml = fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8').replaceAll('__PUBLIC_URL__', publicUrl);
+  app.get(['/', '/index.html'], (_req, res) => res.set('Cache-Control', 'no-cache').type('html').send(indexHtml));
+
+  app.use(express.static(publicDir, {
+    extensions: ['html'],
+    setHeaders: (res, file) => res.set('Cache-Control', file.endsWith('.html') ? 'no-cache' : 'public, max-age=3600'),
+  }));
 
   return app;
 }
 
-module.exports = { createApp };
+function ticketRange(tickets) {
+  const first = tickets[0];
+  const last = tickets[tickets.length - 1];
+  const consecutive = last - first === tickets.length - 1;
+  if (tickets.length === 1) return String(first);
+  return consecutive ? `${first}-${last}` : tickets.join(', ');
+}
+
+module.exports = { createApp, ticketRange };

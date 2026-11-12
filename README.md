@@ -7,6 +7,8 @@ Online ticket sales for the club's Super Fuel & Holiday Draw, with payment throu
 - **Fulfilment**: a signature-verified webhook allocates sequential ticket numbers. The success page "prints" them on a receipt and has WhatsApp and Facebook share buttons.
 - **Admin**: `GET /api/admin/tickets.csv` exports one row per ticket for running the draw (needs `ADMIN_TOKEN`).
 
+**Going live?** Follow [docs/GO-LIVE.md](docs/GO-LIVE.md).
+
 ## Run locally
 
 ```bash
@@ -28,10 +30,7 @@ Without a Stripe key the site runs in **demo mode**: checkout skips payment and 
 
 ## Going live
 
-1. Deploy to any Node 20+ host (Render, Railway, Fly.io and similar). Set `NODE_ENV=production`, `PUBLIC_URL`, the live Stripe keys and `ADMIN_TOKEN`.
-2. Point `DATA_FILE` at a **persistent disk**: orders are stored in a JSON file.
-3. In the Stripe Dashboard, add a webhook endpoint at `https://YOUR-DOMAIN/api/webhook` for `checkout.session.completed` and `checkout.session.async_payment_succeeded`.
-4. Turn on **email receipts** in Stripe (Settings → Emails) so buyers get their receipt.
+See [docs/GO-LIVE.md](docs/GO-LIVE.md): Stripe account and lottery approval, Render hosting (`render.yaml`), the webhook, a test purchase, then the switch to live keys. In production the server refuses to start without the Stripe keys, the webhook secret, an `ADMIN_TOKEN` of 24+ characters, and an `https://` `PUBLIC_URL`.
 
 ## Editing the draw
 

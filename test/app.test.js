@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { OrderStore } = require('../src/store');
-const { createApp } = require('../src/app');
+const { createApp, ticketRange } = require('../src/app');
 const baseConfig = require('../config/draw.json');
 
 const tmpFile = () => path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'draw-')), 'orders.json');
@@ -127,5 +127,47 @@ test('admin CSV requires the token', async () => {
     const csv = await res.text();
     assert.equal(csv.trim().split('\n').length, 3);
     assert.match(csv, /"A ""B"""/);
+  });
+});
+
+test('ticketRange formats consecutive and single tickets', () => {
+  assert.equal(ticketRange([1001]), '1001');
+  assert.equal(ticketRange([1001, 1002, 1003]), '1001-1003');
+  assert.equal(ticketRange([1001, 1005]), '1001, 1005');
+});
+
+test('paid sessions label the Stripe payment with their ticket numbers once', async () => {
+  const updates = [];
+  const stripe = {
+    paymentIntents: { update: async (id, params) => { updates.push({ id, params }); return {}; } },
+    checkout: { sessions: { retrieve: async (id) => ({
+      id, payment_status: 'paid', payment_intent: 'pi_123', amount_total: 1000, currency: 'eur',
+      metadata: { bundleId: 'three', ticketCount: '3' }, customer_details: { email: 'a@example.com' },
+    }) } },
+  };
+  const store = new OrderStore(tmpFile());
+  await withServer({ config, store, stripe, publicUrl: 'http://x' }, async (base) => {
+    const first = await (await fetch(`${base}/api/order/cs_test_label`)).json();
+    assert.deepEqual(first.tickets, [1001, 1002, 1003]);
+    await new Promise((r) => setTimeout(r, 50));
+    await fetch(`${base}/api/order/cs_test_label`);
+  });
+  assert.equal(updates.length, 1);
+  assert.equal(updates[0].id, 'pi_123');
+  assert.equal(updates[0].params.metadata.tickets, '1001-1003');
+  assert.match(updates[0].params.description, /tickets 1001-1003$/);
+  assert.equal(store.get('cs_test_label').stripeLabelled, true);
+});
+
+test('pages carry security headers and absolute share URLs', async () => {
+  await withServer({ config, store: new OrderStore(tmpFile()), stripe: null, publicUrl: 'https://draw.example' }, async (base) => {
+    const res = await fetch(`${base}/`);
+    const html = await res.text();
+    assert.match(res.headers.get('content-security-policy'), /default-src 'self'/);
+    assert.equal(res.headers.get('x-frame-options'), 'DENY');
+    assert.ok(res.headers.get('strict-transport-security'));
+    assert.ok(!html.includes('__PUBLIC_URL__'));
+    assert.match(html, /<meta property="og:image" content="https:\/\/draw\.example\/img\/og\.png">/);
+    assert.equal((await fetch(`${base}/healthz`)).status, 200);
   });
 });
