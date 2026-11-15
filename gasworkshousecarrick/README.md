@@ -122,13 +122,13 @@ The built-in tour walks through the house: downstairs, up the stairwell, then up
 | 10 | Shower room | `shower-room` ✅ |
 | 11 | Party room | `party-room` ✅ |
 
-The room names and bed counts come from the photos. Check them against the house, and edit them in `inc/tour.php`, or build your own tour in the Customizer.
+Bed counts are confirmed and add up to 30. The room names are placeholders: edit them in `inc/tour.php`, or build your own tour in the Customizer.
 
 ## ⚠️ Check the default wording before going live
 
 The site comes filled with starter copy. **Update anything that isn't accurate for your property:**
 
-- 5 bedrooms and 3 bathrooms (sleeps up to 30 is confirmed; the minimum stay is set in the booking settings)
+- Key facts are confirmed: sleeps 30, 6 bedrooms, 2 bathrooms. The minimum stay is set in the booking settings.
 - The feature list. I wrote it from your photos, so add anything else you offer, like Wi-Fi, parking or a speaker
 - The FAQ answers and house rules (confetti policy, noise and so on)
 

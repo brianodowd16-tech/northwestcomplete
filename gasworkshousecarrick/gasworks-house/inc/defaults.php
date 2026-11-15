@@ -31,8 +31,8 @@ function gwh_defaults() {
 
 		// Key facts.
 		'sleeps'           => '30',
-		'bedrooms'         => '5',
-		'bathrooms'        => '3',
+		'bedrooms'         => '6',
+		'bathrooms'        => '2',
 
 		// The house.
 		'about_heading'    => 'Big rooms for a big group. Built for a big weekend.',
