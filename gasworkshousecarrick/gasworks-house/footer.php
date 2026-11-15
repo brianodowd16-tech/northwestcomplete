@@ -32,7 +32,7 @@ $gwh_wa     = gwh_whatsapp_url();
 				<?php if ( $gwh_wa ) : ?>
 					<li><a class="footer-wa" href="<?php echo esc_url( $gwh_wa ); ?>" rel="noopener" target="_blank"><?php echo gwh_whatsapp_icon(); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php esc_html_e( 'WhatsApp us', 'gasworks-house' ); ?></a></li>
 				<?php endif; ?>
-				<li><a href="<?php echo esc_url( ( is_front_page() ? '' : home_url( '/' ) ) . '#book' ); ?>"><?php esc_html_e( 'Book direct', 'gasworks-house' ); ?></a></li>
+				<li><a href="<?php echo esc_url( gwh_section_url( 'book' ) ); ?>"><?php esc_html_e( 'Book direct', 'gasworks-house' ); ?></a></li>
 			</ul>
 		</div>
 		<div>
@@ -55,13 +55,19 @@ $gwh_wa     = gwh_whatsapp_url();
 	</div>
 	<div class="wrap footer-base muted">
 		<span>&copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> <?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
+		<?php
+		// Policy pages and anything else in Appearance → Menus → Footer links (drafts stay hidden).
+		if ( has_nav_menu( 'footer' ) ) {
+			wp_nav_menu( array( 'theme_location' => 'footer', 'container' => false, 'menu_class' => 'footer-links', 'depth' => 1, 'fallback_cb' => false ) );
+		}
+		?>
 		<span><?php echo esc_html( implode( ' · ', array_slice( gwh_address_lines(), 1 ) ) ); ?></span>
 	</div>
 </footer>
 
-<?php if ( is_front_page() ) : ?>
+<?php if ( ! is_page_template( 'page-templates/book.php' ) ) : ?>
 	<div class="mobile-cta" data-mobile-cta>
-		<a class="btn" href="#book"><?php esc_html_e( 'Check availability', 'gasworks-house' ); ?></a>
+		<a class="btn" href="<?php echo esc_url( gwh_section_url( 'book' ) ); ?>"><?php esc_html_e( 'Check availability', 'gasworks-house' ); ?></a>
 	</div>
 <?php endif; ?>
 

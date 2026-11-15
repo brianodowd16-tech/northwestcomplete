@@ -11,8 +11,8 @@
 	function onScroll() {
 		var y = window.scrollY;
 		if (header) header.classList.toggle('is-scrolled', y > 40);
-		if (mobileCta && hero) {
-			var pastHero = y > hero.offsetHeight - 200;
+		if (mobileCta) {
+			var pastHero = hero ? y > hero.offsetHeight - 200 : y > 300;
 			var nearForm = false;
 			var form = document.getElementById('book');
 			if (form) {

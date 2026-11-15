@@ -16,6 +16,22 @@ A custom one-page WordPress theme for **Gasworks House**, a boutique hen and sta
 - **Direct booking**: a live availability calendar synced with Airbnb, price breakdown and request-to-book (see below)
 - A sticky "Book" button on mobile, SEO meta tags and Google structured data (LodgingBusiness)
 
+## Pages and menus
+
+Besides the homepage (which shows everything), the theme creates these pages the first time you open the WordPress dashboard after uploading it. They're listed under **Pages**, and the text you type in each page's editor appears as its intro:
+
+| Page | Address | Shows |
+|---|---|---|
+| The House | /the-house/ | Description, features, photo tour |
+| Hens & Stags | /hens-and-stags/ | Hen and stag ideas |
+| Carrick-on-Shannon | /carrick-on-shannon/ | Things to do, getting here, map |
+| FAQ | /faq/ | Questions and answers (and reviews, once added) |
+| Book | /book/ | Calendar and booking (linked from the "Check dates" button) |
+| Contact | /contact/ | WhatsApp, call, email, address, map |
+| Terms & Conditions, Cancellation Policy, Privacy Policy | | **Drafts** for you to review: fill in the [bracketed] parts and publish. They appear in the footer once published, and the booking form then asks guests to agree to the terms. |
+
+The header menu (**Appearance → Menus → Main menu**) and footer links are set up for you. An existing empty menu from your old theme is filled in rather than replaced, and a menu that already has links is left alone. The header always uses the light logo, because a logo with dark lettering set under **Site Identity** would disappear on the dark header.
+
 ## Install on Hostinger WordPress
 
 1. Download `gasworks-house.zip` from this folder. If you change the theme, rebuild it with `./build.sh`.

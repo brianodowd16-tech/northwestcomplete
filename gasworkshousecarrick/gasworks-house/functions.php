@@ -9,11 +9,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'GWH_VERSION', '1.4.1' );
+define( 'GWH_VERSION', '1.5.0' );
 
 require get_template_directory() . '/inc/defaults.php';
 require get_template_directory() . '/inc/customizer.php';
 require get_template_directory() . '/inc/tour.php';
+require get_template_directory() . '/inc/pages.php';
 require get_template_directory() . '/inc/booking/core.php';
 require get_template_directory() . '/inc/booking/api.php';
 require get_template_directory() . '/inc/booking/payments.php';
@@ -59,8 +60,10 @@ function gwh_assets() {
 	wp_enqueue_style( 'gwh-fonts', 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Manrope:wght@400;500;700&display=swap', array(), null );
 	wp_enqueue_style( 'gwh-main', get_template_directory_uri() . '/assets/css/main.css', array(), GWH_VERSION );
 	wp_enqueue_script( 'gwh-main', get_template_directory_uri() . '/assets/js/main.js', array(), GWH_VERSION, true );
-	wp_enqueue_script( 'gwh-tour', get_template_directory_uri() . '/assets/js/tour.js', array(), GWH_VERSION, true );
-	if ( is_front_page() ) {
+	if ( is_front_page() || is_page_template( 'page-templates/house.php' ) ) {
+		wp_enqueue_script( 'gwh-tour', get_template_directory_uri() . '/assets/js/tour.js', array(), GWH_VERSION, true );
+	}
+	if ( is_front_page() || is_page_template( 'page-templates/book.php' ) ) {
 		wp_enqueue_script( 'gwh-booking', get_template_directory_uri() . '/assets/js/booking.js', array(), GWH_VERSION, true );
 		wp_add_inline_script( 'gwh-booking', 'window.GWH_BOOKING = ' . wp_json_encode( gwh_calendar_config() ) . ';', 'before' );
 	}

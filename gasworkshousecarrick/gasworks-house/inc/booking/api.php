@@ -119,6 +119,9 @@ function gwh_validate_booking_request( WP_REST_Request $req ) {
 		/* translators: %d: maximum guests */
 		return gwh_rest_error( sprintf( __( 'Group size must be between 1 and %d.', 'gasworks-house' ), gwh_max_guests() ) );
 	}
+	if ( gwh_site_page( 'terms' ) && ! $req->get_param( 'terms' ) ) {
+		return gwh_rest_error( __( 'Please tick the box to agree to the Terms & Conditions.', 'gasworks-house' ) );
+	}
 	if ( preg_match_all( '#https?://#i', $d['message'] ) > 2 ) {
 		return array( 'spam' => true );
 	}

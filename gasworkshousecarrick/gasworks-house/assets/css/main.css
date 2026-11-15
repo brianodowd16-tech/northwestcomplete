@@ -460,6 +460,9 @@ p { margin: 0 0 1em; }
 .summary-due div { display: flex; justify-content: space-between; gap: 12px; }
 .summary-due div:first-child { font-weight: 700; color: #fff; }
 .summary-due div + div { font-size: 14px; color: rgba(255, 255, 255, .7); }
+.agree { display: flex; gap: 12px; align-items: flex-start; margin: 0 0 16px; font-size: 15px; color: rgba(255, 255, 255, .85); cursor: pointer; }
+.agree input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--flame-2); flex: none; }
+.agree a { color: var(--gold); }
 .book-note { margin: 12px 0 0; text-align: center; font-size: 14px; color: rgba(255, 255, 255, .6); }
 .book-done { padding: 28px 8px; text-align: center; }
 .book-done-title { font-family: var(--font-display); font-size: 30px; font-weight: 700; margin-bottom: 8px; }
@@ -535,5 +538,47 @@ p { margin: 0 0 1em; }
 }
 
 /* ---------- Inner pages ---------- */
+.page-hero {
+	position: relative; isolation: isolate; overflow: hidden; color: #fff; background: var(--ink);
+	padding: clamp(56px, 8vw, 96px) 0 clamp(40px, 6vw, 64px);
+}
+.page-hero::before {
+	content: ""; position: absolute; inset: 0; z-index: -2; background: var(--hero-image) center / cover no-repeat; opacity: .35;
+}
+.page-hero::after {
+	content: ""; position: absolute; inset: 0; z-index: -1;
+	background: linear-gradient(90deg, rgba(23, 21, 26, .92), rgba(23, 21, 26, .6)), radial-gradient(circle at 85% 20%, rgba(240, 100, 28, .35), transparent 50%);
+}
+.page-hero-plain::before { display: none; }
+.page-hero .kicker { color: var(--flame-1); }
+.page-hero-title { font-size: clamp(40px, 6vw, 72px); font-weight: 900; letter-spacing: -.02em; margin-bottom: 14px; }
+.page-hero-intro { max-width: 62ch; font-size: clamp(17px, 1.8vw, 20px); color: rgba(255, 255, 255, .85); }
+.page-hero-intro p:last-child { margin-bottom: 0; }
+.section-tight-top { padding-top: clamp(40px, 6vw, 64px); }
+.page-content { font-size: 17px; color: var(--text); }
+.page-content h2 { font-size: clamp(24px, 3vw, 30px); margin-top: 1.6em; }
+.page-content ul { padding-left: 1.2em; }
+.page-content li { margin-bottom: .4em; }
+
+/* "Ready to book?" strip. */
+.cta-band { background: var(--ink); color: #fff; padding: clamp(40px, 6vw, 64px) 0; border-top: 1px solid rgba(255, 255, 255, .08); }
+.cta-band-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px 32px; }
+.cta-band-title { font-size: clamp(26px, 3.4vw, 38px); margin-bottom: 6px; }
+.cta-band p { margin: 0; color: rgba(255, 255, 255, .75); }
+
+/* Contact page. */
+.btn-outline { background: transparent; border-color: var(--ink); color: var(--ink); box-shadow: none; }
+.btn-outline:hover { background: var(--ink); color: #fff; box-shadow: none; }
+.contact-actions { margin: 20px 0 28px; flex-wrap: wrap; }
+.contact-list a { color: var(--copper-dark); text-decoration: none; font-weight: 600; }
+
+/* Current page in the menu. */
+.nav-list .current-menu-item > a, .nav-list .current_page_item > a { color: var(--gold); opacity: 1; }
+
+/* Policy links in the footer. */
+.footer-links { display: flex; flex-wrap: wrap; gap: 6px 18px; list-style: none; margin: 0; padding: 0; }
+.footer-links a { text-decoration: none; }
+.footer-links a:hover { color: var(--gold); }
+
 .page-main { padding: clamp(56px, 8vw, 96px) 0; min-height: 60vh; }
 .entry + .entry { margin-top: 48px; }
