@@ -1,9 +1,9 @@
-import { euro, countdown, startSnow, observeReveals, setOdometer } from './shared.js';
+import { euro, countdown, startSnow, observeReveals } from './shared.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
-const state = { draw: null, bundleId: null, qty: 1 };
+const state = { draw: null, bundleId: null, qty: 1, gaugeReady: false };
 
 init();
 
@@ -13,7 +13,7 @@ async function init() {
   buildGaugeTicks();
 
   if (new URLSearchParams(location.search).has('cancelled')) {
-    toast('No charge made. Your tickets are still waiting.');
+    toast('No charge made. Your lines are still waiting.');
     history.replaceState(null, '', location.pathname + location.hash);
   }
 
@@ -30,15 +30,16 @@ async function init() {
 
   bindText(d);
   renderPrizes(d.prizes);
+  renderFills(d.bundles);
   renderBundles(d.bundles);
-  updateTotals();
-  setGauge(d.ticketsSold, d.ticketTarget);
+  startGauge();
   countdown($('[data-countdown]'), d.salesCloseDate, () => closeSales());
   if (!d.salesOpen) closeSales();
   if (d.demoMode) toast('Demo mode: payments are simulated');
 
   $$('[data-step]').forEach((b) => b.addEventListener('click', () => setQty(state.qty + Number(b.dataset.step))));
   $('#checkoutBtn').addEventListener('click', checkout);
+  $('#gaugeCta').addEventListener('click', checkout);
   $('#buybarBtn').addEventListener('click', () => {
     if ($('#tickets').getBoundingClientRect().top > innerHeight * .5) $('#tickets').scrollIntoView();
     else checkout();
@@ -51,7 +52,6 @@ function bindText(d) {
   const values = {
     ...d,
     fromPrice: euro(Math.min(...d.bundles.map((b) => b.price)), { trim: true }),
-    ticketTarget: d.ticketTarget.toLocaleString('en-IE'),
     drawDateShort: drawDate.toLocaleDateString('en-IE', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Dublin' }),
     drawDateLong: `${drawDate.toLocaleDateString('en-IE', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Dublin' })} at ${drawDate.toLocaleTimeString('en-GB', { hour: 'numeric', hour12: true, timeZone: 'Europe/Dublin' }).replace(/\s/g, '')}`,
   };
@@ -106,10 +106,10 @@ function renderBundles(bundles) {
         <span class="bundle__name">${esc(b.label)}</span>
         ${b.tag ? `<span class="bundle__tag">${esc(b.tag)}</span>` : ''}
       </span>
-      <span class="bundle__tickets"><strong>${b.tickets}</strong><span>ticket${b.tickets > 1 ? 's' : ''}</span></span>
+      <span class="bundle__tickets"><strong>${b.lines}</strong><span>line${b.lines > 1 ? 's' : ''}</span></span>
       <span class="bundle__bottom">
         <span class="bundle__price">${euro(b.price)}</span>
-        <span class="bundle__per">${euro(b.price / b.tickets)} each</span>
+        <span class="bundle__per">${euro(b.price / b.lines)} each</span>
       </span>
     </button>`).join('');
 
@@ -130,9 +130,32 @@ function renderBundles(bundles) {
   selectBundle(state.bundleId);
 }
 
+// The quick-fill buttons under the hero gauge: the same bundles, one tap each.
+function renderFills(bundles) {
+  const wrap = $('#fills');
+  wrap.innerHTML = bundles.map((b) => `
+    <button type="button" class="fill" role="radio" data-id="${b.id}" aria-checked="false"
+      aria-label="${b.lines} line${b.lines > 1 ? 's' : ''} for ${euro(b.price, { trim: true })}">
+      <strong>${euro(b.price, { trim: true })}</strong><span>${b.lines} line${b.lines > 1 ? 's' : ''}</span>
+    </button>`).join('');
+  wrap.addEventListener('click', (e) => {
+    const btn = e.target.closest('.fill');
+    if (btn) selectBundle(btn.dataset.id);
+  });
+  wrap.addEventListener('keydown', (e) => {
+    const dir = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+    if (!dir) return;
+    e.preventDefault();
+    const i = bundles.findIndex((b) => b.id === state.bundleId);
+    const next = bundles[(i + dir + bundles.length) % bundles.length];
+    selectBundle(next.id);
+    $(`.fill[data-id="${next.id}"]`).focus();
+  });
+}
+
 function selectBundle(id) {
   state.bundleId = id;
-  $$('.bundle').forEach((el) => {
+  $$('.bundle, .fill').forEach((el) => {
     const on = el.dataset.id === id;
     el.setAttribute('aria-checked', on);
     el.tabIndex = on ? 0 : -1;
@@ -153,14 +176,16 @@ function currentBundle() {
 function updateTotals() {
   const b = currentBundle();
   const total = b.price * state.qty;
-  const tickets = b.tickets * state.qty;
+  const lines = b.lines * state.qty;
   rollNumber($('#totalEuro'), total / 100, 2);
-  rollNumber($('#totalTickets'), tickets, 0);
-  rollNumber($('#perTicket'), total / tickets / 100, 2);
+  rollNumber($('#totalTickets'), lines, 0);
+  rollNumber($('#perTicket'), total / lines / 100, 2);
   $('#checkoutLabel').textContent = `Fill up · Pay ${euro(total)}`;
+  $('#gaugeCtaLabel').textContent = `Fill up · Pay ${euro(total)}`;
   $('#buybarLabel').textContent = b.label;
-  $('#buybarMeta').textContent = `${tickets} ticket${tickets > 1 ? 's' : ''}`;
+  $('#buybarMeta').textContent = `${lines} line${lines > 1 ? 's' : ''}`;
   $('#buybarTotal').textContent = euro(total);
+  setTank(lines);
 }
 
 // Pump-style rolling numbers
@@ -193,28 +218,39 @@ function buildGaugeTicks() {
   }
 }
 
-function setGauge(sold, target) {
-  const pct = Math.max(0, Math.min(1, sold / target));
+// The hero gauge shows the visitor's own fill: the biggest bundle fills the tank to F.
+function setTank(lines) {
+  rollNumber($('#gaugeLines'), lines, 0);
+  $('#gaugeUnit').textContent = lines === 1 ? 'LINE' : 'LINES';
+  if (!state.gaugeReady) return;
+  const full = Math.max(...state.draw.bundles.map((b) => b.lines));
+  pointGauge(Math.min(1, lines / full));
+}
+
+function pointGauge(fraction) {
   // Never sit fully on E: a sliver of fuel reads better than an empty tank.
-  const shown = Math.max(pct, .04);
-  const gauge = $('.gauge');
-  const go = () => {
-    $('.gauge__fill').style.strokeDasharray = `${shown * 100} 100`;
-    $('#needle').style.transform = `rotate(${-90 + shown * 180}deg)`;
-    setOdometer($('[data-odometer]'), sold);
-    $('[data-bind="pct"]').textContent = `${Math.round(pct * 100)}%`;
-  };
+  const shown = Math.max(fraction, .04);
+  $('.gauge__fill').style.strokeDasharray = `${shown * 100} 100`;
+  $('#needle').style.transform = `rotate(${-90 + shown * 180}deg)`;
+  $('.gauge').classList.toggle('is-full', fraction >= 1);
+}
+
+// When the gauge first comes into view it does a "fuel check": sweep to F, then settle on the current fill.
+function startGauge() {
   new IntersectionObserver((entries, obs) => {
-    if (entries[0].isIntersecting) { setTimeout(go, 350); obs.disconnect(); }
-  }, { threshold: .4 }).observe(gauge);
+    if (!entries[0].isIntersecting) return;
+    obs.disconnect();
+    setTimeout(() => pointGauge(1), 300);
+    setTimeout(() => { state.gaugeReady = true; updateTotals(); }, 1500);
+  }, { threshold: .4 }).observe($('.gauge'));
 }
 
 async function checkout() {
-  const btn = $('#checkoutBtn');
   const err = $('#checkoutError');
   err.hidden = true;
-  btn.disabled = true; $('#buybarBtn').disabled = true;
+  $$('#checkoutBtn, #buybarBtn, #gaugeCta').forEach((b) => { b.disabled = true; });
   $('#checkoutLabel').textContent = 'Opening secure checkout…';
+  $('#gaugeCtaLabel').textContent = 'Opening secure checkout…';
   try {
     const res = await fetch('/api/checkout', {
       method: 'POST',
@@ -227,14 +263,16 @@ async function checkout() {
   } catch (e) {
     err.textContent = e.message || 'Something went wrong. Please try again.';
     err.hidden = false;
-    btn.disabled = false; $('#buybarBtn').disabled = false;
+    $$('#checkoutBtn, #buybarBtn, #gaugeCta').forEach((b) => { b.disabled = false; });
     updateTotals();
+    toast(err.textContent);
   }
 }
 
 function closeSales() {
-  $$('#checkoutBtn, #buybarBtn').forEach((b) => { b.disabled = true; });
-  $('#checkoutLabel').textContent = 'Sales closed';
+  $$('#checkoutBtn, #buybarBtn, #gaugeCta').forEach((b) => { b.disabled = true; });
+  $('#checkoutLabel').textContent = 'Entries closed';
+  $('#gaugeCtaLabel').textContent = 'Entries closed';
   $('#buybarTotal').textContent = 'closed';
   $('[data-countdown]').textContent = 'now closed';
 }

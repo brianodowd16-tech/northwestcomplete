@@ -25,26 +25,30 @@
   <main class="done">
     <div class="done__loading" id="loading">
       <div class="nozzle" aria-hidden="true"></div>
-      <p>Printing your tickets…</p>
+      <p>Filling your tank…</p>
     </div>
 
     <section class="done__card" id="result" hidden>
       <p class="eyebrow">Payment confirmed</p>
       <h1 class="done__title">You're in<span id="name"></span>!</h1>
-      <p class="done__lede">Your ticket numbers for the Super Fuel &amp; Holiday Draw are below. Stripe has emailed a receipt to <strong id="email">you</strong>.</p>
+      <p class="done__lede">Your lines are in the Super Fuel &amp; Holiday Draw. Stripe has emailed a receipt to <strong id="email">you</strong>. Keep it as your proof of entry.</p>
 
       <div class="receipt" id="receipt">
         <div class="receipt__head">
           <span>ST MICHAEL'S · SUPER DRAW</span>
-          <span id="count">0 TICKETS</span>
+          <span id="paid">PAID</span>
         </div>
-        <ol class="receipt__tickets" id="ticketList"></ol>
+        <div class="receipt__body">
+          <div class="receipt__big"><strong id="lineCount">0</strong><span id="lineWord">LINES ENTERED</span></div>
+          <div class="tank" id="tank" aria-hidden="true"></div>
+          <p class="receipt__name">In the name of <strong id="fullName">you</strong></p>
+        </div>
         <div class="receipt__foot">
-          <span>DRAW</span><span id="drawDate">—</span>
+          <span>BIG DRAW</span><span id="drawDate">—</span>
         </div>
       </div>
 
-      <p class="demo-note" id="demoNote" hidden>Demo mode: no payment was taken and these tickets are not real.</p>
+      <p class="demo-note" id="demoNote" hidden>Demo mode: no payment was taken and these lines are not real.</p>
 
       <div class="share">
         <p><strong>Know someone who'd love a trip to Oz?</strong> Send it on. It all goes to the club.</p>
@@ -54,13 +58,13 @@
           <button class="btn btn--ghost" id="shareNative" type="button" hidden>Share…</button>
         </div>
       </div>
-      <a class="link-back" href="/#tickets">Buy more tickets</a>
+      <a class="link-back" href="/#tickets">Add more lines</a>
     </section>
 
     <section class="done__card" id="pending" hidden>
       <p class="eyebrow">Almost there</p>
       <h1 class="done__title">Still processing…</h1>
-      <p class="done__lede">Your payment is being confirmed. Your ticket numbers will be on your Stripe receipt email, or refresh this page in a minute. If you have any trouble, contact the club and quote this reference:</p>
+      <p class="done__lede">Your payment is being confirmed. Your Stripe receipt email is your proof of entry, or refresh this page in a minute. If you have any trouble, contact the club and quote this reference:</p>
       <code class="ref" id="ref"></code>
     </section>
   </main>

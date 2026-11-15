@@ -37,31 +37,6 @@ export function observeReveals() {
   document.querySelectorAll('.reveal:not(.is-in)').forEach((el) => revealObserver.observe(el));
 }
 
-/** Rolling-digit odometer, like a pump's mechanical counter. */
-export function setOdometer(el, value) {
-  const str = String(value).padStart(4, '0');
-  el.textContent = '';
-  el.setAttribute('aria-label', String(value));
-  [...str].forEach((ch, i) => {
-    const digit = document.createElement('span');
-    digit.className = 'odometer__digit';
-    const strip = document.createElement('span');
-    strip.className = 'odometer__strip';
-    strip.setAttribute('aria-hidden', 'true');
-    // Two full spins then land on the digit, so every column rolls.
-    for (let n = 0; n < 30; n++) {
-      const s = document.createElement('span');
-      s.textContent = n % 10;
-      strip.append(s);
-    }
-    digit.append(strip);
-    el.append(digit);
-    const target = 20 + Number(ch);
-    strip.style.transitionDelay = `${i * 120}ms`;
-    requestAnimationFrame(() => requestAnimationFrame(() => { strip.style.transform = `translateY(-${target}em)`; }));
-  });
-}
-
 /** Gentle snowfall. Skipped entirely for reduced-motion users. */
 export function startSnow(canvas) {
   if (!canvas || reduceMotion()) return;

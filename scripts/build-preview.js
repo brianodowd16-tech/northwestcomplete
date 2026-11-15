@@ -33,8 +33,7 @@ const succ = strip(read('public/success.js'))
 
 const mock = `
 // ---- Preview-only mock of the server API (the real site talks to Node + Stripe) ----
-const DRAW = ${JSON.stringify({ ...config, ticketsSold: 1247, salesOpen: true, demoMode: false })};
-let nextTicket = DRAW.ticketStartNumber + DRAW.ticketsSold;
+const DRAW = ${JSON.stringify({ ...config, salesOpen: true, demoMode: false })};
 const ORDERS = {};
 const realFetch = window.fetch.bind(window);
 window.fetch = async (url, opts = {}) => {
@@ -43,10 +42,9 @@ window.fetch = async (url, opts = {}) => {
   if (url === '/api/checkout') {
     const { bundleId, quantity } = JSON.parse(opts.body);
     const b = DRAW.bundles.find((x) => x.id === bundleId);
-    const n = b.tickets * quantity;
+    const n = b.lines * quantity;
     const oid = 'demo_' + Math.random().toString(36).slice(2);
-    ORDERS[oid] = { tickets: Array.from({ length: n }, (_, i) => nextTicket + i), firstName: 'Mary', email: 'mary@example.com', amount: b.price * quantity, currency: 'eur', drawDate: DRAW.drawDate, demo: true };
-    nextTicket += n; DRAW.ticketsSold += n;
+    ORDERS[oid] = { lines: n, name: 'Mary Murphy', firstName: 'Mary', email: 'mary@example.com', amount: b.price * quantity, currency: 'eur', drawDate: DRAW.drawDate, drawLocation: DRAW.drawLocation, demo: true };
     await new Promise((r) => setTimeout(r, 700));
     return json({ url: '/success.html?session_id=' + oid });
   }
@@ -90,7 +88,7 @@ ${fonts}
 <style>
 ${css}
 </style>
-<div class="preview-flag">PREVIEW · payments are simulated, no card needed · gauge shows sample sales</div>
+<div class="preview-flag">PREVIEW · payments are simulated, no card needed</div>
 <div id="landing">
 ${index}
 </div>

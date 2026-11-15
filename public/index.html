@@ -35,7 +35,7 @@
       <img class="brand__crest" src="/img/crest-96.png" alt="" width="44" height="44">
       <span class="brand__text"><strong data-bind="clubShort">St Michael's</strong> <small>GAA &amp; LGFA · <span data-bind="clubArea">Ardcarne</span></small></span>
     </a>
-    <a class="btn btn--ghost btn--sm" href="#tickets">Get tickets</a>
+    <a class="btn btn--ghost btn--sm" href="#tickets">Enter now</a>
   </header>
 
   <main>
@@ -50,19 +50,19 @@
         <p class="hero__lede reveal">15 prizes this Christmas, from trips for two to Australia and New York to firewood, heating oil and coal for the winter. Every euro backs our juvenile, adult and ladies' teams.</p>
         <div class="hero__cta reveal">
           <a class="btn btn--fuel btn--lg" href="#tickets">
-            <span>Get tickets</span><span class="btn__meta">from <span data-bind="fromPrice">€10</span></span>
+            <span>Enter now</span><span class="btn__meta">from <span data-bind="fromPrice">€5</span></span>
           </a>
           <a class="link-arrow" href="#prizes">See the prizes</a>
         </div>
         <ul class="trust reveal" aria-label="Why buy online">
           <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5l-8-3Z"/></svg>Secure Stripe checkout</li>
           <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v10H4zM4 11h16"/></svg>Card, Apple Pay &amp; Google Pay</li>
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>Ticket numbers instantly</li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>Entered in your name instantly</li>
         </ul>
       </div>
 
-      <figure class="gauge reveal" aria-labelledby="gauge-caption">
-        <svg class="gauge__svg" viewBox="0 0 320 200" role="img" aria-label="Fuel gauge showing tickets sold">
+      <div class="gauge reveal">
+        <svg class="gauge__svg" viewBox="0 0 320 200" role="img" aria-label="Fuel gauge showing how full your tank is">
           <defs>
             <linearGradient id="gaugeFill" x1="0" x2="1">
               <stop offset="0" stop-color="var(--ember)"/>
@@ -80,12 +80,14 @@
             <circle cx="160" cy="170" r="11"/>
           </g>
         </svg>
-        <figcaption id="gauge-caption" class="gauge__readout">
-          <span class="lcd"><span class="odometer" data-odometer="ticketsSold">0000</span></span>
-          <span class="gauge__label">tickets sold · help us fill the tank</span>
-          <span class="gauge__pct"><strong data-bind="pct">0%</strong> of our <span data-bind="ticketTarget">2,000</span> target</span>
-        </figcaption>
-      </figure>
+        <div class="gauge__readout">
+          <span class="lcd" aria-live="polite"><span id="gaugeLines">0</span><small id="gaugeUnit">LINES</small></span>
+          <span class="gauge__label" id="fillsLabel">Your tank · tap a fill</span>
+          <div class="fills" id="fills" role="radiogroup" aria-labelledby="fillsLabel"></div>
+          <button class="btn btn--fuel btn--block" type="button" id="gaugeCta"><span id="gaugeCtaLabel">Fill up</span>
+            <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
     </section>
 
     <!-- PRIZES -->
@@ -103,11 +105,11 @@
     <section class="section section--pump" id="tickets">
       <div class="section__head reveal">
         <p class="eyebrow">Pick your fill</p>
-        <h2>More tickets, more chances.</h2>
+        <h2>More lines, more chances.</h2>
       </div>
 
       <div class="pump reveal">
-        <div class="bundles" id="bundles" role="radiogroup" aria-label="Ticket options"></div>
+        <div class="bundles" id="bundles" role="radiogroup" aria-label="Line options"></div>
 
         <aside class="pump__display" aria-live="polite">
           <div class="pump__screen">
@@ -116,11 +118,11 @@
               <span class="pump__digits" id="totalEuro">0.00</span>
             </div>
             <div class="pump__row pump__row--sub">
-              <span class="pump__unit">TICKETS</span>
+              <span class="pump__unit">LINES</span>
               <span class="pump__digits" id="totalTickets">0</span>
             </div>
             <div class="pump__row pump__row--sub">
-              <span class="pump__unit">€ / TICKET</span>
+              <span class="pump__unit">€ / LINE</span>
               <span class="pump__digits" id="perTicket">0.00</span>
             </div>
           </div>
@@ -152,9 +154,9 @@
         <h2>Sixty seconds to enter.</h2>
       </div>
       <ol class="steps">
-        <li class="step reveal"><span class="step__n">01</span><h3>Choose your fill</h3><p>Pick a bundle. Bigger bundles mean a cheaper price per ticket.</p></li>
+        <li class="step reveal"><span class="step__n">01</span><h3>Choose your fill</h3><p>Pick a bundle. Bigger bundles mean a cheaper price per line.</p></li>
         <li class="step reveal"><span class="step__n">02</span><h3>Pay securely</h3><p>Check out with card, Apple Pay or Google Pay through Stripe.</p></li>
-        <li class="step reveal"><span class="step__n">03</span><h3>Get your numbers</h3><p>Your ticket numbers appear right away, and your receipt comes by email.</p></li>
+        <li class="step reveal"><span class="step__n">03</span><h3>You're entered</h3><p>Your lines go in under your name straight away, and your receipt comes by email.</p></li>
         <li class="step reveal"><span class="step__n">04</span><h3>The Big Draw</h3><p>Winners are drawn on <span data-bind="drawDateShort">December</span> at <span data-bind="drawLocation">Beirne's of Battlebridge</span>.</p></li>
       </ol>
     </section>
@@ -164,9 +166,9 @@
       <div class="why__inner">
         <img class="why__crest" src="/img/crest.png" alt="St Michael's GAA crest" width="220" height="220">
         <p class="eyebrow">Why it matters</p>
-        <h2>Every ticket keeps the lights on at the pitch.</h2>
+        <h2>Every line keeps the lights on at the pitch.</h2>
         <p>Floodlights, kit, buses to away games, coaching for hundreds of boys and girls. The Super Draw is one of the club's biggest fundraisers of the year. Thank you for backing <span data-bind="clubShort">St Michael's</span>.</p>
-        <a class="btn btn--fuel" href="#tickets">I'm in, get tickets</a>
+        <a class="btn btn--fuel" href="#tickets">I'm in</a>
       </div>
     </section>
 
@@ -178,7 +180,7 @@
       </div>
       <div class="faq">
         <details class="reveal"><summary>When and where is the draw?</summary><p>The draw takes place on <strong data-bind="drawDateLong">—</strong> at <span data-bind="drawLocation">Beirne's of Battlebridge</span>. Winners will also be contacted directly.</p></details>
-        <details class="reveal"><summary>How do I get my ticket numbers?</summary><p>They appear on screen as soon as payment goes through, and Stripe emails you a receipt. Keep your confirmation page or a screenshot.</p></details>
+        <details class="reveal"><summary>How do I know I'm entered?</summary><p>You'll see a confirmation as soon as your payment goes through, and Stripe emails you a receipt. Keep it as your proof of entry. Online lines are printed onto the club's draw cards in your name and go into the Big Draw with the paper cards.</p></details>
         <details class="reveal"><summary>What are the prizes?</summary><p>There are 15. First prize is a trip for two to Australia worth €7,500, second is a trip for two to New York worth €2,500, and third is a tractor trailer of firewood. See <a href="#prizes">the full list</a>. T&amp;Cs apply to each prize.</p></details>
         <details class="reveal"><summary>Is paying online safe?</summary><p>Yes. Payment is handled by Stripe, and your card details never touch our website. You can pay by card, Apple Pay or Google Pay.</p></details>
         <details class="reveal"><summary>Someone from the club asked me to buy. Can they get credit?</summary><p>Yes. At checkout there's an optional box for the name of the club member who sent you.</p></details>
@@ -201,7 +203,7 @@
   </footer>
 
   <div class="buybar" id="buybar" aria-hidden="true">
-    <div class="buybar__info"><strong id="buybarLabel">Family tank</strong><span id="buybarMeta">7 tickets</span></div>
+    <div class="buybar__info"><strong id="buybarLabel">Family tank</strong><span id="buybarMeta">7 lines</span></div>
     <button class="btn btn--fuel" type="button" id="buybarBtn">Pay <span id="buybarTotal">€50</span></button>
   </div>
 

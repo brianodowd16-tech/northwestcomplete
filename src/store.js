@@ -7,11 +7,14 @@ const path = require('node:path');
  * Minimal durable order store backed by a single JSON file.
  * All mutations are serialised through a promise queue and written atomically
  * (write temp file, then rename), which is plenty for a club draw's volume.
+ *
+ * Online lines are laid out like the paper draw cards: numbered cards of
+ * `linesPerCard` lines each, so they can be printed and entered alongside them.
  */
 class OrderStore {
-  constructor(file, { startNumber = 1001 } = {}) {
+  constructor(file, { linesPerCard = 20 } = {}) {
     this.file = path.resolve(file);
-    this.startNumber = startNumber;
+    this.linesPerCard = linesPerCard;
     this.queue = Promise.resolve();
     this.data = this.#load();
   }
@@ -19,10 +22,10 @@ class OrderStore {
   #load() {
     try {
       const parsed = JSON.parse(fs.readFileSync(this.file, 'utf8'));
-      return { nextNumber: parsed.nextNumber ?? this.startNumber, orders: parsed.orders ?? {} };
+      return { nextSlot: parsed.nextSlot ?? 0, orders: parsed.orders ?? {} };
     } catch (err) {
       if (err.code !== 'ENOENT') throw err;
-      return { nextNumber: this.startNumber, orders: {} };
+      return { nextSlot: 0, orders: {} };
     }
   }
 
@@ -43,15 +46,15 @@ class OrderStore {
     return this.data.orders[id] ?? null;
   }
 
-  ticketsSold() {
-    return Object.values(this.data.orders).reduce((sum, o) => sum + o.tickets.length, 0);
+  linesSold() {
+    return Object.values(this.data.orders).reduce((sum, o) => sum + o.lines.length, 0);
   }
 
   all() {
     return Object.values(this.data.orders).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   }
 
-  /** Remember that the Stripe payment now carries this order's ticket numbers. */
+  /** Remember that the Stripe payment now carries this order's card and line references. */
   markLabelled(id) {
     return this.#exclusive(() => {
       const order = this.data.orders[id];
@@ -62,33 +65,61 @@ class OrderStore {
   }
 
   /**
-   * Record a paid order and allocate ticket numbers. Idempotent per id, so the
-   * webhook and the success-page fallback can both call it safely.
+   * Record a paid order and place its lines on the online cards. Idempotent per id, so the
+   * webhook and the success-page fallback can both call it safely. An order that fits on one
+   * card is kept together: if the current card hasn't room, it starts on the next card.
    */
-  fulfil({ id, ticketCount, amount, currency, customer = {}, bundleId, soldBy = null }) {
+  fulfil({ id, lineCount, amount, currency, customer = {}, bundleId, soldBy = null }) {
     return this.#exclusive(() => {
       const existing = this.data.orders[id];
       if (existing) return existing;
-      if (!Number.isInteger(ticketCount) || ticketCount < 1) throw new Error('ticketCount must be a positive integer');
+      if (!Number.isInteger(lineCount) || lineCount < 1) throw new Error('lineCount must be a positive integer');
 
-      const first = this.data.nextNumber;
-      const tickets = Array.from({ length: ticketCount }, (_, i) => first + i);
+      const per = this.linesPerCard;
+      let slot = this.data.nextSlot;
+      const used = slot % per;
+      if (used !== 0 && lineCount > per - used) slot += per - used;
+      const lines = Array.from({ length: lineCount }, (_, i) => ({ card: Math.floor((slot + i) / per) + 1, line: ((slot + i) % per) + 1 }));
+
       const order = {
         id,
         bundleId,
-        tickets,
+        lines,
         amount,
         currency,
         customer: { name: customer.name ?? null, email: customer.email ?? null, phone: customer.phone ?? null },
         soldBy,
         createdAt: new Date().toISOString(),
       };
-      this.data.nextNumber = first + ticketCount;
+      this.data.nextSlot = slot + lineCount;
       this.data.orders[id] = order;
       this.#persist();
       return order;
     });
   }
+
+  /** Every card with its lines filled in, in card order, for printing. */
+  cards() {
+    const cards = [];
+    for (const order of this.all()) {
+      for (const { card, line } of order.lines) {
+        cards[card - 1] ??= { card, lines: [] };
+        cards[card - 1].lines[line - 1] = order;
+      }
+    }
+    return cards.filter(Boolean);
+  }
 }
 
-module.exports = { OrderStore };
+/** "Card 3, lines 1-7" style reference for an order's lines. */
+function describeLines(lines) {
+  const byCard = new Map();
+  for (const { card, line } of lines) byCard.set(card, [...(byCard.get(card) ?? []), line]);
+  return [...byCard].map(([card, ls]) => {
+    const first = ls[0];
+    const last = ls[ls.length - 1];
+    return `Card ${card}, line${ls.length > 1 ? `s ${first}-${last}` : ` ${first}`}`;
+  }).join('; ');
+}
+
+module.exports = { OrderStore, describeLines };

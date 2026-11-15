@@ -1,11 +1,11 @@
 # St Michael's GAA & LGFA — Super Fuel & Holiday Draw
 
-Online ticket sales for the club's Super Fuel & Holiday Draw, with payment through **Stripe Checkout**.
+Online entry sales for the club's Super Fuel & Holiday Draw, with payment through **Stripe Checkout**.
 
-- **Landing page** (`public/index.html`): a fuel-gauge hero showing tickets sold against the target, a countdown, the 15 prizes (top three as feature cards, the rest on a prize board), a pump-style ticket picker with bundle pricing, a sticky mobile buy bar, and an FAQ.
+- **Landing page** (`public/index.html`): an interactive fuel-gauge hero where visitors tap a fill (€5 to €50) and watch the tank fill, a countdown, the 15 prizes (top three as feature cards, the rest on a prize board), a pump-style line picker with bundle pricing, a sticky mobile buy bar, and an FAQ.
 - **Checkout**: Stripe-hosted, so card, Apple Pay and Google Pay all work. It collects the buyer's full name, phone and email, plus an optional "club member who sent you" field so sellers get credit.
-- **Fulfilment**: a signature-verified webhook allocates sequential ticket numbers. The success page "prints" them on a receipt and has WhatsApp and Facebook share buttons.
-- **Admin**: `GET /api/admin/tickets.csv` exports one row per ticket for running the draw (needs `ADMIN_TOKEN`).
+- **Fulfilment**: a signature-verified webhook places each order's lines on numbered **online cards** of 20 lines, in the same layout as the paper draw cards. An order that fits on one card is kept together. Buyers see how many lines they entered and in whose name, never line numbers. The confirmation page has WhatsApp and Facebook share buttons.
+- **Admin**: `/admin/cards?token=ADMIN_TOKEN` shows the online cards ready to print (one per A4 page) and links to a CSV backup.
 
 **Going live?** Follow [docs/GO-LIVE.md](docs/GO-LIVE.md).
 
@@ -18,7 +18,7 @@ npm run dev              # http://localhost:3000
 npm test
 ```
 
-Without a Stripe key the site runs in **demo mode**: checkout skips payment and issues test tickets.
+Without a Stripe key the site runs in **demo mode**: checkout skips payment and enters test lines.
 
 `node scripts/build-preview.js preview.html` bundles the site into one self-contained HTML file with simulated checkout, for sharing a clickable preview.
 
@@ -39,10 +39,9 @@ Everything lives in `config/draw.json`:
 | Field | Purpose |
 |---|---|
 | `drawDate`, `salesCloseDate` | Countdown, and checkout closes automatically at `salesCloseDate` |
-| `bundles` | Ticket options. Prices are in cents. Mark one `"featured": true` |
+| `bundles` | Line options: `lines` and `price` (in cents). Mark one `"featured": true`. The biggest bundle fills the gauge to F |
 | `prizes` | In order, 1st first. Each has `title`, optional `detail`, `value` and `sponsor`, and a `kind` (`holiday`, `fuel`, `home` or `event`) |
-| `ticketTarget` | The "F" on the fuel gauge |
-| `ticketsSoldOffset` | Adds paper or offline sales to the gauge |
+| `linesPerCard` | Lines on each printed online card (20, as on the paper cards) |
 | `address` | Club address, shown in the footer |
 | `mapsUrl` | Google Maps link for the footer's Directions link |
 | `licenceNote` | Licence line in the footer |
@@ -53,8 +52,9 @@ Club colours are CSS variables at the top of `public/styles.css` (`--holly`, `--
 
 | Method | Path | |
 |---|---|---|
-| GET | `/api/draw` | Public draw config and tickets sold |
+| GET | `/api/draw` | Public draw config |
 | POST | `/api/checkout` | `{ bundleId, quantity }` → Stripe Checkout URL. Prices come from the server config, never the client |
 | POST | `/api/webhook` | Stripe webhook (raw body, signature verified) |
-| GET | `/api/order/:sessionId` | Ticket numbers for the success page. Falls back to retrieving the session from Stripe if the webhook hasn't arrived yet |
-| GET | `/api/admin/tickets.csv` | CSV export (`Authorization: Bearer $ADMIN_TOKEN`) |
+| GET | `/api/order/:sessionId` | Line count and name for the confirmation page. Falls back to retrieving the session from Stripe if the webhook hasn't arrived yet |
+| GET | `/admin/cards` | Printable online cards (`?token=` or `Authorization: Bearer`) |
+| GET | `/api/admin/lines.csv` | One row per online line: card, line, name, phone, email, seller |

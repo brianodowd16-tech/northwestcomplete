@@ -5,12 +5,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { OrderStore } = require('../src/store');
-const { createApp, ticketRange } = require('../src/app');
+const { OrderStore, describeLines } = require('../src/store');
+const { createApp } = require('../src/app');
 const baseConfig = require('../config/draw.json');
 
 const tmpFile = () => path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'draw-')), 'orders.json');
 const config = { ...baseConfig, salesCloseDate: '2999-01-01T00:00:00Z' };
+const cardLines = (order) => order.lines.map(({ card, line }) => `${card}.${line}`);
 
 async function withServer(opts, fn) {
   const server = createApp(opts).listen(0);
@@ -19,30 +20,42 @@ async function withServer(opts, fn) {
   try { await fn(base); } finally { server.close(); }
 }
 
-test('store allocates sequential tickets, is idempotent and persists', async () => {
+test('store fills online cards in order, is idempotent and persists', async () => {
   const file = tmpFile();
-  const store = new OrderStore(file, { startNumber: 1001 });
-  const a = await store.fulfil({ id: 'a', ticketCount: 3, amount: 2500, currency: 'eur' });
-  const again = await store.fulfil({ id: 'a', ticketCount: 3, amount: 2500, currency: 'eur' });
-  const b = await store.fulfil({ id: 'b', ticketCount: 2, amount: 2000, currency: 'eur' });
-  assert.deepEqual(a.tickets, [1001, 1002, 1003]);
+  const store = new OrderStore(file);
+  const a = await store.fulfil({ id: 'a', lineCount: 3, amount: 1000, currency: 'eur' });
+  const again = await store.fulfil({ id: 'a', lineCount: 3, amount: 1000, currency: 'eur' });
+  const b = await store.fulfil({ id: 'b', lineCount: 2, amount: 1000, currency: 'eur' });
+  assert.deepEqual(cardLines(a), ['1.1', '1.2', '1.3']);
   assert.equal(again, a);
-  assert.deepEqual(b.tickets, [1004, 1005]);
+  assert.deepEqual(cardLines(b), ['1.4', '1.5']);
 
   const reloaded = new OrderStore(file);
-  assert.equal(reloaded.ticketsSold(), 5);
-  const c = await reloaded.fulfil({ id: 'c', ticketCount: 1, amount: 1000, currency: 'eur' });
-  assert.deepEqual(c.tickets, [1006]);
+  assert.equal(reloaded.linesSold(), 5);
+  const c = await reloaded.fulfil({ id: 'c', lineCount: 1, amount: 500, currency: 'eur' });
+  assert.deepEqual(cardLines(c), ['1.6']);
 });
 
-test('concurrent fulfilments never share ticket numbers', async () => {
+test('an order that fits on one card is kept together; big orders span cards', async () => {
+  const store = new OrderStore(tmpFile(), { linesPerCard: 20 });
+  await store.fulfil({ id: 'a', lineCount: 15 });
+  const b = await store.fulfil({ id: 'b', lineCount: 7 });
+  const c = await store.fulfil({ id: 'c', lineCount: 3 });
+  const d = await store.fulfil({ id: 'd', lineCount: 45 });
+  assert.equal(describeLines(b.lines), 'Card 2, lines 1-7');
+  assert.equal(describeLines(c.lines), 'Card 2, lines 8-10');
+  assert.equal(describeLines(d.lines), 'Card 3, lines 1-20; Card 4, lines 1-20; Card 5, lines 1-5');
+  assert.deepEqual(store.cards().map((card) => [card.card, card.lines.filter(Boolean).length]), [[1, 15], [2, 10], [3, 20], [4, 20], [5, 5]]);
+});
+
+test('concurrent fulfilments never share a line', async () => {
   const store = new OrderStore(tmpFile());
-  const orders = await Promise.all(Array.from({ length: 20 }, (_, i) => store.fulfil({ id: `o${i}`, ticketCount: 3 })));
-  const all = orders.flatMap((o) => o.tickets);
+  const orders = await Promise.all(Array.from({ length: 20 }, (_, i) => store.fulfil({ id: `o${i}`, lineCount: 3 })));
+  const all = orders.flatMap(cardLines);
   assert.equal(new Set(all).size, 60);
 });
 
-test('demo checkout issues tickets and order lookup returns them', async () => {
+test('demo checkout enters lines and the order lookup shows a count, not positions', async () => {
   const store = new OrderStore(tmpFile());
   await withServer({ config, store, stripe: null, publicUrl: 'http://x' }, async (base) => {
     const res = await fetch(`${base}/api/checkout`, {
@@ -52,11 +65,13 @@ test('demo checkout issues tickets and order lookup returns them', async () => {
     const { url } = await res.json();
     const id = new URL(url, base).searchParams.get('session_id');
     const order = await (await fetch(`${base}/api/order/${id}`)).json();
-    assert.equal(order.tickets.length, 14);
+    assert.equal(order.lines, 14);
     assert.equal(order.amount, 4000);
+    assert.equal(order.drawLocation, config.drawLocation);
+    assert.ok(!JSON.stringify(order).includes('card'));
 
     const draw = await (await fetch(`${base}/api/draw`)).json();
-    assert.equal(draw.ticketsSold, 14);
+    assert.equal(draw.ticketsSold, undefined);
   });
 });
 
@@ -87,7 +102,7 @@ test('Stripe checkout session is built server-side from config prices', async ()
   });
   assert.equal(params.line_items[0].price_data.unit_amount, 1000);
   assert.equal(params.line_items[0].quantity, 2);
-  assert.equal(params.metadata.ticketCount, '6');
+  assert.equal(params.metadata.lineCount, '6');
   assert.match(params.success_url, /^https:\/\/draw\.example\/success\.html\?session_id=\{CHECKOUT_SESSION_ID\}$/);
 });
 
@@ -97,8 +112,8 @@ test('webhook fulfils paid sessions using signature-verified events', async () =
   const secret = 'whsec_test';
   const store = new OrderStore(tmpFile());
   const session = {
-    id: 'cs_test_1', payment_status: 'paid', amount_total: 5000, currency: 'eur',
-    metadata: { bundleId: 'seven', ticketCount: '7' },
+    id: 'cs_test_1', payment_status: 'paid', amount_total: 2000, currency: 'eur',
+    metadata: { bundleId: 'seven', lineCount: '7' },
     customer_details: { email: 'mary@example.com', phone: '+353870000000', name: 'Card Name' },
     custom_fields: [{ key: 'fullname', text: { value: 'Mary Murphy' } }, { key: 'soldby', text: { value: 'Seán' } }],
   };
@@ -112,51 +127,54 @@ test('webhook fulfils paid sessions using signature-verified events', async () =
     assert.equal(ok.status, 200);
   });
   const order = store.get('cs_test_1');
-  assert.equal(order.tickets.length, 7);
+  assert.equal(order.lines.length, 7);
   assert.equal(order.customer.name, 'Mary Murphy');
   assert.equal(order.soldBy, 'Seán');
 });
 
-test('admin CSV requires the token', async () => {
-  const store = new OrderStore(tmpFile());
-  await store.fulfil({ id: 'x', ticketCount: 2, customer: { name: 'A "B"' } });
-  await withServer({ config, store, stripe: null, publicUrl: 'http://x', adminToken: 'secret-token' }, async (base) => {
-    assert.equal((await fetch(`${base}/api/admin/tickets.csv`)).status, 401);
-    assert.equal((await fetch(`${base}/api/admin/tickets.csv?token=wrong-token!`)).status, 401);
-    const res = await fetch(`${base}/api/admin/tickets.csv`, { headers: { authorization: 'Bearer secret-token' } });
-    const csv = await res.text();
-    assert.equal(csv.trim().split('\n').length, 3);
-    assert.match(csv, /"A ""B"""/);
-  });
-});
-
-test('ticketRange formats consecutive and single tickets', () => {
-  assert.equal(ticketRange([1001]), '1001');
-  assert.equal(ticketRange([1001, 1002, 1003]), '1001-1003');
-  assert.equal(ticketRange([1001, 1005]), '1001, 1005');
-});
-
-test('paid sessions label the Stripe payment with their ticket numbers once', async () => {
+test('paid sessions label the Stripe payment with their card and lines once', async () => {
   const updates = [];
   const stripe = {
     paymentIntents: { update: async (id, params) => { updates.push({ id, params }); return {}; } },
     checkout: { sessions: { retrieve: async (id) => ({
       id, payment_status: 'paid', payment_intent: 'pi_123', amount_total: 1000, currency: 'eur',
-      metadata: { bundleId: 'three', ticketCount: '3' }, customer_details: { email: 'a@example.com' },
+      metadata: { bundleId: 'three', lineCount: '3' }, customer_details: { email: 'a@example.com', name: 'Ann Lee' },
     }) } },
   };
   const store = new OrderStore(tmpFile());
   await withServer({ config, store, stripe, publicUrl: 'http://x' }, async (base) => {
     const first = await (await fetch(`${base}/api/order/cs_test_label`)).json();
-    assert.deepEqual(first.tickets, [1001, 1002, 1003]);
+    assert.equal(first.lines, 3);
     await new Promise((r) => setTimeout(r, 50));
     await fetch(`${base}/api/order/cs_test_label`);
   });
   assert.equal(updates.length, 1);
   assert.equal(updates[0].id, 'pi_123');
-  assert.equal(updates[0].params.metadata.tickets, '1001-1003');
-  assert.match(updates[0].params.description, /tickets 1001-1003$/);
+  assert.equal(updates[0].params.metadata.onlineCards, 'Card 1, lines 1-3');
+  assert.match(updates[0].params.description, /: 3 lines for Ann Lee$/);
   assert.equal(store.get('cs_test_label').stripeLabelled, true);
+});
+
+test('admin cards page and CSV require the token and escape names', async () => {
+  const store = new OrderStore(tmpFile());
+  await store.fulfil({ id: 'x', lineCount: 2, customer: { name: '<b>A "B"</b>', phone: '087' }, soldBy: 'Seán' });
+  await withServer({ config, store, stripe: null, publicUrl: 'http://x', adminToken: 'secret-token' }, async (base) => {
+    assert.equal((await fetch(`${base}/admin/cards`)).status, 401);
+    assert.equal((await fetch(`${base}/admin/cards?token=wrong-token!`)).status, 401);
+    assert.equal((await fetch(`${base}/api/admin/lines.csv`)).status, 401);
+
+    const html = await (await fetch(`${base}/admin/cards?token=secret-token`)).text();
+    assert.match(html, /Online card 1/);
+    assert.match(html, /2 online lines on 1 card/);
+    assert.ok(html.includes('&lt;b&gt;A &quot;B&quot;&lt;/b&gt;'));
+    assert.ok(!html.includes('<b>A'));
+    assert.equal((html.match(/<tr><td>/g) || []).length, config.linesPerCard);
+
+    const csv = await (await fetch(`${base}/api/admin/lines.csv`, { headers: { authorization: 'Bearer secret-token' } })).text();
+    const rows = csv.trim().split('\n');
+    assert.equal(rows.length, 3);
+    assert.match(rows[1], /^"1","1","<b>A ""B""<\/b>","087"/);
+  });
 });
 
 test('pages carry security headers and absolute share URLs', async () => {

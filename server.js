@@ -27,7 +27,7 @@ if (NODE_ENV === 'production') {
 }
 
 const stripe = STRIPE_SECRET_KEY ? Stripe(STRIPE_SECRET_KEY) : null;
-const store = new OrderStore(DATA_FILE, { startNumber: config.ticketStartNumber });
+const store = new OrderStore(DATA_FILE, { linesPerCard: config.linesPerCard });
 
 const app = createApp({
   config, store, stripe,

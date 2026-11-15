@@ -9,30 +9,27 @@
   "drawDate": "2026-12-30T21:00:00Z",
   "drawLocation": "Beirne's of Battlebridge",
   "salesCloseDate": "2026-12-30T19:00:00Z",
-  "ticketTarget": 2000,
-  "ticketsSoldOffset": 0,
-  "ticketStartNumber": 1001,
   "facebookUrl": "https://www.facebook.com/stmichaelsgaaardcarne/",
   "contactEmail": "secretary.stmichaels.roscommon@gaa.ie",
   "licenceNote": "Lottery licence granted. Details available on request.",
   "bundles": [
     {
       "id": "single",
-      "tickets": 1,
+      "lines": 1,
       "price": 500,
       "label": "Single line",
       "tag": null
     },
     {
       "id": "three",
-      "tickets": 3,
+      "lines": 3,
       "price": 1000,
       "label": "Top-up",
       "tag": "Save €5"
     },
     {
       "id": "seven",
-      "tickets": 7,
+      "lines": 7,
       "price": 2000,
       "label": "Half tank",
       "tag": "Most popular",
@@ -40,21 +37,21 @@
     },
     {
       "id": "eleven",
-      "tickets": 11,
+      "lines": 11,
       "price": 3000,
       "label": "Three-quarter tank",
       "tag": "Save €25"
     },
     {
       "id": "fifteen",
-      "tickets": 15,
+      "lines": 15,
       "price": 4000,
       "label": "Full tank",
       "tag": "Save €35"
     },
     {
       "id": "twenty",
-      "tickets": 20,
+      "lines": 20,
       "price": 5000,
       "label": "Tanker",
       "tag": "Best value"
@@ -182,5 +179,6 @@
       "sponsor": null,
       "kind": "holiday"
     }
-  ]
+  ],
+  "linesPerCard": 20
 }

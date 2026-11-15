@@ -31,24 +31,27 @@ Copy the signing secret (`whsec_…`) into Render's `STRIPE_WEBHOOK_SECRET`. Ren
 
 1. Buy a 3-line bundle on the live site with card `4242 4242 4242 4242`, any future expiry date and any CVC.
 2. Check that:
-   - the confirmation page shows 3 ticket numbers
-   - in Stripe, the payment's description reads "tickets 1001-1003"
-   - the export downloads with those 3 rows: `https://YOUR-DOMAIN/api/admin/tickets.csv?token=ADMIN_TOKEN`
+   - the confirmation page says 3 lines entered, in the name you gave
+   - in Stripe, the payment's description reads "3 lines for (your name)", and its metadata shows "Card 1, lines 1-3"
+   - the printable cards page shows those 3 lines on Online card 1: `https://YOUR-DOMAIN/admin/cards?token=ADMIN_TOKEN`
 3. Share the link in WhatsApp and check that the preview card shows.
 
 ## 5. Switch to live
 
 1. In Stripe, switch off **Test mode**. Create the same webhook again in live mode.
 2. In Render, replace `STRIPE_SECRET_KEY` with `sk_live_…` and `STRIPE_WEBHOOK_SECRET` with the live `whsec_…`.
-3. Test orders were saved on the disk. Delete `/var/data/orders.json` in Render's **Shell** tab so live numbering starts at 1001. Then restart.
-4. Do one real €5 purchase, then refund it from Stripe if you like. A refund does not remove the ticket from the export.
+3. Test orders were saved on the disk. Delete `/var/data/orders.json` in Render's **Shell** tab so the live entries start on Online card 1. Then restart.
+4. Do one real €5 purchase, then refund it from Stripe if you like. A refund does not remove the lines from the cards. Cross them out by hand before printing.
 
 ## Before launch: decisions
 
 - **Sales close time:** 7pm on 30 December (`salesCloseDate` in `config/draw.json`).
-- **Paper sales on the gauge:** set `ticketsSoldOffset` to the number of lines sold on paper, if you want them counted.
 - **Terms:** have the committee read `/terms`.
 
 ## On the night
 
-Download the export (link above). Online lines are numbered from 1001, each with a name, phone and email. Make sure every online line goes into the Big Draw alongside the paper cards. For example, print one docket per row.
+1. After online entries close (7pm), open `https://YOUR-DOMAIN/admin/cards?token=ADMIN_TOKEN` on a laptop.
+2. Press **Print cards**. Each online card prints on its own A4 page, in the same layout as the paper cards: lines 1–20, name and contact details, and the seller (or "Online").
+3. Put the printed online cards in with the paper cards and draw as normal. A winning online line has the buyer's phone and email on the card.
+
+The same page has a spreadsheet download (CSV) of every online line, as a backup. You can also print the cards earlier, for example each week, to keep a paper record as sales come in. Cards fill in order, so reprint the latest card if it has gained lines since.

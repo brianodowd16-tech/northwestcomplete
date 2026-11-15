@@ -24,17 +24,27 @@ function render(order) {
   $('#result').hidden = false;
   if (order.firstName) $('#name').textContent = `, ${order.firstName}`;
   if (order.email) $('#email').textContent = order.email;
-  $('#count').textContent = `${order.tickets.length} TICKET${order.tickets.length > 1 ? 'S' : ''}`;
-  $('#drawDate').textContent = new Date(order.drawDate).toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Dublin' }).toUpperCase();
+  if (order.name) $('#fullName').textContent = order.name;
+  $('#paid').textContent = `PAID ${(order.amount / 100).toLocaleString('en-IE', { style: 'currency', currency: 'EUR' })}`;
+  $('#lineCount').textContent = order.lines;
+  $('#lineWord').textContent = order.lines === 1 ? 'LINE ENTERED' : 'LINES ENTERED';
+  const drawDate = new Date(order.drawDate);
+  $('#drawDate').textContent = [
+    drawDate.toLocaleDateString('en-IE', { day: 'numeric', month: 'short', timeZone: 'Europe/Dublin' }),
+    drawDate.toLocaleTimeString('en-GB', { hour: 'numeric', hour12: true, timeZone: 'Europe/Dublin' }).replace(/\s/g, ''),
+    order.drawLocation,
+  ].filter(Boolean).join(' · ').toUpperCase();
   $('#demoNote').hidden = !order.demo;
 
-  const list = $('#ticketList');
-  order.tickets.forEach((n, i) => {
-    const li = document.createElement('li');
-    li.textContent = n;
-    li.style.animationDelay = `${1.2 + Math.min(i, 30) * 0.06}s`;
-    list.append(li);
-  });
+  // One fuel segment per line, lighting up in turn once the receipt has printed (capped so big orders stay tidy).
+  const tank = $('#tank');
+  const shown = Math.min(order.lines, 20);
+  for (let i = 0; i < shown; i++) {
+    const seg = document.createElement('span');
+    seg.style.animationDelay = `${1.3 + i * 0.07}s`;
+    tank.append(seg);
+  }
+  if (order.lines > shown) tank.dataset.more = `+${order.lines - shown}`;
 
   const url = location.origin;
   const text = `I just entered the St Michael's GAA & LGFA Super Fuel & Holiday Draw. 15 prizes including trips to Australia and New York. Lines from €5. Support the club: ${url}`;

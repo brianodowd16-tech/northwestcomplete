@@ -156,18 +156,32 @@ main, .nav, .footer, .ribbon { position: relative; z-index: 1; }
 .gauge__needle circle { fill: var(--night); stroke: var(--amber); stroke-width: 4; }
 .gauge__readout { display: grid; justify-items: center; gap: .5rem; margin-top: 1rem; text-align: center; }
 .gauge__label { font: 500 .78rem var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--frost-dim); }
-.gauge__pct { font-size: .95rem; color: var(--frost-dim); }
-.gauge__pct strong { color: var(--amber); }
 
 .lcd {
   display: inline-block; padding: .45rem 1rem; border-radius: 10px;
   background: var(--lcd-bg); box-shadow: inset 0 2px 10px rgba(0,0,0,.8), 0 0 0 1px rgba(157,255,106,.15);
   font: 700 clamp(2rem, 5vw, 2.8rem)/1 var(--mono); color: var(--lcd); text-shadow: 0 0 12px rgba(157,255,106,.55);
 }
-.odometer { display: inline-flex; overflow: hidden; height: 1em; }
-.odometer__digit { display: inline-block; height: 1em; overflow: hidden; }
-.odometer__strip { display: flex; flex-direction: column; transition: transform 1.8s var(--ease); }
-.odometer__strip span { height: 1em; line-height: 1; }
+.lcd { display: inline-flex; align-items: baseline; gap: .5rem; font-variant-numeric: tabular-nums; }
+.lcd small { font-size: .8rem; letter-spacing: .14em; color: rgba(157, 255, 106, .6); text-shadow: none; }
+
+/* Quick-fill buttons under the hero gauge */
+.fills { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; width: 100%; margin-top: .4rem; }
+.fill {
+  display: grid; gap: .1rem; padding: .6rem .4rem; border: 0; border-radius: 14px; cursor: pointer;
+  font-family: var(--display); color: var(--frost); background: rgba(243, 248, 244, .06);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease), background .2s;
+}
+.fill strong { font-size: 1.15rem; line-height: 1.1; }
+.fill span { font: 500 .72rem var(--mono); color: var(--frost-dim); }
+.fill:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1.5px rgba(var(--red-rgb), .6); }
+.fill:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+.fill[aria-checked="true"] { background: linear-gradient(160deg, #3d0b12, var(--night-2)); box-shadow: inset 0 0 0 2px var(--amber); }
+.fill[aria-checked="true"] span { color: var(--frost); }
+.gauge__readout .btn { margin-top: .5rem; }
+.gauge.is-full .gauge__fill { filter: drop-shadow(0 0 16px rgba(31, 169, 90, .7)); }
+.gauge.is-full .lcd { animation: flash .6s var(--ease) 2; }
 
 /* ---------- Sections ---------- */
 .section { max-width: 1240px; margin: 0 auto; padding: clamp(3rem, 8vw, 6rem) var(--gutter); }
