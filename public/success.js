@@ -1,12 +1,15 @@
 import { startSnow } from './shared.js';
 
 const $ = (s) => document.querySelector(s);
-const id = new URLSearchParams(location.search).get('session_id');
+const params = new URLSearchParams(location.search);
+const id = params.get('session_id');
+const ref = params.get('ref');
 
 startSnow($('#snow'));
 load();
 
 async function load() {
+  if (ref) return renderReserved();
   if (!id) return showPending();
   // The webhook can lag a second or two behind the redirect, so retry briefly.
   for (let attempt = 0; attempt < 8; attempt++) {
@@ -17,6 +20,25 @@ async function load() {
     await new Promise((r) => setTimeout(r, 1200 + attempt * 400));
   }
   showPending();
+}
+
+// Pay-later orders: the order is saved and emailed, and the club collects payment.
+function renderReserved() {
+  let order = {};
+  try { order = JSON.parse(sessionStorage.getItem('fuelDrawOrder') || '{}'); } catch { /* storage blocked */ }
+  if (order.ref !== ref) order = { ref, lines: Number(params.get('lines')) || 0, amount: Number(params.get('amount')) || 0 };
+  render({ ...order, demo: false });
+  $('#doneEyebrow').textContent = `Order ${ref} received`;
+  $('#doneTitle').textContent = order.firstName ? `Nearly there, ${order.firstName}!` : 'Nearly there!';
+  $('#doneLede').textContent = order.email
+    ? `We've emailed your order to ${order.email} and to the club. Your lines go into the draw once you've paid.`
+    : "We've emailed your order to you and to the club. Your lines go into the draw once you've paid.";
+  $('#paid').textContent = `TO PAY ${(order.amount / 100).toLocaleString('en-IE', { style: 'currency', currency: 'EUR' })}`;
+  $('#lineWord').textContent = order.lines === 1 ? 'LINE RESERVED' : 'LINES RESERVED';
+  $('#payText').textContent = order.instructions || 'The club will contact you shortly to take payment.';
+  $('#payBox').hidden = false;
+  if (!order.name) $('.receipt__name').hidden = true;
+  if (!order.drawDate) $('.receipt__foot').hidden = true;
 }
 
 function render(order) {

@@ -5,6 +5,7 @@
 // Usage: node scripts/build-preview.js <output.html>
 
 const fs = require('node:fs');
+const { applyPayLaterCopy } = require('./pay-later-copy');
 const path = require('node:path');
 
 const root = path.join(__dirname, '..');
@@ -14,21 +15,27 @@ if (!out) {
   process.exit(1);
 }
 
+function must(src, from, to) {
+  if (!src.includes(from)) throw new Error(`build-preview: "${from}" not found`);
+  return src.replace(from, to);
+}
 const read = (f) => fs.readFileSync(path.join(root, f), 'utf8');
 const config = JSON.parse(read('config/draw.json'));
 
 const body = (html) => html.split(/<body>/)[1].split(/<\/body>/)[0].replace(/<script[^>]*><\/script>/g, '');
-const index = body(read('public/index.html'));
+// The preview shows the site as it runs on Hostinger: order now, pay the club.
+const index = body(applyPayLaterCopy('index.html', read('public/index.html')));
 const success = body(read('public/success.html'))
   .replace(/<canvas id="snow"[^>]*><\/canvas>/, '')
   .replace(/<header class="nav">[\s\S]*?<\/header>/, '');
 
 const strip = (js) => js.replace(/^import .*$/m, '').replace(/^export /gm, '');
 const shared = strip(read('public/shared.js'));
-const app = strip(read('public/app.js')).replace('location.assign(body.url);', 'showSuccess(body.url);');
+const app = must(strip(read('public/app.js')), 'const navigate = (url) => location.assign(url);', 'const navigate = (url) => showSuccess(url);');
 const succ = strip(read('public/success.js'))
   .replace("startSnow($('#snow'));\nload();", '')
-  .replace("const id = new URLSearchParams(location.search).get('session_id');", 'let id = null;')
+  .replace("const params = new URLSearchParams(location.search);\nconst id = params.get('session_id');\nconst ref = params.get('ref');",
+    'let params = new URLSearchParams();\nlet id = null;\nlet ref = null;')
   .replace('const $ = (s) => document.querySelector(s);', '');
 
 const mock = `
@@ -36,6 +43,8 @@ const mock = `
 const DRAW = ${JSON.stringify({ ...config, salesOpen: true, demoMode: false })};
 const ORDERS = {};
 const realFetch = window.fetch.bind(window);
+window.FUEL_DRAW = { drawUrl: '/api/draw', orderUrl: '/order.php', mode: 'pay-later' };
+let orderCount = 0;
 window.fetch = async (url, opts = {}) => {
   const json = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json' } });
   if (url === '/api/draw') return json(DRAW);
@@ -48,12 +57,22 @@ window.fetch = async (url, opts = {}) => {
     await new Promise((r) => setTimeout(r, 700));
     return json({ url: '/success.html?session_id=' + oid });
   }
+  if (url === '/order.php') {
+    const o = JSON.parse(opts.body);
+    const b = DRAW.bundles.find((x) => x.id === o.bundleId);
+    await new Promise((r) => setTimeout(r, 600));
+    return json({ ref: 'SM-' + String(++orderCount).padStart(4, '0'), lines: b.lines * o.quantity, amount: b.price * o.quantity,
+      name: o.name, firstName: o.name.split(' ')[0], email: o.email, drawDate: DRAW.drawDate, drawLocation: DRAW.drawLocation,
+      instructions: 'The club will contact you shortly to take payment.\\nYour lines go into the draw once payment is received.' });
+  }
   const m = String(url).match(/^\\/api\\/order\\/(.+)$/);
   if (m) return ORDERS[decodeURIComponent(m[1])] ? json(ORDERS[decodeURIComponent(m[1])]) : json({ error: 'not found' }, 404);
   return realFetch(url, opts);
 };
 function showSuccess(url) {
-  id = new URLSearchParams(url.split('?')[1]).get('session_id');
+  params = new URLSearchParams(url.split('?')[1]);
+  id = params.get('session_id');
+  ref = params.get('ref');
   document.getElementById('landing').hidden = true;
   document.getElementById('successView').hidden = false;
   scrollTo(0, 0);
@@ -88,7 +107,7 @@ ${fonts}
 <style>
 ${css}
 </style>
-<div class="preview-flag">PREVIEW · payments are simulated, no card needed</div>
+<div class="preview-flag">PREVIEW · orders here are not saved or emailed</div>
 <div id="landing">
 ${index}
 </div>

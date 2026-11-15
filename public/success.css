@@ -36,6 +36,9 @@
 .tank[data-more]::after { content: attr(data-more); align-self: center; margin-left: 4px; font-weight: 700; font-size: .8rem; color: var(--lcd); }
 @keyframes fuel { to { background: var(--lcd); box-shadow: 0 0 8px rgba(157, 255, 106, .6); } }
 
+.paybox { width: min(100%, 460px); display: grid; gap: .4rem; padding: 1.1rem 1.3rem; border-radius: var(--radius-sm); text-align: left; background: rgba(var(--red-rgb), .12); box-shadow: inset 0 0 0 1px rgba(var(--red-rgb), .35); }
+.paybox strong { font: 700 .8rem var(--mono); letter-spacing: .1em; text-transform: uppercase; color: #ff8a91; }
+.paybox p { white-space: pre-line; }
 .demo-note { padding: .6rem 1rem; border-radius: 999px; background: rgba(var(--red-rgb), .14); color: #ff8a91; font-size: .9rem; }
 .share { width: 100%; padding: 1.4rem; border-radius: var(--radius); background: var(--night-2); box-shadow: inset 0 0 0 1px var(--line); display: grid; gap: 1rem; }
 .share p { color: var(--frost-dim); }

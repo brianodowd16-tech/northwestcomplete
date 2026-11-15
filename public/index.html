@@ -209,6 +209,27 @@
 
   <div class="toast" id="toast" role="status" hidden></div>
 
+  <dialog class="order" id="orderDialog" aria-labelledby="orderTitle">
+    <form class="order__form" id="orderForm">
+      <button type="button" class="order__close" id="orderClose" aria-label="Close">×</button>
+      <p class="eyebrow">Your order</p>
+      <h2 id="orderTitle">Your lines</h2>
+      <p class="order__note">Fill in your details and the club will contact you to take payment. Your lines go into the draw once you've paid.</p>
+      <label for="oName">Full name (for the draw)</label>
+      <input id="oName" name="name" autocomplete="name" required minlength="2" maxlength="80">
+      <label for="oPhone">Mobile number</label>
+      <input id="oPhone" name="phone" type="tel" autocomplete="tel" required minlength="7" maxlength="30">
+      <label for="oEmail">Email</label>
+      <input id="oEmail" name="email" type="email" autocomplete="email" required maxlength="120">
+      <label for="oSeller">Club member who sent you <span>(optional)</span></label>
+      <input id="oSeller" name="seller" maxlength="80">
+      <div class="order__hp" aria-hidden="true"><label for="oWebsite">Leave this empty</label><input id="oWebsite" name="website" tabindex="-1" autocomplete="off"></div>
+      <label class="order__check" for="oAdult"><input id="oAdult" name="adult" type="checkbox" required> I'm 18 or over and agree to the <a href="/terms" target="_blank" rel="noopener">terms</a></label>
+      <p class="pump__error" id="orderError" role="alert" hidden></p>
+      <button class="btn btn--fuel btn--lg btn--block" type="submit" id="orderSubmit">Place order</button>
+    </form>
+  </dialog>
+
   <script src="/app.js" type="module"></script>
 </body>
 </html>

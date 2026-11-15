@@ -28,6 +28,10 @@ Without a Stripe key the site runs in **demo mode**: checkout skips payment and 
 2. Forward webhooks with `stripe listen --forward-to localhost:3000/api/webhook` and copy the `whsec_...` it prints into `STRIPE_WEBHOOK_SECRET`.
 3. Pay with test card `4242 4242 4242 4242`.
 
+## Hostinger (PHP) version
+
+`npm run build:hostinger` builds `dist/stmichaels-draw-hostinger.zip`: the same site with "order now, pay the club" ordering, emails to the club and buyer, and a PHP admin page for marking orders paid and printing the online cards. The PHP lives in `hostinger/`. See [docs/HOSTINGER.md](docs/HOSTINGER.md).
+
 ## Going live
 
 See [docs/GO-LIVE.md](docs/GO-LIVE.md): Stripe account and lottery approval, Render hosting (`render.yaml`), the webhook, a test purchase, then the switch to live keys. In production the server refuses to start without the Stripe keys, the webhook secret, an `ADMIN_TOKEN` of 24+ characters, and an `https://` `PUBLIC_URL`.

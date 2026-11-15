@@ -1,0 +1,7 @@
+Options -Indexes
+DirectoryIndex index.php index.html
+
+# Settings and shared code are only ever included by the other PHP files.
+<FilesMatch "^(config|config\.sample|lib)\.php$|\.md$">
+  Require all denied
+</FilesMatch>

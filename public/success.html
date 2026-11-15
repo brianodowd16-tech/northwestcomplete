@@ -29,9 +29,9 @@
     </div>
 
     <section class="done__card" id="result" hidden>
-      <p class="eyebrow">Payment confirmed</p>
-      <h1 class="done__title">You're in<span id="name"></span>!</h1>
-      <p class="done__lede">Your lines are in the Super Fuel &amp; Holiday Draw. Stripe has emailed a receipt to <strong id="email">you</strong>. Keep it as your proof of entry.</p>
+      <p class="eyebrow" id="doneEyebrow">Payment confirmed</p>
+      <h1 class="done__title" id="doneTitle">You're in<span id="name"></span>!</h1>
+      <p class="done__lede" id="doneLede">Your lines are in the Super Fuel &amp; Holiday Draw. Stripe has emailed a receipt to <strong id="email">you</strong>. Keep it as your proof of entry.</p>
 
       <div class="receipt" id="receipt">
         <div class="receipt__head">
@@ -47,6 +47,8 @@
           <span>BIG DRAW</span><span id="drawDate">—</span>
         </div>
       </div>
+
+      <div class="paybox" id="payBox" hidden><strong>How to pay</strong><p id="payText"></p></div>
 
       <p class="demo-note" id="demoNote" hidden>Demo mode: no payment was taken and these lines are not real.</p>
 

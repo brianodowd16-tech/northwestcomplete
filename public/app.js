@@ -3,6 +3,13 @@ import { euro, countdown, startSnow, observeReveals } from './shared.js';
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
+// How this copy of the site takes orders. The Node server uses Stripe; the Hostinger
+// build sets window.FUEL_DRAW to take orders that the club collects payment for.
+const SITE = { drawUrl: '/api/draw', checkoutUrl: '/api/checkout', orderUrl: '/order.php', mode: 'stripe', ...window.FUEL_DRAW };
+const PAY_LATER = SITE.mode === 'pay-later';
+const CTA = PAY_LATER ? 'Fill up · Order' : 'Fill up · Pay';
+const navigate = (url) => location.assign(url);
+
 const state = { draw: null, bundleId: null, qty: 1, gaugeReady: false };
 
 init();
@@ -18,7 +25,7 @@ async function init() {
   }
 
   try {
-    const res = await fetch('/api/draw');
+    const res = await fetch(SITE.drawUrl);
     state.draw = await res.json();
   } catch {
     toast('Couldn’t load the draw. Please refresh.');
@@ -40,6 +47,7 @@ async function init() {
   $$('[data-step]').forEach((b) => b.addEventListener('click', () => setQty(state.qty + Number(b.dataset.step))));
   $('#checkoutBtn').addEventListener('click', checkout);
   $('#gaugeCta').addEventListener('click', checkout);
+  if (PAY_LATER) setupOrderForm();
   $('#buybarBtn').addEventListener('click', () => {
     if ($('#tickets').getBoundingClientRect().top > innerHeight * .5) $('#tickets').scrollIntoView();
     else checkout();
@@ -188,8 +196,8 @@ function updateTotals() {
   rollNumber($('#totalEuro'), total / 100, 2);
   rollNumber($('#totalTickets'), lines, 0);
   rollNumber($('#perTicket'), total / lines / 100, 2);
-  $('#checkoutLabel').textContent = `Fill up · Pay ${euro(total)}`;
-  $('#gaugeCtaLabel').textContent = `Fill up · Pay ${euro(total)}`;
+  $('#checkoutLabel').textContent = `${CTA} ${euro(total)}`;
+  $('#gaugeCtaLabel').textContent = `${CTA} ${euro(total)}`;
   $('#buybarLabel').textContent = b.label;
   $('#buybarMeta').textContent = `${lines} line${lines > 1 ? 's' : ''}`;
   $('#buybarTotal').textContent = euro(total);
@@ -254,20 +262,21 @@ function startGauge() {
 }
 
 async function checkout() {
+  if (PAY_LATER) return openOrderForm();
   const err = $('#checkoutError');
   err.hidden = true;
   $$('#checkoutBtn, #buybarBtn, #gaugeCta').forEach((b) => { b.disabled = true; });
   $('#checkoutLabel').textContent = 'Opening secure checkout…';
   $('#gaugeCtaLabel').textContent = 'Opening secure checkout…';
   try {
-    const res = await fetch('/api/checkout', {
+    const res = await fetch(SITE.checkoutUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ bundleId: state.bundleId, quantity: state.qty }),
     });
     const body = await res.json();
     if (!res.ok || !body.url) throw new Error(body.error || 'Checkout failed');
-    location.assign(body.url);
+    navigate(body.url);
   } catch (e) {
     err.textContent = e.message || 'Something went wrong. Please try again.';
     err.hidden = false;
@@ -275,6 +284,52 @@ async function checkout() {
     updateTotals();
     toast(err.textContent);
   }
+}
+
+// Pay-later ordering: collect the buyer's details, save the order and email it to the club.
+function openOrderForm() {
+  const b = currentBundle();
+  const lines = b.lines * state.qty;
+  const total = euro(b.price * state.qty);
+  $('#orderTitle').textContent = `${lines} line${lines > 1 ? 's' : ''} · ${total}`;
+  $('#orderSubmit').textContent = `Place order · ${total}`;
+  $('#orderError').hidden = true;
+  const dialog = $('#orderDialog');
+  if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', '');
+  $('#oName').focus();
+}
+
+function setupOrderForm() {
+  const dialog = $('#orderDialog');
+  const form = $('#orderForm');
+  $('#orderClose').addEventListener('click', () => dialog.close?.() ?? dialog.removeAttribute('open'));
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const err = $('#orderError');
+    err.hidden = true;
+    if (!form.reportValidity()) return;
+    const submit = $('#orderSubmit');
+    const label = submit.textContent;
+    submit.disabled = true;
+    submit.textContent = 'Placing your order…';
+    const data = Object.fromEntries(new FormData(form));
+    try {
+      const res = await fetch(SITE.orderUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, adult: data.adult === 'on', bundleId: state.bundleId, quantity: state.qty }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || !body.ref) throw new Error(body.error || 'We couldn’t place your order. Please try again.');
+      try { sessionStorage.setItem('fuelDrawOrder', JSON.stringify(body)); } catch { /* storage blocked: the URL carries the essentials */ }
+      navigate(`/success.html?ref=${encodeURIComponent(body.ref)}&lines=${body.lines}&amount=${body.amount}`);
+    } catch (ex) {
+      err.textContent = ex.message;
+      err.hidden = false;
+      submit.disabled = false;
+      submit.textContent = label;
+    }
+  });
 }
 
 function closeSales() {

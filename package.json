@@ -2,13 +2,17 @@
   "name": "st-michaels-fuel-draw",
   "version": "1.0.0",
   "private": true,
-  "description": "St Michael's GAA & LGFA Christmas Fuel Draw — online ticket sales with Stripe Checkout",
+  "description": "St Michael's GAA & LGFA Christmas Fuel Draw \u2014 online ticket sales with Stripe Checkout",
   "main": "server.js",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "build:hostinger": "node scripts/build-hostinger.js",
+    "build:preview": "node scripts/build-preview.js"
   },
   "repository": {
     "type": "git",
