@@ -189,3 +189,29 @@ test('pages carry security headers and absolute share URLs', async () => {
     assert.equal((await fetch(`${base}/healthz`)).status, 200);
   });
 });
+
+test('big-spend bundles enter their lines across whole cards', async () => {
+  const store = new OrderStore(tmpFile(), { linesPerCard: config.linesPerCard });
+  await withServer({ config, store, stripe: null, publicUrl: 'http://x' }, async (base) => {
+    const res = await fetch(`${base}/api/checkout`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ bundleId: 'twohundred', quantity: 1 }),
+    });
+    const id = new URL((await res.json()).url, base).searchParams.get('session_id');
+    const order = await (await fetch(`${base}/api/order/${id}`)).json();
+    assert.equal(order.lines, 200);
+    assert.equal(order.amount, 50000);
+  });
+  assert.equal(store.cards().length, 10);
+  assert.ok(config.bundles.some((b) => b.price === 10000 && b.lines === 40));
+  assert.ok(config.bundles.some((b) => b.price === 20000 && b.lines === 80));
+});
+
+test('a single order cannot go over the maximum spend', async () => {
+  await withServer({ config, store: new OrderStore(tmpFile()), stripe: null, publicUrl: 'http://x' }, async (base) => {
+    const post = (body) => fetch(`${base}/api/checkout`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    assert.equal((await post({ bundleId: 'twohundred', quantity: 2 })).status, 400);
+    assert.equal((await post({ bundleId: 'twenty', quantity: 10 })).status, 200);
+    assert.equal((await post({ bundleId: 'eighty', quantity: 3 })).status, 400);
+  });
+});

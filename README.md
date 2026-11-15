@@ -2,7 +2,7 @@
 
 Online entry sales for the club's Super Fuel & Holiday Draw, with payment through **Stripe Checkout**.
 
-- **Landing page** (`public/index.html`): an interactive fuel-gauge hero where visitors tap a fill (€5 to €50) and watch the tank fill, a countdown, the 15 prizes (top three as feature cards, the rest on a prize board), a pump-style line picker with bundle pricing, a sticky mobile buy bar, and an FAQ.
+- **Landing page** (`public/index.html`): an interactive fuel-gauge hero where visitors tap a fill (€5 to €500) and watch the tank fill, a countdown, the 15 prizes (top three as feature cards, the rest on a prize board), a pump-style line picker with bundle pricing, a sticky mobile buy bar, and an FAQ.
 - **Checkout**: Stripe-hosted, so card, Apple Pay and Google Pay all work. It collects the buyer's full name, phone and email, plus an optional "club member who sent you" field so sellers get credit.
 - **Fulfilment**: a signature-verified webhook places each order's lines on numbered **online cards** of 20 lines, in the same layout as the paper draw cards. An order that fits on one card is kept together. Buyers see how many lines they entered and in whose name, never line numbers. The confirmation page has WhatsApp and Facebook share buttons.
 - **Admin**: `/admin/cards?token=ADMIN_TOKEN` shows the online cards ready to print (one per A4 page) and links to a CSV backup.
@@ -39,7 +39,9 @@ Everything lives in `config/draw.json`:
 | Field | Purpose |
 |---|---|
 | `drawDate`, `salesCloseDate` | Countdown, and checkout closes automatically at `salesCloseDate` |
-| `bundles` | Line options: `lines` and `price` (in cents). Mark one `"featured": true`. The biggest bundle fills the gauge to F |
+| `bundles` | Line options: `lines` and `price` (in cents). Mark one `"featured": true`; `"group": "big"` puts a bundle in the "Go big" row |
+| `maxOrderTotal` | Largest single online order, in cents (€500) |
+| `fullTankLines` | Lines that fill the hero gauge to F (20, the €50 bundle); bigger bundles keep it full |
 | `prizes` | In order, 1st first. Each has `title`, optional `detail`, `value` and `sponsor`, and a `kind` (`holiday`, `fuel`, `home` or `event`) |
 | `linesPerCard` | Lines on each printed online card (20, as on the paper cards) |
 | `address` | Club address, shown in the footer |

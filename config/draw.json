@@ -54,10 +54,36 @@
       "lines": 20,
       "price": 5000,
       "label": "Tanker",
-      "tag": "Best value"
+      "tag": "Fills the tank"
+    },
+    {
+      "id": "forty",
+      "lines": 40,
+      "price": 10000,
+      "label": "Double tanker",
+      "tag": "Save €100",
+      "group": "big"
+    },
+    {
+      "id": "eighty",
+      "lines": 80,
+      "price": 20000,
+      "label": "Fuel depot",
+      "tag": "Save €200",
+      "group": "big"
+    },
+    {
+      "id": "twohundred",
+      "lines": 200,
+      "price": 50000,
+      "label": "Refinery",
+      "tag": "Save €500",
+      "group": "big"
     }
   ],
+  "fullTankLines": 20,
   "maxBundlesPerOrder": 10,
+  "maxOrderTotal": 50000,
   "prizes": [
     {
       "place": "1st",

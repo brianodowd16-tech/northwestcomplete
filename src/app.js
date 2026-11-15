@@ -100,10 +100,10 @@ function createApp({ config, store, stripe, webhookSecret, publicUrl, adminToken
 
   app.get('/api/draw', (_req, res) => {
     const { clubName, clubShort, clubArea, address, mapsUrl, drawName, currency, drawDate, drawLocation, salesCloseDate,
-      facebookUrl, contactEmail, licenceNote, bundles, prizes, maxBundlesPerOrder } = config;
+      facebookUrl, contactEmail, licenceNote, bundles, prizes, maxBundlesPerOrder, maxOrderTotal, fullTankLines } = config;
     res.json({
       clubName, clubShort, clubArea, address, mapsUrl, drawName, currency, drawDate, drawLocation, salesCloseDate,
-      facebookUrl, contactEmail, licenceNote, bundles, prizes, maxBundlesPerOrder,
+      facebookUrl, contactEmail, licenceNote, bundles, prizes, maxBundlesPerOrder, maxOrderTotal, fullTankLines,
       salesOpen: Date.now() < Date.parse(salesCloseDate),
       demoMode,
     });
@@ -127,6 +127,9 @@ function createApp({ config, store, stripe, webhookSecret, publicUrl, adminToken
     if (!bundle) return res.status(400).json({ error: 'Please choose how many lines you want.' });
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > config.maxBundlesPerOrder) {
       return res.status(400).json({ error: `Quantity must be between 1 and ${config.maxBundlesPerOrder}.` });
+    }
+    if (config.maxOrderTotal && bundle.price * quantity > config.maxOrderTotal) {
+      return res.status(400).json({ error: `Online orders are limited to €${config.maxOrderTotal / 100}. For more, please contact the club.` });
     }
     if (Date.now() >= Date.parse(config.salesCloseDate)) {
       return res.status(410).json({ error: 'Online entries for this draw have closed.' });

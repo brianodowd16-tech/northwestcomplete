@@ -99,8 +99,8 @@ function renderPrizes(prizes) {
 
 function renderBundles(bundles) {
   const wrap = $('#bundles');
-  wrap.innerHTML = bundles.map((b) => `
-    <button type="button" class="bundle ${b.featured ? 'bundle--featured' : ''}" role="radio" data-id="${b.id}" aria-checked="false">
+  const card = (b) => `
+    <button type="button" class="bundle ${b.featured ? 'bundle--featured' : ''} ${b.group === 'big' ? 'bundle--big' : ''}" role="radio" data-id="${b.id}" aria-checked="false">
       <span class="bundle__check" aria-hidden="true">✓</span>
       <span class="bundle__top">
         <span class="bundle__name">${esc(b.label)}</span>
@@ -108,10 +108,13 @@ function renderBundles(bundles) {
       </span>
       <span class="bundle__tickets"><strong>${b.lines}</strong><span>line${b.lines > 1 ? 's' : ''}</span></span>
       <span class="bundle__bottom">
-        <span class="bundle__price">${euro(b.price)}</span>
+        <span class="bundle__price">${euro(b.price, { trim: true })}</span>
         <span class="bundle__per">${euro(b.price / b.lines)} each</span>
       </span>
-    </button>`).join('');
+    </button>`;
+  const big = bundles.filter((b) => b.group === 'big');
+  wrap.innerHTML = bundles.filter((b) => b.group !== 'big').map(card).join('')
+    + (big.length ? `<div class="bundles__big"><p class="bundles__bighead">Go big for the club</p>${big.map(card).join('')}</div>` : '');
 
   wrap.addEventListener('click', (e) => {
     const btn = e.target.closest('.bundle');
@@ -164,8 +167,13 @@ function selectBundle(id) {
 }
 
 function setQty(n) {
-  state.qty = Math.max(1, Math.min(state.draw.maxBundlesPerOrder, n));
+  const { maxBundlesPerOrder, maxOrderTotal } = state.draw;
+  const price = currentBundle().price;
+  const max = Math.max(1, Math.min(maxBundlesPerOrder, maxOrderTotal ? Math.floor(maxOrderTotal / price) : Infinity));
+  state.qty = Math.max(1, Math.min(max, n));
   $('#qty').textContent = state.qty;
+  $('[data-step="1"]').disabled = state.qty >= max;
+  $('[data-step="-1"]').disabled = state.qty <= 1;
   updateTotals();
 }
 
@@ -223,7 +231,7 @@ function setTank(lines) {
   rollNumber($('#gaugeLines'), lines, 0);
   $('#gaugeUnit').textContent = lines === 1 ? 'LINE' : 'LINES';
   if (!state.gaugeReady) return;
-  const full = Math.max(...state.draw.bundles.map((b) => b.lines));
+  const full = state.draw.fullTankLines ?? Math.max(...state.draw.bundles.map((b) => b.lines));
   pointGauge(Math.min(1, lines / full));
 }
 
