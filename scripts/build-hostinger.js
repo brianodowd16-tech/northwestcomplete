@@ -20,6 +20,18 @@ const pwIndex = process.argv.indexOf('--password');
 const password = pwIndex > -1 ? process.argv[pwIndex + 1] : crypto.randomBytes(9).toString('base64url');
 
 const read = (f) => fs.readFileSync(path.join(root, f), 'utf8');
+
+// A version stamp on every script and stylesheet link, so an update can't be mixed with old cached files
+// (an old app.js with a new index.php sends orders to the wrong place).
+const version = crypto.createHash('sha256')
+  .update(['app.js', 'shared.js', 'success.js', 'styles.css', 'success.css'].map((f) => read(`public/${f}`)).join(''))
+  .digest('hex').slice(0, 10);
+function mustReplace(src, from, to) {
+  if (!src.includes(from)) throw new Error(`build-hostinger: "${from}" not found`);
+  return src.replace(from, to);
+}
+const versioned = (html) => html
+  .replace(/(href|src)="\/(styles\.css|success\.css|app\.js|success\.js)"/g, `$1="/$2?v=${version}"`);
 const config = JSON.parse(read('config/draw.json'));
 
 fs.rmSync(outDir, { recursive: true, force: true });
@@ -38,13 +50,14 @@ fs.writeFileSync(path.join(outDir, 'draw.json'), JSON.stringify({
 }, null, 2));
 
 const settings = (mode) => `<script>window.FUEL_DRAW = { drawUrl: "/draw.json", orderUrl: "/order.php", confirmUrl: "/confirm.php", mode: ${mode} };</script>\n  `;
-const fixLinks = (html) => html.replaceAll('href="/terms"', 'href="/terms.html"');
+const fixLinks = (html) => versioned(html.replaceAll('href="/terms"', 'href="/terms.html"'));
 
 // index.php serves the card-payment page when SumUp is set up in config.php, otherwise the pay-the-club
 // page, and fills in the site's own address for the WhatsApp/Facebook share tags.
 const page = (mode) => {
-  const html = fixLinks(applyPaymentCopy(mode, 'index.html', read('public/index.html')))
-    .replace('<script src="/app.js" type="module"></script>', `${settings(`"${mode === 'card' ? 'card' : 'pay-later'}"`)}<script src="/app.js" type="module"></script>`);
+  // Settings go in before fixLinks stamps the script tag with a version.
+  const html = fixLinks(mustReplace(applyPaymentCopy(mode, 'index.html', read('public/index.html')),
+    '<script src="/app.js" type="module"></script>', `${settings(`"${mode === 'card' ? 'card' : 'pay-later'}"`)}<script src="/app.js" type="module"></script>`));
   if (html.includes('<?')) throw new Error('index.html must not contain "<?"');
   return html;
 };
@@ -57,8 +70,16 @@ echo str_replace('__PUBLIC_URL__', site_url(), ob_get_clean());
 `);
 
 fs.writeFileSync(path.join(outDir, 'terms.html'), fixLinks(applyPaymentCopy('terms', 'terms.html', read('public/terms.html'))));
-fs.writeFileSync(path.join(outDir, 'success.html'), fixLinks(read('public/success.html'))
-  .replace('<script src="/success.js" type="module"></script>', `${settings('null')}<script src="/success.js" type="module"></script>`));
+fs.writeFileSync(path.join(outDir, 'success.html'), fixLinks(mustReplace(read('public/success.html'),
+  '<script src="/success.js" type="module"></script>', `${settings('null')}<script src="/success.js" type="module"></script>`)));
+
+// The scripts load shared.js themselves, so it gets the same stamp.
+for (const f of ['app.js', 'success.js']) {
+  const file = path.join(outDir, f);
+  const src = fs.readFileSync(file, 'utf8');
+  if (!src.includes("from './shared.js'")) throw new Error(`${f} no longer imports ./shared.js`);
+  fs.writeFileSync(file, src.replace("from './shared.js'", `from './shared.js?v=${version}'`));
+}
 
 // PHP back end.
 for (const f of ['lib.php', 'order.php', 'confirm.php', 'sumup-webhook.php', 'admin.php', '.htaccess']) fs.copyFileSync(path.join(root, 'hostinger', f), path.join(outDir, f));
@@ -71,3 +92,4 @@ fs.rmSync(zipPath, { force: true });
 execFileSync('zip', ['-qr', zipPath, '.'], { cwd: outDir });
 console.log(`Built ${path.relative(root, outDir)} and ${path.relative(root, zipPath)}`);
 console.log(`Admin password (in config.php): ${password}`);
+console.log(`Version stamp: ${version}`);

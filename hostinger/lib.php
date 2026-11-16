@@ -196,8 +196,7 @@ function mark_paid(array &$rows, string $ref, string $txn = ''): ?array
 function sumup_enabled(): bool
 {
     $c = cfg();
-    $hasAuth = !empty($c['sumup_api_key']) || (!empty($c['sumup_client_id']) && !empty($c['sumup_client_secret']));
-    return $hasAuth && !empty($c['sumup_merchant_code']);
+    return !empty($c['sumup_api_key']) && !empty($c['sumup_merchant_code']);
 }
 
 function sumup_base(): string
@@ -205,33 +204,14 @@ function sumup_base(): string
     return rtrim(cfg()['sumup_api_base'] ?? 'https://api.sumup.com', '/');
 }
 
-/** An API key is used as is; otherwise a client-credentials token is fetched and cached until it expires. */
+/** The club's SumUp API key, sent as a bearer token. */
 function sumup_token(): ?string
 {
-    $c = cfg();
-    if (!empty($c['sumup_api_key'])) {
-        return $c['sumup_api_key'];
-    }
-    $cache = data_path('sumup-token.php');
-    $cached = is_file($cache) ? json_decode((string) substr((string) file_get_contents($cache), strlen(DATA_GUARD)), true) : null;
-    if (is_array($cached) && ($cached['expires'] ?? 0) > time() + 60) {
-        return $cached['token'];
-    }
-    [$code, $body] = http_request('POST', sumup_base() . '/token', [
-        'grant_type' => 'client_credentials',
-        'client_id' => $c['sumup_client_id'],
-        'client_secret' => $c['sumup_client_secret'],
-    ], null, true);
-    if ($code !== 200 || empty($body['access_token'])) {
-        error_log("Draw: SumUp token request failed ($code)");
-        return null;
-    }
-    file_put_contents($cache, DATA_GUARD . json_encode(['token' => $body['access_token'], 'expires' => time() + (int) ($body['expires_in'] ?? 3600)]), LOCK_EX);
-    return $body['access_token'];
+    return cfg()['sumup_api_key'] ?: null;
 }
 
 /** Returns [http status, decoded JSON body]. Status 0 means the request didn't complete. */
-function http_request(string $method, string $url, ?array $body = null, ?string $bearer = null, bool $form = false): array
+function http_request(string $method, string $url, ?array $body = null, ?string $bearer = null): array
 {
     $ch = curl_init($url);
     $headers = ['Accept: application/json', 'User-Agent: StMichaelsDraw/1.0'];
@@ -239,8 +219,8 @@ function http_request(string $method, string $url, ?array $body = null, ?string 
         $headers[] = 'Authorization: Bearer ' . $bearer;
     }
     if ($body !== null) {
-        $headers[] = $form ? 'Content-Type: application/x-www-form-urlencoded' : 'Content-Type: application/json';
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $form ? http_build_query($body) : json_encode($body));
+        $headers[] = 'Content-Type: application/json';
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
     }
     curl_setopt_array($ch, [
         CURLOPT_CUSTOMREQUEST => $method,

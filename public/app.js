@@ -277,7 +277,7 @@ async function checkout() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ bundleId: state.bundleId, quantity: state.qty }),
     });
-    const body = await res.json();
+    const body = await res.json().catch(() => ({ error: 'We couldn’t start checkout. Please refresh the page and try again.' }));
     if (!res.ok || !body.url) throw new Error(body.error || 'Checkout failed');
     navigate(body.url);
   } catch (e) {

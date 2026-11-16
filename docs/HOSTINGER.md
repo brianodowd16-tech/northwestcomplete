@@ -16,7 +16,13 @@ It works on any Hostinger plan with PHP 8.1 or newer, the default.
 
 ## Updating a site that's already live
 
-Upload and extract the new zip over the old files. Your orders in `data/` are kept. **`config.php` is replaced**, so re-enter anything you changed in it, such as `from_email`, the payment instructions or the admin password, then add the SumUp details below.
+1. In File Manager, open `config.php` and copy your `sumup_api_key`, `sumup_merchant_code` and `from_email` somewhere safe for a minute.
+2. Select everything in `public_html` **except the `data` folder** and delete it. The `data` folder holds your orders, so keep it.
+3. Upload the new zip, **Extract** it into `public_html`, and delete the zip.
+4. Open the new `config.php` and paste your settings back in.
+5. Open the site and press **Ctrl+F5** (or **Cmd+Shift+R** on a Mac) once, so your browser fetches the new version.
+
+Deleting the old files first matters: if an extract leaves an old file in place, the old and new versions get mixed and ordering stops working. From this version on, every page also asks for its own version of the scripts, so browsers and Hostinger can't serve stale copies.
 
 ## Settings (`config.php`)
 

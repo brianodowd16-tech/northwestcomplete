@@ -20,9 +20,6 @@ return [
     // (also under Settings → Business settings).
     'sumup_api_key' => '',
     'sumup_merchant_code' => '',
-    // Instead of an API key you can use OAuth client credentials from the same Developers page.
-    'sumup_client_id' => '',
-    'sumup_client_secret' => '',
 
     // Shown to buyers if they order while card payments are off (or SumUp can't be reached),
     // and in their confirmation email.

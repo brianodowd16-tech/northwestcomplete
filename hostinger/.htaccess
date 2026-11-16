@@ -5,3 +5,13 @@ DirectoryIndex index.php index.html
 <FilesMatch "^(config|config\.sample|lib)\.php$|\.md$">
   Require all denied
 </FilesMatch>
+
+# Pages and draw settings are always checked for updates; scripts and styles carry a version stamp.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|json|php)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "\.(js|css)$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+</IfModule>
