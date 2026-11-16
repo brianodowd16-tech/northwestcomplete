@@ -395,6 +395,8 @@ main, .nav, .footer, .ribbon { position: relative; z-index: 1; }
 .order__check input { width: 1.2rem; height: 1.2rem; margin-top: .1rem; accent-color: var(--ember); flex: none; }
 .order__check a { color: var(--amber); }
 .order__close { position: absolute; top: .8rem; right: .8rem; width: 40px; height: 40px; border: 0; border-radius: 50%; font-size: 1.5rem; color: var(--frost); background: var(--night-3); cursor: pointer; }
+.sumup { min-height: 220px; padding: .6rem; border-radius: 16px; background: #ffffff; color: #1a1a1a; }
+.order__status { padding: .7rem .9rem; border-radius: 12px; background: rgba(31, 169, 90, .16); color: #9df5c6; font-weight: 600; }
 .order__hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 @keyframes rise { from { opacity: 0; transform: translateY(20px); } }
 

@@ -48,29 +48,14 @@ if (isset($_POST['ref'], $_POST['status'])) {
         http_response_code(400);
         exit('Your session expired. Go back and try again.');
     }
-    update_orders(function (array &$rows) use ($perCard) {
-        // Lines go on the cards in the order payments are recorded. An order that fits on one
-        // card is kept together; bigger orders run across cards.
-        $next = 0;
-        foreach ($rows as $r) {
-            if ($r['slot_start'] !== '') {
-                $next = max($next, (int) $r['slot_start'] + (int) $r['lines']);
-            }
+    update_orders(function (array &$rows) {
+        $ref = (string) $_POST['ref'];
+        if ($_POST['status'] === 'paid') {
+            mark_paid($rows, $ref);
+            return;
         }
         foreach ($rows as &$r) {
-            if ($r['ref'] !== $_POST['ref']) {
-                continue;
-            }
-            if ($_POST['status'] === 'paid' && $r['status'] !== 'paid') {
-                $lines = (int) $r['lines'];
-                $used = $next % $perCard;
-                if ($used !== 0 && $lines > $perCard - $used) {
-                    $next += $perCard - $used;
-                }
-                $r['status'] = 'paid';
-                $r['paid_at'] = date('c');
-                $r['slot_start'] = (string) $next;
-            } elseif ($_POST['status'] === 'unpaid') {
+            if ($r['ref'] === $ref && $_POST['status'] === 'unpaid') {
                 $r['status'] = 'unpaid';
                 $r['paid_at'] = '';
                 $r['slot_start'] = '';
@@ -89,13 +74,14 @@ if (($_GET['download'] ?? '') === 'csv') {
     header('Content-Disposition: attachment; filename="draw-orders-' . date('Y-m-d') . '.csv"');
     $out = fopen('php://output', 'w');
     fwrite($out, "\xEF\xBB\xBF"); // so Excel reads the euro sign and fadas correctly
-    fputcsv($out, ['Order', 'Created', 'Status', 'Name', 'Phone', 'Email', 'Seller', 'Bundle', 'Lines', 'Amount (€)', 'Paid at', 'Online cards'], ',', '"', '');
+    fputcsv($out, ['Order', 'Created', 'Status', 'Name', 'Phone', 'Email', 'Seller', 'Bundle', 'Lines', 'Amount (€)', 'Paid at', 'Paid by', 'SumUp transaction', 'Online cards'], ',', '"', '');
     // Stop spreadsheet apps treating a typed value such as "=SUM(...)" as a formula.
     $safe = fn ($v) => preg_match('/^[=+\-@\t\r]/', (string) $v) ? "'" . $v : $v;
     foreach ($orders as $o) {
         fputcsv($out, array_map($safe, [
             $o['ref'], $o['created'], $o['status'], $o['name'], $o['phone'], $o['email'], $o['seller'], $o['bundle'],
             $o['lines'], number_format((int) $o['amount'] / 100, 2, '.', ''), $o['paid_at'],
+            $o['status'] !== 'paid' ? '' : ($o['txn'] !== '' ? 'Card (SumUp)' : 'Recorded by club'), $o['txn'],
             $o['slot_start'] === '' ? '' : describe_slots((int) $o['slot_start'], (int) $o['lines'], $perCard),
         ]), ',', '"', '');
     }
@@ -143,6 +129,7 @@ $paid = array_filter($orders, fn ($o) => $o['status'] === 'paid');
 $sum = fn ($list, $key) => array_sum(array_map(fn ($o) => (int) $o[$key], $list));
 $unpaid = array_filter($orders, fn ($o) => $o['status'] !== 'paid');
 $csrf = h($_SESSION['csrf']);
+$cardNote = sumup_enabled() ? '<span class="mode">Card payments: SumUp on</span>' : '<span class="mode">Card payments off: buyers pay the club</span>';
 $rows = '';
 foreach (array_reverse($orders) as $o) {
     $isPaid = $o['status'] === 'paid';
@@ -155,12 +142,13 @@ foreach (array_reverse($orders) as $o) {
         . '<td><strong>' . euro((int) $o['amount']) . '</strong></td>'
         . '<td><form method="post"><input type="hidden" name="csrf" value="' . $csrf . '"><input type="hidden" name="ref" value="' . h($o['ref']) . '">'
         . ($isPaid
-            ? '<span class="pill paid">Paid</span><small>' . h($where) . '</small><button name="status" value="unpaid" class="link" onclick="return confirm(\'Mark ' . h($o['ref']) . ' as not paid? Its lines come off the online cards.\')">Undo</button>'
-            : '<button name="status" value="paid" class="pay">Mark paid</button>')
+            ? '<span class="pill paid">' . ($o['txn'] !== '' ? 'Paid by card' : 'Paid') . '</span><small>' . h($where) . ($o['txn'] !== '' ? ' · SumUp ' . h($o['txn']) : '') . '</small>'
+                . '<button name="status" value="unpaid" class="link" onclick="return confirm(\'Mark ' . h($o['ref']) . ' as not paid? Its lines come off the online cards.\')">Undo</button>'
+            : ($o['checkout_id'] !== '' ? '<small class="warn">Card payment not completed</small>' : '') . '<button name="status" value="paid" class="pay">Mark paid</button>')
         . '</form></td></tr>';
 }
 page('Orders', '<div class="bar"><strong>' . h($draw['drawName']) . '</strong><a href="?view=cards">Print online cards</a><a href="?download=csv">Download spreadsheet</a>'
-    . '<form method="post" class="out"><button name="logout" value="1" class="link">Log out</button></form></div>'
+    . $cardNote . '<form method="post" class="out"><button name="logout" value="1" class="link">Log out</button></form></div>'
     . '<div class="stats"><div><b>' . count($orders) . '</b><span>orders</span></div><div><b>' . euro($sum($paid, 'amount')) . '</b><span>paid · ' . $sum($paid, 'lines') . ' lines</span></div>'
     . '<div><b>' . euro($sum($unpaid, 'amount')) . '</b><span>awaiting payment · ' . count($unpaid) . ' orders</span></div></div>'
     . ($orders ? '<div class="wrap"><table class="list"><thead><tr><th>Order</th><th>Buyer</th><th>Seller</th><th>Lines</th><th>Amount</th><th>Payment</th></tr></thead><tbody>' . $rows . '</tbody></table></div>'
@@ -176,6 +164,7 @@ function page(string $title, string $body): void
   .bar a, .bar .link { color: #fff; font-weight: 600; }
   .bar button:not(.link) { padding: .45rem 1rem; border: 0; border-radius: 999px; font: inherit; font-weight: 700; color: #fff; background: #c4141f; cursor: pointer; }
   .out { margin-left: auto; }
+  .mode { font-size: .85rem; opacity: .85; }
   button.link { padding: 0; border: 0; background: none; font: inherit; text-decoration: underline; cursor: pointer; color: inherit; }
   .stats { display: flex; flex-wrap: wrap; gap: 1rem; padding: 1.2rem; }
   .stats div { flex: 1 1 180px; padding: 1rem 1.2rem; border-radius: 12px; background: #fff; }
@@ -190,6 +179,7 @@ function page(string $title, string $body): void
   .pay { padding: .45rem .9rem; border: 0; border-radius: 999px; font: inherit; font-weight: 700; color: #fff; background: #0d6b36; cursor: pointer; }
   .pill { display: inline-block; padding: .15rem .6rem; border-radius: 999px; font-size: .8rem; font-weight: 700; }
   .pill.paid { color: #fff; background: #1fa95a; }
+  .warn { margin-bottom: .3rem; color: #a3121b !important; font-weight: 600; }
   .empty { padding: 3rem 1.2rem; text-align: center; color: #4a5c52; }
   .login { max-width: 340px; margin: 12vh auto; display: grid; gap: .6rem; padding: 1.6rem; border-radius: 16px; background: #fff; }
   .login input { padding: .7rem; font: inherit; border: 1px solid #b9c8bf; border-radius: 10px; }

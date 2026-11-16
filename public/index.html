@@ -228,6 +228,15 @@
       <p class="pump__error" id="orderError" role="alert" hidden></p>
       <button class="btn btn--fuel btn--lg btn--block" type="submit" id="orderSubmit">Place order</button>
     </form>
+    <div class="order__form order__card" id="cardStep" hidden>
+      <button type="button" class="order__close" id="cardClose" aria-label="Close">×</button>
+      <p class="eyebrow">Order <span id="cardRef"></span></p>
+      <h2 id="cardTitle">Pay by card</h2>
+      <p class="order__note">Secure card payment by SumUp. Your lines go into the draw as soon as it's through.</p>
+      <div class="sumup" id="sumup-card"></div>
+      <p class="order__status" id="cardStatus" role="status" hidden>Payment received. Confirming your entry…</p>
+      <p class="pump__error" id="cardError" role="alert" hidden></p>
+    </div>
   </dialog>
 
   <script src="/app.js" type="module"></script>

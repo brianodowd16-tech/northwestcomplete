@@ -12,7 +12,20 @@ return [
     // Password for /admin.php, where you mark orders paid and print the online cards.
     'admin_password' => '__ADMIN_PASSWORD__',
 
-    // Shown to buyers after they order and in their confirmation email.
+    // ---- Card payments with SumUp ----
+    // Fill in these two and the site takes card payments. Leave them empty and buyers pay the club instead.
+    // API key: log in at me.sumup.com → Settings → For developers → API keys → Create. It starts sk_live_
+    // and is only shown once, so paste it straight in here. (Not the "public key" on that page.)
+    // Merchant code: starts MC, shown under your business name at the top right of me.sumup.com
+    // (also under Settings → Business settings).
+    'sumup_api_key' => '',
+    'sumup_merchant_code' => '',
+    // Instead of an API key you can use OAuth client credentials from the same Developers page.
+    'sumup_client_id' => '',
+    'sumup_client_secret' => '',
+
+    // Shown to buyers if they order while card payments are off (or SumUp can't be reached),
+    // and in their confirmation email.
     // Add bank, Revolut or SumUp payment-link details here if you want people to pay straight away.
     'payment_instructions' => "The club will contact you shortly to take payment.\nYour lines go into the draw once payment is received.",
 ];

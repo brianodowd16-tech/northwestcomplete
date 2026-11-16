@@ -36,7 +36,9 @@ const succ = strip(read('public/success.js'))
   .replace("startSnow($('#snow'));\nload();", '')
   .replace("const params = new URLSearchParams(location.search);\nconst id = params.get('session_id');\nconst ref = params.get('ref');",
     'let params = new URLSearchParams();\nlet id = null;\nlet ref = null;')
-  .replace('const $ = (s) => document.querySelector(s);', '');
+  .replace('const $ = (s) => document.querySelector(s);', '')
+  // app.js already defines SITE in the combined script.
+  .replace('const SITE = { confirmUrl: null, ...window.FUEL_DRAW };', '');
 
 const mock = `
 // ---- Preview-only mock of the server API (the real site talks to Node + Stripe) ----

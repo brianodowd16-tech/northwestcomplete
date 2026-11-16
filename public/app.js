@@ -5,8 +5,11 @@ const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
 // How this copy of the site takes orders. The Node server uses Stripe; the Hostinger
 // build sets window.FUEL_DRAW to take orders that the club collects payment for.
-const SITE = { drawUrl: '/api/draw', checkoutUrl: '/api/checkout', orderUrl: '/order.php', mode: 'stripe', ...window.FUEL_DRAW };
+const SITE = { drawUrl: '/api/draw', checkoutUrl: '/api/checkout', orderUrl: '/order.php', confirmUrl: null, mode: 'stripe', ...window.FUEL_DRAW };
+const SUMUP_SDK = 'https://gateway.sumup.com/gateway/ecom/card/v2/sdk.js';
 const PAY_LATER = SITE.mode === 'pay-later';
+// The Hostinger build takes orders on its own form, paid by card (SumUp) or to the club.
+const ORDER_FORM = PAY_LATER || SITE.mode === 'card';
 const CTA = PAY_LATER ? 'Fill up · Order' : 'Fill up · Pay';
 const navigate = (url) => location.assign(url);
 
@@ -47,7 +50,7 @@ async function init() {
   $$('[data-step]').forEach((b) => b.addEventListener('click', () => setQty(state.qty + Number(b.dataset.step))));
   $('#checkoutBtn').addEventListener('click', checkout);
   $('#gaugeCta').addEventListener('click', checkout);
-  if (PAY_LATER) setupOrderForm();
+  if (ORDER_FORM) setupOrderForm();
   $('#buybarBtn').addEventListener('click', () => {
     if ($('#tickets').getBoundingClientRect().top > innerHeight * .5) $('#tickets').scrollIntoView();
     else checkout();
@@ -262,7 +265,7 @@ function startGauge() {
 }
 
 async function checkout() {
-  if (PAY_LATER) return openOrderForm();
+  if (ORDER_FORM) return openOrderForm();
   const err = $('#checkoutError');
   err.hidden = true;
   $$('#checkoutBtn, #buybarBtn, #gaugeCta').forEach((b) => { b.disabled = true; });
@@ -294,6 +297,11 @@ function openOrderForm() {
   $('#orderTitle').textContent = `${lines} line${lines > 1 ? 's' : ''} · ${total}`;
   $('#orderSubmit').textContent = `Place order · ${total}`;
   $('#orderError').hidden = true;
+  // Start each order on the details step (a closed card step leaves an unpaid order the club can follow up).
+  $('#orderForm').hidden = false;
+  $('#cardStep').hidden = true;
+  $('#sumup-card').replaceChildren();
+  $('#orderSubmit').disabled = false;
   const dialog = $('#orderDialog');
   if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', '');
   $('#oName').focus();
@@ -302,7 +310,9 @@ function openOrderForm() {
 function setupOrderForm() {
   const dialog = $('#orderDialog');
   const form = $('#orderForm');
-  $('#orderClose').addEventListener('click', () => dialog.close?.() ?? dialog.removeAttribute('open'));
+  const close = () => (dialog.close ? dialog.close() : dialog.removeAttribute('open'));
+  $('#orderClose').addEventListener('click', close);
+  $('#cardClose').addEventListener('click', close);
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const err = $('#orderError');
@@ -322,7 +332,9 @@ function setupOrderForm() {
       const body = await res.json().catch(() => ({}));
       if (!res.ok || !body.ref) throw new Error(body.error || 'We couldn’t place your order. Please try again.');
       try { sessionStorage.setItem('fuelDrawOrder', JSON.stringify(body)); } catch { /* storage blocked: the URL carries the essentials */ }
-      navigate(`/success.html?ref=${encodeURIComponent(body.ref)}&lines=${body.lines}&amount=${body.amount}`);
+      const done = `/success.html?${new URLSearchParams({ ref: body.ref, token: body.token ?? '', lines: body.lines, amount: body.amount })}`;
+      if (body.checkoutId) return showCardStep(body, done);
+      navigate(done);
     } catch (ex) {
       err.textContent = ex.message;
       err.hidden = false;
@@ -330,6 +342,66 @@ function setupOrderForm() {
       submit.textContent = label;
     }
   });
+}
+
+// Card payment with SumUp's card widget, as in SumUp's own WooCommerce plugin.
+function loadSumUp() {
+  if (window.SumUpCard) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = SUMUP_SDK;
+    s.onload = () => (window.SumUpCard ? resolve() : reject(new Error('SumUp did not load')));
+    s.onerror = reject;
+    document.head.append(s);
+  });
+}
+
+function showCardStep(order, doneUrl) {
+  $('#orderForm').hidden = true;
+  $('#cardStep').hidden = false;
+  $('#cardRef').textContent = order.ref;
+  $('#cardTitle').textContent = `Pay ${euro(order.amount)} by card`;
+  const err = $('#cardError');
+  const status = $('#cardStatus');
+  err.hidden = true;
+  status.hidden = true;
+  loadSumUp().then(() => {
+    window.SumUpCard.mount({
+      id: 'sumup-card',
+      checkoutId: order.checkoutId,
+      email: order.email,
+      locale: 'en-IE',
+      showAmount: true,
+      showFooter: true,
+      onResponse: async (type, body) => {
+        if (type === 'success' && body?.status !== 'FAILED') {
+          err.hidden = true;
+          status.hidden = false;
+          await confirmPayment(order);
+          navigate(doneUrl);
+        } else if (type === 'success' || type === 'fail' || type === 'error' || type === 'invalid') {
+          err.textContent = body?.message || 'The payment didn’t go through. Check your card details and try again.';
+          err.hidden = false;
+        }
+      },
+    });
+  }).catch(() => {
+    err.textContent = 'The card form couldn’t load. Your order is saved, and the club will be in touch about payment.';
+    err.hidden = false;
+    setTimeout(() => navigate(doneUrl), 2500);
+  });
+}
+
+// SumUp's widget says the card was charged; the server checks with SumUp before the order counts as paid.
+async function confirmPayment(order) {
+  if (!SITE.confirmUrl) return;
+  for (let i = 0; i < 5; i++) {
+    try {
+      const res = await fetch(SITE.confirmUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ref: order.ref, token: order.token }) });
+      if (res.ok && (await res.json()).status === 'paid') return;
+    } catch { /* retry */ }
+    await new Promise((r) => setTimeout(r, 1200));
+  }
 }
 
 function closeSales() {

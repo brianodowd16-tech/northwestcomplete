@@ -1,15 +1,17 @@
 import { startSnow } from './shared.js';
 
 const $ = (s) => document.querySelector(s);
+const SITE = { confirmUrl: null, ...window.FUEL_DRAW };
 const params = new URLSearchParams(location.search);
 const id = params.get('session_id');
 const ref = params.get('ref');
+const token = params.get('token');
 
 startSnow($('#snow'));
 load();
 
 async function load() {
-  if (ref) return renderReserved();
+  if (ref) return SITE.confirmUrl && token ? checkOrder() : renderReserved();
   if (!id) return showPending();
   // The webhook can lag a second or two behind the redirect, so retry briefly.
   for (let attempt = 0; attempt < 8; attempt++) {
@@ -22,11 +24,39 @@ async function load() {
   showPending();
 }
 
+// Orders taken on the Hostinger site: ask the server (which asks SumUp) whether it's paid. A card payment
+// can take a moment to confirm, e.g. after a bank's 3-D Secure check, so unpaid card orders are re-checked.
+async function checkOrder() {
+  let order = null;
+  for (let attempt = 0; attempt < 6; attempt++) {
+    try {
+      const res = await fetch(SITE.confirmUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ref, token }) });
+      if (res.ok) order = await res.json();
+    } catch { /* network blip, retry */ }
+    if (order && (order.status === 'paid' || order.payMode !== 'card')) break;
+    await new Promise((r) => setTimeout(r, 1500));
+  }
+  if (!order) return renderReserved();
+  if (order.status === 'paid') return renderPaid(order);
+  renderReserved(order.payMode === 'card'
+    ? { ...order, instructions: 'Your card payment hasn’t come through. If you were charged, refresh this page in a minute. Otherwise, use “Add more lines” to try again, or the club will contact you about payment.' }
+    : order);
+}
+
+function renderPaid(order) {
+  render({ ...order, demo: false });
+  $('#doneEyebrow').textContent = `Payment confirmed · Order ${order.ref}`;
+  $('#doneTitle').textContent = order.firstName ? `You're in, ${order.firstName}!` : "You're in!";
+  $('#doneLede').textContent = `Your lines are in the draw. We've emailed confirmation to ${order.email}. Keep it as your proof of entry.`;
+}
+
 // Pay-later orders: the order is saved and emailed, and the club collects payment.
-function renderReserved() {
-  let order = {};
-  try { order = JSON.parse(sessionStorage.getItem('fuelDrawOrder') || '{}'); } catch { /* storage blocked */ }
-  if (order.ref !== ref) order = { ref, lines: Number(params.get('lines')) || 0, amount: Number(params.get('amount')) || 0 };
+function renderReserved(known) {
+  let order = known ?? {};
+  if (!known) {
+    try { order = JSON.parse(sessionStorage.getItem('fuelDrawOrder') || '{}'); } catch { /* storage blocked */ }
+    if (order.ref !== ref) order = { ref, lines: Number(params.get('lines')) || 0, amount: Number(params.get('amount')) || 0 };
+  }
   render({ ...order, demo: false });
   $('#doneEyebrow').textContent = `Order ${ref} received`;
   $('#doneTitle').textContent = order.firstName ? `Nearly there, ${order.firstName}!` : 'Nearly there!';

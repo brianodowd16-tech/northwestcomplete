@@ -30,7 +30,7 @@ Without a Stripe key the site runs in **demo mode**: checkout skips payment and 
 
 ## Hostinger (PHP) version
 
-`npm run build:hostinger` builds `dist/stmichaels-draw-hostinger.zip`: the same site with "order now, pay the club" ordering, emails to the club and buyer, and a PHP admin page for marking orders paid and printing the online cards. The PHP lives in `hostinger/`. See [docs/HOSTINGER.md](docs/HOSTINGER.md).
+`npm run build:hostinger` builds `dist/stmichaels-draw-hostinger.zip`: the same site taking card payments with **SumUp** (rebuilt from SumUp's WooCommerce plugin: API checkout, SumUp's card widget, and server-side confirmation by reading the checkout back from SumUp's API), falling back to "order now, pay the club" when SumUp isn't configured or can't be reached. It emails the club and the buyer, and has a PHP admin page for orders and printing the online cards. The PHP lives in `hostinger/`. See [docs/HOSTINGER.md](docs/HOSTINGER.md).
 
 ## Going live
 

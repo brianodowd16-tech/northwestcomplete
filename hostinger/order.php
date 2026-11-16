@@ -110,6 +110,9 @@ $order = update_orders(function (array &$rows) use ($name, $phone, $email, $sell
         'amount' => $amount,
         'paid_at' => '',
         'slot_start' => '',
+        'token' => bin2hex(random_bytes(12)),
+        'checkout_id' => '',
+        'txn' => '',
     ];
     $rows[] = $row;
     return $row;
@@ -119,7 +122,35 @@ $config = cfg();
 $ref = $order['ref'];
 $total = euro($amount);
 $linesText = $lines . ' line' . ($lines > 1 ? 's' : '');
-$adminUrl = (($_SERVER['HTTPS'] ?? '') !== '' && ($_SERVER['HTTPS'] ?? '') !== 'off' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? '') . '/admin.php';
+
+$reply = [
+    'ref' => $ref,
+    'token' => $order['token'],
+    'lines' => $lines,
+    'amount' => $amount,
+    'name' => $name,
+    'firstName' => explode(' ', $name)[0],
+    'email' => $email,
+    'drawDate' => $draw['drawDate'],
+    'drawLocation' => $draw['drawLocation'],
+];
+
+// Card payment with SumUp: the buyer pays on the next screen and the emails go out once SumUp confirms it.
+if (sumup_enabled()) {
+    $checkoutId = sumup_create_checkout($order);
+    if ($checkoutId) {
+        update_orders(function (array &$rows) use ($ref, $checkoutId) {
+            foreach ($rows as &$r) {
+                if ($r['ref'] === $ref) {
+                    $r['checkout_id'] = $checkoutId;
+                }
+            }
+        });
+        echo json_encode($reply + ['payMode' => 'card', 'checkoutId' => $checkoutId]);
+        exit;
+    }
+    // SumUp couldn't be reached: take the order anyway, and the club collects payment.
+}
 
 send_mail(
     $config['club_email'],
@@ -128,7 +159,7 @@ send_mail(
     . "Order:   $ref\nName:    $name\nPhone:   $phone\nEmail:   $email\n"
     . 'Seller:  ' . ($seller ?: '(none given)') . "\n"
     . "Lines:   $linesText ({$bundle['label']}" . ($quantity > 1 ? " x $quantity" : '') . ")\nTo pay:  $total\n\n"
-    . "Once they've paid, mark the order as paid here so their lines go on the online cards:\n$adminUrl\n",
+    . "Once they've paid, mark the order as paid here so their lines go on the online cards:\n" . site_url() . "/admin.php\n",
     $email
 );
 
@@ -144,15 +175,4 @@ $customerOk = send_mail(
     $config['club_email']
 );
 
-echo json_encode([
-    'ref' => $ref,
-    'lines' => $lines,
-    'amount' => $amount,
-    'name' => $name,
-    'firstName' => explode(' ', $name)[0],
-    'email' => $email,
-    'instructions' => $config['payment_instructions'],
-    'drawDate' => $draw['drawDate'],
-    'drawLocation' => $draw['drawLocation'],
-    'emailed' => $customerOk,
-]);
+echo json_encode($reply + ['payMode' => 'later', 'instructions' => $config['payment_instructions'], 'emailed' => $customerOk]);
