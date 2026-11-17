@@ -369,7 +369,11 @@ function showCardStep(order, doneUrl) {
     window.SumUpCard.mount({
       id: 'sumup-card',
       checkoutId: order.checkoutId,
+      // Buyer details for SumUp, as SumUp's own WooCommerce plugin passes them.
+      firstName: order.givenName || '',
+      lastName: order.familyName || '',
       email: order.email,
+      phoneNumber: order.phone || '',
       locale: 'en-IE',
       showAmount: true,
       showFooter: true,

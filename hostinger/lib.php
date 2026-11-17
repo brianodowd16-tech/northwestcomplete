@@ -245,6 +245,64 @@ function sumup_reference(array $order): string
 }
 
 /** Create a SumUp checkout for an order. Returns the checkout id, or null if SumUp couldn't be reached. */
+/**
+ * "Mary Anne Murphy" → ["Mary Anne", "Murphy"], "Seán Ó Briain" → ["Seán", "Ó Briain"].
+ * Surname prefixes stay with the surname; a single name goes in first name.
+ */
+function split_name(string $name): array
+{
+    $parts = preg_split('/\s+/u', trim($name)) ?: [];
+    if (count($parts) < 2) {
+        return [implode(' ', $parts), ''];
+    }
+    $last = [array_pop($parts)];
+    $prefixes = ['ó', 'o', 'ui', 'uí', 'ní', 'ni', 'nic', 'mac', 'mc', 'mhic', 'giolla', 'de', 'di', 'du', 'van', 'von', 'le', 'la', 'del', 'da'];
+    while (count($parts) > 1 && in_array(mb_strtolower(end($parts)), $prefixes, true)) {
+        array_unshift($last, array_pop($parts));
+    }
+    return [implode(' ', $parts), implode(' ', $last)];
+}
+
+/** "087 123 4567" → "+353871234567". Numbers already in +/00 form keep their country code. */
+function international_phone(string $phone): string
+{
+    $digits = preg_replace('/[^0-9+]/', '', $phone);
+    if (str_starts_with($digits, '+')) {
+        return $digits;
+    }
+    if (str_starts_with($digits, '00')) {
+        return '+' . substr($digits, 2);
+    }
+    if (str_starts_with($digits, '0')) {
+        return '+353' . substr($digits, 1);
+    }
+    return $digits;
+}
+
+/**
+ * Save the buyer as a SumUp customer, so their name, email and phone show against the payment in
+ * SumUp. Returns the customer id, or null if SumUp refused (the payment then goes ahead without it).
+ */
+function sumup_create_customer(array $order, string $token): ?string
+{
+    [$first, $last] = split_name($order['name']);
+    $id = sumup_reference($order);
+    [$code, $body] = http_request('POST', sumup_base() . '/v0.1/customers', [
+        'customer_id' => $id,
+        'personal_details' => array_filter([
+            'first_name' => $first,
+            'last_name' => $last,
+            'email' => $order['email'],
+            'phone' => international_phone($order['phone']),
+        ], fn ($v) => $v !== ''),
+    ], $token);
+    if ($code === 200 || $code === 201 || $code === 409) { // 409: already saved by an earlier attempt
+        return $id;
+    }
+    error_log("Draw: SumUp customer for {$order['ref']} not saved ($code): " . ($body['message'] ?? $body['error_code'] ?? ''));
+    return null;
+}
+
 function sumup_create_checkout(array $order): ?string
 {
     $token = sumup_token();
@@ -252,16 +310,19 @@ function sumup_create_checkout(array $order): ?string
         return null;
     }
     $draw = draw();
+    $customerId = sumup_create_customer($order, $token);
+    // The description shows in SumUp's sales list, so it carries the buyer's name and email too.
+    $description = mb_substr("{$draw['drawName']} {$order['ref']}: {$order['lines']} lines · {$order['name']} ({$order['email']})", 0, 255);
     $back = site_url() . '/success.html?' . http_build_query(['ref' => $order['ref'], 'token' => $order['token']]);
     [$code, $body] = http_request('POST', sumup_base() . '/v0.1/checkouts', [
         'checkout_reference' => sumup_reference($order),
         'amount' => round((int) $order['amount'] / 100, 2),
         'currency' => strtoupper($draw['currency'] ?? 'EUR'),
         'merchant_code' => cfg()['sumup_merchant_code'],
-        'description' => "{$draw['drawName']} {$order['ref']}: {$order['lines']} lines",
+        'description' => $description,
         'return_url' => site_url() . '/sumup-webhook.php',
         'redirect_url' => $back,
-    ], $token);
+    ] + ($customerId ? ['customer_id' => $customerId] : []), $token);
     if (($code === 200 || $code === 201) && !empty($body['id'])) {
         return (string) $body['id'];
     }

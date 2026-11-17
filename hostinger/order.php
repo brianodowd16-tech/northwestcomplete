@@ -131,6 +131,9 @@ $reply = [
     'name' => $name,
     'firstName' => explode(' ', $name)[0],
     'email' => $email,
+    'phone' => $phone,
+    'givenName' => split_name($name)[0],
+    'familyName' => split_name($name)[1],
     'drawDate' => $draw['drawDate'],
     'drawLocation' => $draw['drawLocation'],
 ];
