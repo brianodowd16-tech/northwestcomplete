@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /ig/
+Disallow: /li/
+Disallow: /payment-complete.html
+
+Sitemap: https://northwestcomplete.com/sitemap.xml

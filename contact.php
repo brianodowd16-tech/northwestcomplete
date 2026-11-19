@@ -8,6 +8,8 @@
  * hit "Reply".
  */
 
+require __DIR__ . '/api/_lib.php';
+
 const TO_EMAIL   = 'hello@northwestcomplete.com';
 const FROM_EMAIL = 'hello@northwestcomplete.com';
 const FROM_NAME  = 'Northwest Complete website';
@@ -116,5 +118,25 @@ if (!$sent) {
 
 $recent[] = $now;
 @file_put_contents($rateFile, implode(',', $recent), LOCK_EX);
+
+// Follow-up automation. Failures here never affect the enquiry itself.
+try {
+    if (nwc_config()['hubspot_token'] !== '') {
+        hubspot_record_lead($name, $email, $business, $service, $message);
+    }
+} catch (Throwable $e) {
+    error_log('contact.php HubSpot: ' . $e->getMessage());
+}
+$first = explode(' ', $name)[0];
+@mail($email, '=?UTF-8?B?' . base64_encode('We have your message, ' . $first) . '?=',
+    "Hi $first,\n\nThanks for getting in touch with Northwest Complete. I've received your message and will reply personally within one working day.\n\n"
+    . "If it's urgent, just reply to this email.\n\nBrían O'Dowd\nFounder & CEO, Northwest Complete\nhttps://northwestcomplete.com\n",
+    [
+        'From'         => sprintf('Brían O\'Dowd <%s>', FROM_EMAIL),
+        'Reply-To'     => TO_EMAIL,
+        'MIME-Version' => '1.0',
+        'Content-Type' => 'text/plain; charset=UTF-8',
+        'Auto-Submitted' => 'auto-replied',
+    ], '-f' . FROM_EMAIL);
 
 respond(true, "Thanks $name, your enquiry has been sent. We'll be in touch within one working day.");

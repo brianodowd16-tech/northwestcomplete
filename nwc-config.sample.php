@@ -8,10 +8,16 @@
  * real file in public_html or commit it to GitHub.
  */
 return [
-    // --- Revolut Merchant API (Revolut Business > Merchant > API) ---
-    'revolut_secret_key'     => '',       // sk_... secret key
-    'revolut_webhook_secret' => '',       // leave empty: api/revolut-setup.php saves it for you
-    'sandbox'                => true,     // true while testing with sandbox keys, then false
+    // --- myPOS Checkout (myPOS Online > Checkout > Your online store > configuration pack) ---
+    // The pack contains your Store ID, client (wallet) number, key index, your private key
+    // and myPOS's public certificate. Save the two key files NEXT TO this file (above public_html).
+    'mypos_sid'         => '',            // Store ID
+    'mypos_wallet'      => '',            // client / wallet number
+    'mypos_key_index'   => 1,             // key index shown with your keys
+    'mypos_private_key' => '',            // path to your private key (.pem), or the PEM text itself
+    'mypos_public_cert' => '',            // path to the myPOS public certificate (.crt/.pem)
+    'mypos_sandbox'     => true,          // true while testing with a myPOS test store, then false
+    'mypos_checkout_url' => '',           // only if the pack gives a different checkout address
 
     // --- The product ---
     'site_url'     => 'https://northwestcomplete.com',
@@ -36,7 +42,7 @@ return [
     // that cover invoices, payments and contacts.
     'xero_scopes'               => 'offline_access accounting.transactions accounting.contacts',
     'xero_sales_account_code'   => '200', // revenue account for audit income
-    'xero_payment_account_code' => '',    // code of your Revolut Business bank account in Xero
+    'xero_payment_account_code' => '',    // code of the Xero bank account your myPOS payouts land in
     'xero_line_amount_types'    => 'NoTax', // not VAT registered. Once registered: Inclusive or Exclusive
     'xero_tax_type'             => '',    // only needed once VAT registered
     'xero_email_invoice'        => true,  // Xero emails the paid invoice to the client

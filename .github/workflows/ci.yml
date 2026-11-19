@@ -1,0 +1,24 @@
+name: Checks
+
+# Runs on every push and pull request: PHP syntax, the end-to-end myPOS payment
+# test (throwaway keys, no network), and static checks on every page.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: curl, mbstring, openssl
+      - name: PHP syntax
+        run: for f in $(git ls-files '*.php'); do php -l "$f" || exit 1; done
+      - name: Payment flow test
+        run: tests/mypos-flow.sh
+      - name: Site checks (links, assets, SEO basics)
+        run: python3 tests/check-site.py

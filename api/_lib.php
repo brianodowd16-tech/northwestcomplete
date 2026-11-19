@@ -1,6 +1,6 @@
 <?php
 /**
- * Shared code for the Revolut audit checkout.
+ * Shared code for the myPOS audit checkout.
  *
  * Settings live in nwc-config.php OUTSIDE public_html (one level above it on
  * Hostinger), so secret keys never sit in the web root or in GitHub.
@@ -16,8 +16,6 @@ if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {
     exit;
 }
 
-const REVOLUT_API_VERSION = '2024-09-01';
-
 function nwc_config(): array
 {
     static $config = null;
@@ -25,10 +23,13 @@ function nwc_config(): array
         return $config;
     }
     $defaults = [
-        'revolut_secret_key'        => '',
-        'revolut_webhook_secret'    => '',
-        'sandbox'                   => true,
-        'api_base'                  => null,
+        'mypos_sid'                 => '',
+        'mypos_wallet'              => '',
+        'mypos_key_index'           => 1,
+        'mypos_private_key'         => '',
+        'mypos_public_cert'         => '',
+        'mypos_sandbox'             => true,
+        'mypos_checkout_url'        => '',
         'site_url'                  => 'https://northwestcomplete.com',
         'audit_amount'              => 50000,
         'currency'                  => 'EUR',
@@ -57,22 +58,7 @@ function nwc_config(): array
     $loaded = is_readable($file) ? require $file : [];
     $config = array_merge($defaults, is_array($loaded) ? $loaded : []);
     $config['data_dir'] = $config['data_dir'] ?: dirname(__DIR__, 2) . '/nwc-data';
-    // The webhook secret saved by api/revolut-setup.php, unless set in the config.
-    $saved = $config['data_dir'] . '/revolut-webhook-secret';
-    if ($config['revolut_webhook_secret'] === '' && is_readable($saved)) {
-        $config['revolut_webhook_secret'] = trim((string) file_get_contents($saved));
-    }
     return $config;
-}
-
-function save_webhook_secret(string $secret): void
-{
-    $dir = nwc_config()['data_dir'];
-    if (!is_dir($dir)) {
-        mkdir($dir, 0700, true);
-    }
-    file_put_contents($dir . '/revolut-webhook-secret', $secret, LOCK_EX);
-    @chmod($dir . '/revolut-webhook-secret', 0600);
 }
 
 function json_out(array $data, int $code = 200): void
@@ -137,53 +123,100 @@ function save_record(array $record): void
     rename($tmp, $path);
 }
 
-/* ---------- Revolut Merchant API ---------- */
+/* ---------- myPOS Checkout ---------- */
 
-function revolut_request(string $method, string $path, ?array $body = null): array
+/**
+ * myPOS Checkout (IPC 1.4): the browser POSTs a signed form to myPOS, the
+ * customer pays on myPOS's hosted page, and myPOS then POSTs a signed
+ * notification to api/mypos-notify.php. Signatures are RSA-SHA256 over the
+ * base64 of every field value joined with "-", in the order the fields are sent.
+ * Keys come from the myPOS configuration pack and are never stored in public_html.
+ */
+
+/** A key or certificate given either as a file path or as the PEM text itself. */
+function mypos_pem(string $value): string
+{
+    $value = trim($value);
+    if ($value !== '' && strpos($value, '-----BEGIN') === false && is_readable($value)) {
+        return (string) file_get_contents($value);
+    }
+    return $value;
+}
+
+function mypos_enabled(): bool
 {
     $c = nwc_config();
-    if ($c['revolut_secret_key'] === '') {
-        throw new RuntimeException('Revolut secret key is not configured.');
+    return $c['mypos_sid'] !== '' && $c['mypos_wallet'] !== '' && mypos_pem($c['mypos_private_key']) !== '' && mypos_pem($c['mypos_public_cert']) !== '';
+}
+
+function mypos_checkout_url(): string
+{
+    $c = nwc_config();
+    if ($c['mypos_checkout_url'] !== '') {
+        return $c['mypos_checkout_url'];
     }
-    $base = $c['api_base'] ?: ($c['sandbox'] ? 'https://sandbox-merchant.revolut.com' : 'https://merchant.revolut.com');
-    $ch = curl_init(rtrim($base, '/') . $path);
-    $headers = [
-        'Authorization: Bearer ' . $c['revolut_secret_key'],
-        'Revolut-Api-Version: ' . REVOLUT_API_VERSION,
-        'Accept: application/json',
+    return $c['mypos_sandbox'] ? 'https://www.mypos.com/vmp/checkout-test' : 'https://www.mypos.com/vmp/checkout';
+}
+
+function mypos_payload(array $fields): string
+{
+    unset($fields['Signature']);
+    return base64_encode(implode('-', array_map('strval', array_values($fields))));
+}
+
+function mypos_sign(array $fields): string
+{
+    $key = openssl_pkey_get_private(mypos_pem(nwc_config()['mypos_private_key']));
+    if ($key === false || !openssl_sign(mypos_payload($fields), $signature, $key, OPENSSL_ALGO_SHA256)) {
+        throw new RuntimeException('Could not sign the myPOS request. Check mypos_private_key.');
+    }
+    return base64_encode($signature);
+}
+
+function mypos_verify(array $fields): bool
+{
+    $signature = base64_decode((string) ($fields['Signature'] ?? ''), true);
+    $cert = openssl_pkey_get_public(mypos_pem(nwc_config()['mypos_public_cert']));
+    if ($signature === false || $signature === '' || $cert === false) {
+        return false;
+    }
+    return openssl_verify(mypos_payload($fields), $signature, $cert, OPENSSL_ALGO_SHA256) === 1;
+}
+
+/** The signed form fields the browser posts to myPOS to start a payment. */
+function mypos_checkout_fields(array $record): array
+{
+    $c = nwc_config();
+    $site = rtrim($c['site_url'], '/');
+    [$first, $last] = array_pad(explode(' ', $record['name'], 2), 2, '');
+    $amount = number_format($record['amount'] / 100, 2, '.', '');
+    $fields = [
+        'IPCmethod'                => 'IPCPurchase',
+        'IPCVersion'               => '1.4',
+        'IPCLanguage'              => 'EN',
+        'SID'                      => $c['mypos_sid'],
+        'walletnumber'             => $c['mypos_wallet'],
+        'Amount'                   => $amount,
+        'Currency'                 => $record['currency'],
+        'OrderID'                  => $record['ref'],
+        'URL_OK'                   => $site . '/payment-complete.html?ref=' . $record['ref'],
+        'URL_Cancel'               => $site . '/book-audit.html?cancelled=1',
+        'URL_Notify'               => $site . '/api/mypos-notify.php',
+        'CardTokenRequest'         => '0',
+        'KeyIndex'                 => (string) $c['mypos_key_index'],
+        'PaymentParametersRequired' => '1',
+        'CustomerEmail'            => $record['email'],
+        'CustomerFirstNames'       => $first,
+        'CustomerFamilyName'       => $last !== '' ? $last : $first,
+        'CartItems'                => '1',
+        'Article_1'                => $c['audit_name'],
+        'Quantity_1'               => '1',
+        'Price_1'                  => $amount,
+        'Amount_1'                 => $amount,
+        'Currency_1'               => $record['currency'],
     ];
-    if ($body !== null) {
-        $headers[] = 'Content-Type: application/json';
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-    }
-    curl_setopt_array($ch, [
-        CURLOPT_CUSTOMREQUEST  => $method,
-        CURLOPT_HTTPHEADER     => $headers,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 20,
-    ]);
-    $raw = curl_exec($ch);
-    $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-    $error = curl_error($ch);
-    curl_close($ch);
-    if ($raw === false) {
-        throw new RuntimeException("Revolut API request failed: $error");
-    }
-    $data = json_decode((string) $raw, true);
-    if ($status < 200 || $status >= 300 || !is_array($data)) {
-        throw new RuntimeException("Revolut API $method $path returned HTTP $status: " . mb_substr((string) $raw, 0, 500));
-    }
-    return $data;
-}
-
-function revolut_order_paid(array $order): bool
-{
-    return strtolower((string) ($order['state'] ?? '')) === 'completed';
-}
-
-function revolut_order_failed(array $order): bool
-{
-    return in_array(strtolower((string) ($order['state'] ?? '')), ['failed', 'cancelled'], true);
+    $fields['Signature'] = mypos_sign($fields);
+    return $fields;
 }
 
 /* ---------- Fulfilment: runs once per paid order ---------- */
@@ -192,7 +225,7 @@ function revolut_order_failed(array $order): bool
  * Marks the order paid and runs the automations exactly once, even if the
  * webhook and the thank-you page both confirm the payment at the same time.
  */
-function fulfil_paid_order(string $ref, array $revolutOrder): array
+function fulfil_paid_order(string $ref, array $payment): array
 {
     $lock = fopen(record_path($ref) . '.lock', 'c');
     flock($lock, LOCK_EX);
@@ -205,15 +238,15 @@ function fulfil_paid_order(string $ref, array $revolutOrder): array
             return $record;
         }
         $c = nwc_config();
-        $amount = (int) ($revolutOrder['amount'] ?? $record['amount']);
-        $currency = strtoupper((string) ($revolutOrder['currency'] ?? $record['currency']));
+        $amount = (int) ($payment['amount'] ?? $record['amount']);
+        $currency = strtoupper((string) ($payment['currency'] ?? $record['currency']));
         if ($amount !== (int) $record['amount'] || $currency !== $record['currency']) {
             throw new RuntimeException("Amount mismatch for $ref: got $amount $currency");
         }
 
         $record['status'] = 'paid';
         $record['paid_at'] = gmdate('c');
-        $record['revolut_state'] = $revolutOrder['state'] ?? 'completed';
+        $record['mypos_trnref'] = (string) ($payment['transaction_id'] ?? '');
         save_record($record);
 
         // Each step is independent: one failing never blocks the others, and
@@ -282,7 +315,7 @@ function send_team_notification(array $r): string
     $amount = format_amount((int) $r['amount'], $r['currency']);
     $body = "New paid systems audit\n\n"
           . "Reference: {$r['ref']}\n"
-          . "Amount:    $amount (Revolut order {$r['revolut_order_id']})\n"
+          . "Amount:    $amount (myPOS transaction {$r['mypos_trnref']})\n"
           . "Paid:      {$r['paid_at']}\n\n"
           . "Name:      {$r['name']}\n"
           . "Business:  " . ($r['business'] ?: '-') . "\n"
@@ -314,7 +347,8 @@ function post_automation_event(array $r): string
         'amount_formatted' => format_amount((int) $r['amount'], $r['currency']),
         'currency'         => $r['currency'],
         'paid_at'          => $r['paid_at'],
-        'revolut_order_id' => $r['revolut_order_id'],
+        'payment_provider' => 'myPOS',
+        'transaction_id'   => $r['mypos_trnref'],
         'customer'         => [
             'name'     => $r['name'],
             'email'    => $r['email'],
@@ -463,9 +497,9 @@ function xero_call(string $method, string $path, $body = null): array
 }
 
 /**
- * Creates an approved sales invoice for the audit and records the Revolut
- * payment against it, so Xero shows it as paid and it reconciles against the
- * Revolut Business bank feed.
+ * Creates an approved sales invoice for the audit and records the myPOS
+ * payment against it, so Xero shows it as paid and it reconciles against your
+ * bank feed when myPOS pays out.
  */
 function xero_record_sale(array $r): array
 {
@@ -509,7 +543,7 @@ function xero_record_sale(array $r): array
             'Account'   => ['Code' => $c['xero_payment_account_code']],
             'Date'      => $date,
             'Amount'    => (float) ($invoice['AmountDue'] ?? $invoice['Total'] ?? $line['UnitAmount']),
-            'Reference' => 'Revolut ' . $r['revolut_order_id'],
+            'Reference' => 'myPOS ' . $r['mypos_trnref'],
         ]]]);
         $result['payment'] = 'recorded';
     }
@@ -554,7 +588,7 @@ function hubspot_record_sale(array $r): array
             'pipeline'  => $c['hubspot_pipeline'],
             'dealstage' => $c['hubspot_dealstage'],
             'closedate' => $r['paid_at'],
-            'description' => "Paid via Revolut. Reference {$r['ref']}.\n\n" . $r['notes'],
+            'description' => "Paid via myPOS. Reference {$r['ref']}.\n\n" . $r['notes'],
         ],
         'associations' => $contactId ? [[
             'to'    => ['id' => $contactId],
@@ -562,4 +596,22 @@ function hubspot_record_sale(array $r): array
         ]] : [],
     ]), 'HubSpot deal');
     return ['contact' => $contactId, 'deal' => $deal['id'] ?? null];
+}
+
+/** Creates or updates a HubSpot contact for a website enquiry. */
+function hubspot_record_lead(string $name, string $email, string $business, string $service, string $message): array
+{
+    [$first, $last] = array_pad(explode(' ', $name, 2), 2, '');
+    $props = array_filter([
+        'email'     => $email,
+        'firstname' => $first,
+        'lastname'  => $last,
+        'company'   => $business,
+        'message'   => mb_substr(($service !== '' ? "[$service] " : '') . $message, 0, 5000),
+    ], fn ($v) => $v !== '');
+    $res = hubspot_call('PATCH', '/crm/v3/objects/contacts/' . rawurlencode($email) . '?idProperty=email', ['properties' => $props]);
+    if ($res['status'] === 404) {
+        $res = hubspot_call('POST', '/crm/v3/objects/contacts', ['properties' => $props]);
+    }
+    return ['contact' => http_ok($res, 'HubSpot contact')['id'] ?? null];
 }

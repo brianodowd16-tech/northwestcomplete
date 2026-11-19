@@ -1,7 +1,7 @@
 <?php
 /**
- * Starts a €500 systems audit payment: saves the client's details, creates a
- * Revolut order and sends the browser to Revolut's hosted checkout page.
+ * Starts a €500 systems audit payment: saves the client's details and returns
+ * a signed form that sends the browser to myPOS's hosted checkout page.
  */
 require __DIR__ . '/_lib.php';
 
@@ -44,8 +44,8 @@ if (!$agreed) {
 
 $c = nwc_config();
 
-// Until the Revolut keys are added, say so plainly instead of failing with a generic error.
-if ($c['revolut_secret_key'] === '') {
+// Until the myPOS keys are added, say so plainly instead of failing with a generic error.
+if (!mypos_enabled()) {
     fail('Online payment is being set up. Please send us a message using the contact form and we will invoice you directly.', 503);
 }
 
@@ -63,38 +63,40 @@ $recent[] = $now;
 
 $ref = new_ref();
 try {
-    $order = revolut_request('POST', '/api/orders', [
-        'amount'                 => (int) $c['audit_amount'],
-        'currency'               => $c['currency'],
-        'capture_mode'           => 'automatic',
-        'description'            => $c['audit_name'] . ($business !== '' ? " - $business" : ''),
-        'merchant_order_ext_ref' => $ref,
-        'customer'               => ['email' => $email, 'full_name' => $name],
-        'redirect_url'           => rtrim($c['site_url'], '/') . '/payment-complete.html?ref=' . $ref,
-    ]);
-    if (empty($order['id']) || empty($order['checkout_url'])) {
-        throw new RuntimeException('Revolut response missing id or checkout_url');
-    }
-    save_record([
-        'ref'              => $ref,
-        'status'           => 'pending',
-        'created_at'       => gmdate('c'),
-        'amount'           => (int) $c['audit_amount'],
-        'currency'         => $c['currency'],
-        'name'             => $name,
-        'email'            => $email,
-        'business'         => $business,
-        'phone'            => $phone,
-        'notes'            => $notes,
-        'source'           => $source,
-        'revolut_order_id' => (string) $order['id'],
-    ]);
+    $record = [
+        'ref'          => $ref,
+        'status'       => 'pending',
+        'created_at'   => gmdate('c'),
+        'amount'       => (int) $c['audit_amount'],
+        'currency'     => $c['currency'],
+        'name'         => $name,
+        'email'        => $email,
+        'business'     => $business,
+        'phone'        => $phone,
+        'notes'        => $notes,
+        'source'       => $source,
+        'mypos_trnref' => '',
+    ];
+    $fields = mypos_checkout_fields($record);
+    save_record($record);
 } catch (Throwable $e) {
     error_log('NWC checkout: ' . $e->getMessage());
     fail('We could not start the payment. Please try again, or email ' . $c['notify_email'] . '.', 502);
 }
 
+$action = mypos_checkout_url();
 if ($wantsJson) {
-    json_out(['ok' => true, 'checkout_url' => $order['checkout_url'], 'reference' => $ref]);
+    json_out(['ok' => true, 'action' => $action, 'fields' => $fields, 'reference' => $ref]);
 }
-header('Location: ' . $order['checkout_url'], true, 303);
+
+// No JavaScript: show a page with a button that posts the signed form to myPOS.
+header('Content-Type: text/html; charset=utf-8');
+header('Cache-Control: no-store');
+echo '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
+   . '<title>Continue to secure payment</title><body style="font-family:system-ui,sans-serif;max-width:32rem;margin:15vh auto;padding:0 1rem">'
+   . '<h1>Continue to secure payment</h1><p>Your details are saved. Press the button to pay on myPOS\'s secure page.</p>'
+   . '<form method="post" action="' . htmlspecialchars($action, ENT_QUOTES) . '">';
+foreach ($fields as $k => $v) {
+    echo '<input type="hidden" name="' . htmlspecialchars($k, ENT_QUOTES) . '" value="' . htmlspecialchars((string) $v, ENT_QUOTES) . '">';
+}
+echo '<button type="submit" style="font-size:1.1rem;padding:.8rem 1.4rem">Pay €500 securely</button></form></body></html>';

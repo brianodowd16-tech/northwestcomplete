@@ -1,3 +1,6 @@
+@font-face { font-family: "Space Grotesk"; font-style: normal; font-weight: 300 700; font-display: swap; src: url("assets/fonts/space-grotesk.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("assets/fonts/inter.woff2") format("woff2"); }
+
 :root {
   --bg: #07090f;
   --bg-alt: #0c1019;
@@ -426,12 +429,6 @@ img.team__avatar { background: var(--surface-2); object-position: center 20%; }
 .footer__social { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
 
 /* Founder voice: quote bands, byline and reassurance cards */
-.byline { display: flex; align-items: center; gap: 14px; margin-top: 28px; padding: 12px 20px 12px 12px; width: fit-content; max-width: 100%;
-  border: 1px solid var(--line-strong); border-radius: 999px; background: var(--surface); }
-.byline img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; object-position: center 20%; background: var(--surface-2); flex: none; }
-.byline p { font-size: 0.98rem; line-height: 1.4; }
-.byline strong { font-family: var(--font-display); font-weight: 600; }
-.byline a { color: var(--sky); text-decoration: underline; text-underline-offset: 3px; }
 .fq { display: grid; gap: 28px; align-items: center; padding: 32px 24px; border-radius: 28px; border: 1px solid var(--line-strong); background: var(--surface); }
 @media (min-width: 760px) { .fq { grid-template-columns: 200px 1fr; gap: 48px; padding: 48px; } }
 .fq__photo { width: 140px; height: 140px; border-radius: 36px; object-fit: cover; object-position: center 20%; background: var(--surface-2); }
@@ -446,11 +443,18 @@ img.team__avatar { background: var(--surface-2); object-position: center 20%; }
 .fq--slim .fq__photo { width: 84px; height: 84px; border-radius: 24px; }
 .fq--slim blockquote p { font-size: 1.15rem; }
 @media (min-width: 760px) { .fq--slim { grid-template-columns: 84px 1fr; padding: 28px 32px; } .fq--slim .fq__photo { width: 84px; height: 84px; border-radius: 24px; } }
-.pullq { margin: 40px 0 0; padding: 22px 26px; border-left: 3px solid var(--teal, #2dd4bf); }
-.pullq p { font: 600 clamp(1.1rem, 2vw, 1.35rem)/1.4 var(--font-display); }
-.pullq cite { display: block; margin-top: 8px; font-style: normal; color: var(--muted); font-size: 0.95rem; }
 .fq .eyebrow { margin-bottom: 14px; }
 .fq__bio { margin-top: 18px; color: var(--muted); max-width: 60ch; }
 .fq__actions { align-items: center; }
 #founder .story__quote { margin-top: 24px; }
-#founder .story__quote p { color: var(--text, #eef2ff); }
+#founder .story__quote p { color: var(--text); }
+
+/* Legal pages */
+.prose { max-width: 760px; }
+.prose h2 { font-size: clamp(1.25rem, 2.4vw, 1.6rem); margin: 40px 0 12px; }
+.prose p, .prose li { color: var(--muted); line-height: 1.75; }
+.prose p { margin: 0 0 14px; }
+.prose ul { margin: 0 0 14px; padding-left: 1.2rem; display: grid; gap: 8px; }
+.prose a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.prose strong { color: var(--text); }
+.prose__meta { font-size: 0.95rem; }

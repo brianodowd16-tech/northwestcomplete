@@ -126,11 +126,14 @@ if (form) {
   });
 }
 
-// Audit checkout: send details to the server, then go to Revolut's payment page
+// Audit checkout: send details to the server, then post the signed form to myPOS's payment page
 const checkoutForm = document.getElementById("checkout-form");
 if (checkoutForm) {
   const status = checkoutForm.querySelector(".form__status");
   const button = checkoutForm.querySelector('button[type="submit"]');
+  if (new URLSearchParams(location.search).has("cancelled")) {
+    status.textContent = "Payment cancelled. No money has been taken. You can try again whenever you're ready.";
+  }
   if (new URLSearchParams(location.search).has("error")) {
     status.textContent = `We couldn't start the payment. Please try again, or email ${CONTACT_EMAIL}.`;
     status.classList.add("is-error");
@@ -160,7 +163,18 @@ if (checkoutForm) {
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.message);
-      window.location.href = data.checkout_url;
+      const pay = document.createElement("form");
+      pay.method = "post";
+      pay.action = data.action;
+      Object.entries(data.fields).forEach(([name, value]) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        pay.appendChild(input);
+      });
+      document.body.appendChild(pay);
+      pay.submit();
     } catch (err) {
       status.textContent = err.message || `We couldn't start the payment. Please try again, or email ${CONTACT_EMAIL}.`;
       status.classList.add("is-error");
@@ -169,7 +183,7 @@ if (checkoutForm) {
   });
 }
 
-// Payment result: poll the server until Revolut confirms the payment
+// Payment result: poll the server until myPOS confirms the payment
 const result = document.getElementById("payment-result");
 if (result) {
   const ref = new URLSearchParams(location.search).get("ref") || "";
@@ -204,7 +218,7 @@ if (result) {
           `If you've paid, email ${CONTACT_EMAIL} with your name and we'll sort it out.`);
       }
     } catch { /* keep trying */ }
-    if (tries < 20) return setTimeout(check, 3000);
+    if (tries < 40) return setTimeout(check, 3000);
     showRef();
     show("pending", "Payment processing", "Your payment is still processing.",
       `We'll email you as soon as it's confirmed. If you don't hear from us within an hour, contact ${CONTACT_EMAIL}.`);

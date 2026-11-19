@@ -30,6 +30,12 @@ jobs:
       - name: Check PHP syntax
         run: for f in $(git ls-files '*.php'); do php -l "$f" || exit 1; done
 
+      - name: Payment flow test
+        run: tests/mypos-flow.sh
+
+      - name: Site checks
+        run: python3 tests/check-site.py
+
       - name: Upload to Hostinger
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -45,5 +51,6 @@ jobs:
             .github/**
             dist/**
             marketing/**
+            tests/**
             nwc-config.sample.php
             **/*.md
