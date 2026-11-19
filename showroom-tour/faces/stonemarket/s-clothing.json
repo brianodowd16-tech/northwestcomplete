@@ -1,0 +1,128 @@
+[
+ {
+  "yaw": -176.0,
+  "pitch": -12.85,
+  "radius": 19.79,
+  "score": 0.887,
+  "id": 0,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -77.83,
+  "pitch": -3.93,
+  "radius": 1.52,
+  "score": 0.75,
+  "id": 1,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": -61.01,
+  "pitch": 39.26,
+  "radius": 1.74,
+  "score": 0.641,
+  "id": 2,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -57.83,
+  "pitch": 39.79,
+  "radius": 2.16,
+  "score": 0.708,
+  "id": 3,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -57.63,
+  "pitch": 18.39,
+  "radius": 2.75,
+  "score": 0.658,
+  "id": 4,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -6.47,
+  "pitch": 18.26,
+  "radius": 7.5,
+  "score": 0.81,
+  "id": 5,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -0.95,
+  "pitch": 8.2,
+  "radius": 1.07,
+  "score": 0.789,
+  "id": 6,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 24.66,
+  "pitch": -12.48,
+  "radius": 1.14,
+  "score": 0.607,
+  "id": 7,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 43.03,
+  "pitch": -42.67,
+  "radius": 11.08,
+  "score": 0.638,
+  "id": 8,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 79.68,
+  "pitch": -2.46,
+  "radius": 1.03,
+  "score": 0.675,
+  "id": 9,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": 80.41,
+  "pitch": -3.84,
+  "radius": 1.14,
+  "score": 0.83,
+  "id": 10,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": 89.97,
+  "pitch": -37.09,
+  "radius": 1.75,
+  "score": 0.664,
+  "id": 11,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 96.13,
+  "pitch": 21.4,
+  "radius": 0.51,
+  "score": 0.727,
+  "id": 12,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 151.54,
+  "pitch": -12.77,
+  "radius": 2.04,
+  "score": 0.773,
+  "id": 13,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ }
+]

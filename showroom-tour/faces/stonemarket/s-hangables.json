@@ -1,0 +1,162 @@
+[
+ {
+  "yaw": -176.89,
+  "pitch": 41.33,
+  "radius": 9.5,
+  "score": 0.647,
+  "id": 0,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -163.36,
+  "pitch": -2.62,
+  "radius": 3.28,
+  "score": 0.688,
+  "id": 1,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -102.48,
+  "pitch": -12.5,
+  "radius": 2.21,
+  "score": 0.61,
+  "id": 2,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -95.46,
+  "pitch": 13.48,
+  "radius": 2.29,
+  "score": 0.79,
+  "id": 3,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -95.38,
+  "pitch": 9.37,
+  "radius": 1.86,
+  "score": 0.721,
+  "id": 4,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -85.12,
+  "pitch": 2.41,
+  "radius": 2.4,
+  "score": 0.686,
+  "id": 5,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -75.87,
+  "pitch": -9.03,
+  "radius": 0.77,
+  "score": 0.681,
+  "id": 6,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -74.71,
+  "pitch": -8.6,
+  "radius": 0.74,
+  "score": 0.77,
+  "id": 7,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -73.51,
+  "pitch": -8.28,
+  "radius": 0.65,
+  "score": 0.631,
+  "id": 8,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -72.22,
+  "pitch": -8.22,
+  "radius": 0.8,
+  "score": 0.62,
+  "id": 9,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -69.34,
+  "pitch": 18.2,
+  "radius": 1.62,
+  "score": 0.831,
+  "id": 10,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -67.16,
+  "pitch": 38.16,
+  "radius": 7.43,
+  "score": 0.621,
+  "id": 11,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -61.33,
+  "pitch": 4.68,
+  "radius": 1.0,
+  "score": 0.828,
+  "id": 12,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -59.71,
+  "pitch": -18.73,
+  "radius": 5.89,
+  "score": 0.615,
+  "id": 13,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -12.7,
+  "pitch": -11.66,
+  "radius": 4.7,
+  "score": 0.711,
+  "id": 14,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -10.82,
+  "pitch": -31.26,
+  "radius": 3.84,
+  "score": 0.781,
+  "id": 15,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 173.63,
+  "pitch": -13.56,
+  "radius": 18.29,
+  "score": 0.922,
+  "id": 16,
+  "keep": true,
+  "note": "photographer"
+ },
+ {
+  "yaw": 5.6,
+  "pitch": -25.8,
+  "radius": 6,
+  "note": "customer in the middle, missed by the detector",
+  "id": "manual-0"
+ }
+]

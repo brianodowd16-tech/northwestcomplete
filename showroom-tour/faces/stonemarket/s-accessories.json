@@ -1,0 +1,254 @@
+[
+ {
+  "yaw": -114.32,
+  "pitch": -12.4,
+  "radius": 1.67,
+  "score": 0.807,
+  "id": 0,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -112.51,
+  "pitch": -12.59,
+  "radius": 1.2,
+  "score": 0.626,
+  "id": 1,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -107.23,
+  "pitch": -25.84,
+  "radius": 6.78,
+  "score": 0.81,
+  "id": 2,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -90.36,
+  "pitch": -23.56,
+  "radius": 8.26,
+  "score": 0.76,
+  "id": 3,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -82.26,
+  "pitch": -22.38,
+  "radius": 5.26,
+  "score": 0.663,
+  "id": 4,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -69.62,
+  "pitch": -22.15,
+  "radius": 3.5,
+  "score": 0.777,
+  "id": 5,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -62.44,
+  "pitch": -46.02,
+  "radius": 2.06,
+  "score": 0.753,
+  "id": 6,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -49.98,
+  "pitch": -36.41,
+  "radius": 2.73,
+  "score": 0.789,
+  "id": 7,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -18.69,
+  "pitch": 19.2,
+  "radius": 1.53,
+  "score": 0.736,
+  "id": 8,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -8.32,
+  "pitch": -3.43,
+  "radius": 2.44,
+  "score": 0.915,
+  "id": 9,
+  "keep": true,
+  "note": "staff at the counter"
+ },
+ {
+  "yaw": 0.01,
+  "pitch": -18.39,
+  "radius": 2.77,
+  "score": 0.684,
+  "id": 10,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 0.26,
+  "pitch": -23.26,
+  "radius": 1.98,
+  "score": 0.768,
+  "id": 11,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 1.43,
+  "pitch": 5.68,
+  "radius": 0.84,
+  "score": 0.639,
+  "id": 12,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 16.44,
+  "pitch": -21.75,
+  "radius": 2.02,
+  "score": 0.77,
+  "id": 13,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 33.64,
+  "pitch": 4.89,
+  "radius": 0.71,
+  "score": 0.641,
+  "id": 14,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 33.81,
+  "pitch": 15.07,
+  "radius": 5.89,
+  "score": 0.631,
+  "id": 15,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 37.59,
+  "pitch": -34.62,
+  "radius": 3.68,
+  "score": 0.662,
+  "id": 16,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 37.93,
+  "pitch": -56.33,
+  "radius": 2.59,
+  "score": 0.644,
+  "id": 17,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 39.56,
+  "pitch": 5.02,
+  "radius": 0.78,
+  "score": 0.641,
+  "id": 18,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 44.27,
+  "pitch": -53.39,
+  "radius": 4.44,
+  "score": 0.601,
+  "id": 19,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 54.6,
+  "pitch": -58.71,
+  "radius": 2.68,
+  "score": 0.688,
+  "id": 20,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 81.98,
+  "pitch": -3.54,
+  "radius": 0.99,
+  "score": 0.827,
+  "id": 21,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 87.33,
+  "pitch": -3.6,
+  "radius": 1.13,
+  "score": 0.829,
+  "id": 22,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 94.69,
+  "pitch": 6.72,
+  "radius": 1.61,
+  "score": 0.648,
+  "id": 23,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 125.31,
+  "pitch": -17.65,
+  "radius": 1.11,
+  "score": 0.628,
+  "id": 24,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 127.31,
+  "pitch": -20.45,
+  "radius": 1.33,
+  "score": 0.854,
+  "id": 25,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 150.89,
+  "pitch": -17.93,
+  "radius": 13.77,
+  "score": 0.913,
+  "id": 26,
+  "keep": true,
+  "note": "photographer"
+ },
+ {
+  "yaw": 177.8,
+  "pitch": -21.19,
+  "radius": 2.07,
+  "score": 0.635,
+  "id": 27,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ }
+]

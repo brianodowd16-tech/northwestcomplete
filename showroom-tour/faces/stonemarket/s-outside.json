@@ -1,0 +1,236 @@
+[
+ {
+  "yaw": -171.02,
+  "pitch": -8.0,
+  "radius": 1.69,
+  "score": 0.882,
+  "id": 0,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": -157.98,
+  "pitch": -3.14,
+  "radius": 1.48,
+  "score": 0.764,
+  "id": 1,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": -156.61,
+  "pitch": -8.08,
+  "radius": 1.6,
+  "score": 0.876,
+  "id": 2,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": -150.51,
+  "pitch": -4.11,
+  "radius": 1.19,
+  "score": 0.632,
+  "id": 3,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": -142.23,
+  "pitch": -7.71,
+  "radius": 2.21,
+  "score": 0.764,
+  "id": 4,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": -137.17,
+  "pitch": -14.27,
+  "radius": 1.92,
+  "score": 0.647,
+  "id": 5,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": -136.22,
+  "pitch": -5.81,
+  "radius": 1.88,
+  "score": 0.74,
+  "id": 6,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": -121.11,
+  "pitch": -3.85,
+  "radius": 1.06,
+  "score": 0.862,
+  "id": 7,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": 2.65,
+  "pitch": -28.21,
+  "radius": 16.09,
+  "score": 0.906,
+  "id": 8,
+  "keep": true,
+  "note": "photographer"
+ },
+ {
+  "yaw": 58.92,
+  "pitch": -25.93,
+  "radius": 2.53,
+  "score": 0.606,
+  "id": 9,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 69.75,
+  "pitch": -8.36,
+  "radius": 10.39,
+  "score": 0.713,
+  "id": 10,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 106.35,
+  "pitch": -2.06,
+  "radius": 0.92,
+  "score": 0.6,
+  "id": 11,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 111.34,
+  "pitch": -3.93,
+  "radius": 0.81,
+  "score": 0.78,
+  "id": 12,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": 114.28,
+  "pitch": -4.52,
+  "radius": 0.98,
+  "score": 0.816,
+  "id": 13,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": 119.83,
+  "pitch": -2.36,
+  "radius": 0.63,
+  "score": 0.823,
+  "id": 14,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": 122.19,
+  "pitch": -3.01,
+  "radius": 0.8,
+  "score": 0.63,
+  "id": 15,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": 141.39,
+  "pitch": -7.82,
+  "radius": 1.71,
+  "score": 0.831,
+  "id": 16,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": 143.61,
+  "pitch": -3.92,
+  "radius": 1.81,
+  "score": 0.738,
+  "id": 17,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": 146.31,
+  "pitch": -5.37,
+  "radius": 1.82,
+  "score": 0.789,
+  "id": 18,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": 150.51,
+  "pitch": -7.16,
+  "radius": 2.03,
+  "score": 0.88,
+  "id": 19,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": 150.67,
+  "pitch": -3.18,
+  "radius": 1.07,
+  "score": 0.762,
+  "id": 20,
+  "keep": true,
+  "note": "not a face (product or decoration)"
+ },
+ {
+  "yaw": 153.97,
+  "pitch": -7.17,
+  "radius": 1.43,
+  "score": 0.746,
+  "id": 21,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": 154.3,
+  "pitch": -4.48,
+  "radius": 1.2,
+  "score": 0.631,
+  "id": 22,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": 155.85,
+  "pitch": -6.14,
+  "radius": 1.7,
+  "score": 0.847,
+  "id": 23,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": 159.33,
+  "pitch": -6.55,
+  "radius": 1.9,
+  "score": 0.818,
+  "id": 24,
+  "keep": false,
+  "note": "customer"
+ },
+ {
+  "yaw": 169.18,
+  "pitch": -7.87,
+  "radius": 1.98,
+  "score": 0.838,
+  "id": 25,
+  "keep": false,
+  "note": "customer"
+ }
+]
