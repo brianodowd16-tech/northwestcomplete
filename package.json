@@ -1,0 +1,33 @@
+{
+  "name": "northwestcomplete",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Headless storefront for O'Dowd's Fireplaces & Stoves: WooCommerce catalogue + myPOS Checkout",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "engines": {
+    "node": ">=20.9"
+  },
+  "dependencies": {
+    "next": "^16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "sanitize-html": "^2.18.2",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/sanitize-html": "^2.16.2",
+    "typescript": "^5.9.3",
+    "vitest": "^5.1.1"
+  }
+}
