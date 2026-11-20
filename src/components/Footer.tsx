@@ -88,8 +88,7 @@ export function Footer() {
               />
             </div>
             <p className="mt-6 max-w-sm leading-relaxed">
-              Marine engineering, restoration and brokerage for boat owners on the coast, the loughs and the Shannon–Erne
-              waterway.
+              Marine engineering, restoration and brokerage for boat owners on the Irish coast and loughs, and across the harbours and marinas of Malta and Gozo.
             </p>
             <ul className="mt-5 flex flex-wrap gap-2" aria-label="Areas we cover">
               {site.areas.map((a) => (
@@ -160,7 +159,7 @@ export function Footer() {
         <div className="flex flex-col gap-4 border-t border-white/10 py-6 text-sm text-white/50 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} {site.name}. All prices in euro and include VAT.</p>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <span>Secure payments by Stripe</span>
+            <span>Secure card payments by myPOS</span>
             <Link href="/terms" className="hover:text-white">Terms</Link>
             <Link href="/privacy" className="hover:text-white">Privacy</Link>
           </div>

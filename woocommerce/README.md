@@ -51,7 +51,7 @@ WooCommerce Product Add-Ons or a measurement price calculator.
 
 - Review every price (they're starting suggestions) and publish the products you want live.
 - Replace the three sample boats with real listings (duplicate a boat product, edit, publish).
-- Payments: install **WooCommerce Stripe Payment Gateway** (cards, Apple Pay, Google Pay).
+- Payments: install the official **myPOS Checkout for WooCommerce** plugin and enter your myPOS configuration package.
 - Email: install **WP Mail SMTP** → "Other SMTP" with your Hostinger mailbox:
   host `smtp.hostinger.com`, port `465`, encryption SSL, username = your full email address.
 - Tax: WooCommerce → Settings → Tax → enter prices *inclusive* of tax, add Irish 23% standard rate

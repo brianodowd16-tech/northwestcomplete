@@ -8,7 +8,7 @@ import { formatPrice } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Marine Services",
-  description: "Book marine mechanical, polishing, fiberglass, welding, electrical, solar, cleaning, brokerage and engine sourcing services in the North West of Ireland.",
+  description: "Book marine mechanical, polishing, fiberglass, welding, electrical, solar, cleaning, brokerage and engine sourcing services in Ireland and Malta.",
 };
 
 export default function ServicesPage() {

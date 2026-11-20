@@ -6,7 +6,7 @@ import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "About Us",
-  description: "Northwest Boat Maintenance — marine engineering, restoration and brokerage based in the North West of Ireland.",
+  description: "Northwest Boat Maintenance — marine engineering, restoration and brokerage working across Ireland and Malta.",
 };
 
 export default function AboutPage() {
@@ -14,14 +14,13 @@ export default function AboutPage() {
     <>
       <PageHeader
         eyebrow="About"
-        title="Marine engineers for the North West"
+        title="Marine engineers for Ireland and Malta"
         intro="One trusted team for everything from an annual service to a full restoration, an off-grid power system or the sale of your boat."
       />
       <div className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
         <div className="space-y-5 text-lg leading-relaxed text-slate-700">
           <p>
-            {site.name} looks after leisure and working boats across Donegal, Sligo, Leitrim and Mayo — on the coast, the
-            loughs and the Shannon–Erne waterway. We&apos;re a hands-on team of marine engineers, fabricators and finishers,
+            {site.name} looks after leisure and working boats in Ireland, from Donegal, Sligo and Mayo to Lough Erne, and in Malta and Gozo, from the Grand Harbour to Msida and Mġarr. We&apos;re a hands-on team of marine engineers, fabricators and finishers,
             and we bring the workshop to you wherever we can.
           </p>
           <p>
@@ -37,7 +36,7 @@ export default function AboutPage() {
           {[
             ["shield", "Fully insured", "Public liability and professional cover on every job."],
             ["check", "Fixed quotes", "Clear written quotes before any major work."],
-            ["pin", "Local & mobile", `Covering ${site.areas.length}+ harbours, marinas & loughs.`],
+            ["pin", "Local & mobile", `Covering harbours and marinas in Ireland and Malta.`],
           ].map(([icon, title, text]) => (
             <div key={title} className="rounded-xl border border-slate-200 bg-white p-5">
               <Icon name={icon} className="h-6 w-6 text-sea-600" />

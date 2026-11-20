@@ -1,17 +1,17 @@
 # Northwest Boat Maintenance — northwestboatmaintenance.com
 
-Transactional e-commerce website for a marine services business in the North West of Ireland.
-Built with **Next.js 15 (App Router)**, **TypeScript**, **Tailwind CSS** and **Stripe Checkout** (EUR, prices include VAT).
+Transactional e-commerce website for a marine services business in Ireland and Malta.
+Built with **Next.js 15 (App Router)**, **TypeScript**, **Tailwind CSS** and **myPOS Checkout** (EUR, prices include VAT).
 
 ## What's on the site
 
 | Area | What customers can do |
 | --- | --- |
 | **Services** (`/services`) | Mechanical, machine polishing, fiberglass restoration, welding, electrical fit-out, solar & battery systems, deep cleaning, brokerage, engine sourcing. Book & pay online — fixed-price packages, per-foot pricing (enter boat length) and booking deposits — or request a quote. |
-| **Shop** (`/shop`) | Care products, engine service parts, solar/electrical components and gift vouchers, with category filters. Tracked delivery to IE & NI (free over €100) or free collection. |
+| **Shop** (`/shop`) | Care products, engine service parts, solar/electrical components and gift vouchers, with category filters. Tracked delivery to Ireland, Northern Ireland and Malta & Gozo, or free collection. |
 | **Boats for sale** (`/boats`) | Brokerage listings with refundable online reservation deposits and viewing requests. `/boats/sell` takes valuation requests. |
 | **Engine sourcing** (`/engine-sourcing`) | Detailed sourcing request form plus an optional paid priority-search deposit. |
-| **Basket & checkout** | Basket saved in the browser → Stripe Checkout (card, Apple Pay, Google Pay, promo codes). Service orders collect boat details & location. |
+| **Basket & checkout** | Basket → checkout details page → signed hand-off to the myPOS hosted payment page. Payment confirmation emails go to the business and the customer automatically. |
 | Also | About, Contact/quote, Terms, Privacy, sitemap.xml, robots.txt, schema.org LocalBusiness/Product data. |
 
 ## Getting started
@@ -22,29 +22,31 @@ cp .env.example .env.local   # fill in your keys
 npm run dev                  # http://localhost:3000
 ```
 
-Without `STRIPE_SECRET_KEY` the site works but checkout returns a "payments not configured" message.
-Without `RESEND_API_KEY` enquiry/order emails are printed to the server log.
+Without the `MYPOS_*` variables checkout shows a "payments being set up" message with the WhatsApp number.
+Without `RESEND_API_KEY` emails are printed to the server log. All variables are listed in `.env.example`.
 
-### Environment variables
+### myPOS setup
 
-| Variable | Purpose |
-| --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | `https://northwestboatmaintenance.com` |
-| `STRIPE_SECRET_KEY` | Stripe secret key (use `sk_test_…` until you go live) |
-| `STRIPE_WEBHOOK_SECRET` | Signing secret for the webhook below |
-| `RESEND_API_KEY` | [Resend](https://resend.com) API key for emails |
-| `NOTIFY_EMAIL` | Where enquiries and order notifications go |
-| `FROM_EMAIL` | Verified sender, e.g. `Northwest Boat Maintenance <noreply@northwestboatmaintenance.com>` |
+1. In your myPOS account go to **Online → Online stores → (your store) → Integration** and download the
+   configuration package. It contains the Store ID (`MYPOS_SID`), wallet number, key index, your store private key
+   and the myPOS public certificate.
+2. Put them in the hosting environment variables (never commit them). Keep `MYPOS_SANDBOX=true` while testing.
+3. Test with the myPOS test cards (e.g. Visa 4006 0900 0000 0007, any future expiry, any CVC). Sandbox test
+   credentials are on the myPOS developer site under *Testing in sandbox → Test data*.
+4. Go live: set `MYPOS_SANDBOX=false` with your live configuration package.
 
-### Stripe setup
+How it works: `/api/checkout` validates the basket against the catalogue (prices can't be changed in the browser),
+signs the request exactly like the official myPOS SDK, and the browser posts it to myPOS. myPOS then calls
+`/api/mypos/notify` (signature verified with the myPOS certificate, answers `OK`), which emails the business and the
+customer. `/api/mypos/ok` and `/api/mypos/cancel` bring the customer back to the site.
 
-1. Create a Stripe account with Ireland as the business country, and copy the secret key.
-2. Add a webhook endpoint `https://northwestboatmaintenance.com/api/webhooks/stripe` for the
-   `checkout.session.completed` event and copy its signing secret. You'll get an email for every paid order.
-3. Settings → Emails: turn on "Successful payments" so customers receive receipts.
-4. Local testing: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`.
+## Automation & quality
 
-Prices are always recalculated on the server from the catalogue (`src/lib/catalog.ts`); the browser cannot change them.
+- **Every push** runs GitHub Actions CI (`.github/workflows/ci.yml`): lint, typecheck, tests, build.
+- **Deploy**: connect the repo to Vercel; every push to `main` deploys automatically, pull requests get preview URLs.
+- **Orders**: "order started" and "PAID" emails to the business, confirmation email to the customer, no manual steps.
+- **Speed & security**: static pages, optimised AVIF/WebP images, year-long caching for photos, security headers.
+- `npm run check` runs everything CI runs, locally.
 
 ## Editing content
 

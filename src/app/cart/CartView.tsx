@@ -1,32 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/site";
 
 export function CartView() {
   const { lines, subtotal, ready, setQuantity, remove } = useCart();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  async function checkout() {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lines: lines.map((l) => ({ id: l.id, quantity: l.quantity })) }),
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok || !json.url) throw new Error(json.error ?? "Checkout failed.");
-      window.location.href = json.url;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Checkout failed.");
-      setLoading(false);
-    }
-  }
 
   if (!ready) return <p className="mt-8 text-slate-500">Loading…</p>;
 
@@ -84,15 +63,13 @@ export function CartView() {
           <span>{formatPrice(subtotal)}</span>
         </div>
         <p className="mt-1 text-sm text-slate-500">Includes VAT. Delivery calculated at checkout.</p>
-        {error && <p className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-        <button
-          onClick={checkout}
-          disabled={loading}
-          className="mt-5 w-full rounded-md bg-sea-600 px-5 py-3 font-semibold text-white transition hover:bg-sea-700 disabled:opacity-60"
+        <Link
+          href="/checkout"
+          className="mt-5 block w-full rounded-md bg-sea-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-sea-700"
         >
-          {loading ? "Redirecting to secure checkout…" : "Checkout securely"}
-        </button>
-        <p className="mt-3 text-center text-xs text-slate-500">Card, Apple Pay & Google Pay via Stripe</p>
+          Go to checkout
+        </Link>
+        <p className="mt-3 text-center text-xs text-slate-500">Secure card payment by myPOS.</p>
         <Link href="/shop" className="mt-4 block text-center text-sm font-medium text-sea-700 hover:text-sea-800">
           Continue shopping
         </Link>

@@ -85,7 +85,7 @@ export default async function ServicePage({ params }: { params: Params }) {
             })}
           </div>
           <p className="mt-4 text-sm text-slate-500">
-            Prices include VAT. Mobile call-outs outside our core area (Donegal, Sligo, Leitrim, Mayo) may carry a travel charge —
+            Prices include VAT. We work across Ireland and Malta. Call-outs outside our usual areas may carry a travel charge —
             we&apos;ll always confirm before work begins.
           </p>
         </section>

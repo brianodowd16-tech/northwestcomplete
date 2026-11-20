@@ -29,7 +29,7 @@ export const services: Service[] = [
     short: "Inboard & outboard servicing, diagnostics, repowers and winterisation.",
     icon: "wrench",
     intro:
-      "From annual servicing to full engine rebuilds, we look after petrol and diesel, inboard, outboard and sterndrive engines. We come to your marina, mooring or yard across the North West, or you can bring the boat to us.",
+      "From annual servicing to full engine rebuilds, we look after petrol and diesel, inboard, outboard and sterndrive engines. We come to your marina, mooring or yard in Ireland and Malta, or you can bring the boat to us.",
     includes: [
       "Annual engine service — oils, filters, impellers, belts, anodes",
       "Fault finding & diagnostics (Volvo Penta, Yanmar, Mercury, Yamaha, Suzuki, Honda, Beta & more)",
@@ -96,7 +96,7 @@ export const services: Service[] = [
     short: "Sell your boat with us or find your next one — prepared, presented and sold.",
     icon: "anchor",
     intro:
-      "We list, prepare, photograph and sell boats on behalf of owners throughout the North West. Because we're engineers first, every boat we sell is inspected and buyers get an honest picture of what they're getting.",
+      "We list, prepare, photograph and sell boats on behalf of owners in Ireland and Malta. Because we're engineers first, every boat we sell is inspected and buyers get an honest picture of what they're getting.",
     includes: [
       "Free valuation and listing advice",
       "Professional photography and listing on our site and major portals",

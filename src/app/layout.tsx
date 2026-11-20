@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Manrope } from "next/font/google";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { CartProvider } from "@/lib/cart";
 import { site } from "@/lib/site";
 import "./globals.css";
@@ -12,11 +13,11 @@ const display = Manrope({ subsets: ["latin"], variable: "--font-display", displa
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: `${site.name} | Marine Services, Restoration & Boat Sales — North West Ireland`,
+    default: `${site.name} | Marine Services, Restoration & Boat Sales — Ireland & Malta`,
     template: `%s | ${site.name}`,
   },
   description:
-    "Marine mechanical services, machine polishing, fiberglass restoration, welding, electrical, solar & battery systems, deep cleaning, boat brokerage and engine sourcing across Donegal, Sligo, Leitrim and Mayo.",
+    "Marine mechanical services, machine polishing, fiberglass restoration, welding, electrical, solar & battery systems, deep cleaning, boat brokerage and engine sourcing across Ireland and Malta.",
   openGraph: {
     type: "website",
     siteName: site.name,
@@ -37,8 +38,8 @@ const localBusiness = {
   url: site.url,
   email: site.email,
   telephone: site.phone,
-  areaServed: site.areas,
-  address: { "@type": "PostalAddress", addressRegion: "North West", addressCountry: "IE" },
+  areaServed: site.countries.map((name) => ({ "@type": "Country", name })),
+  address: { "@type": "PostalAddress", addressCountry: "IE" },
   priceRange: "€€",
 };
 
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
+          <WhatsAppButton />
         </CartProvider>
       </body>
     </html>

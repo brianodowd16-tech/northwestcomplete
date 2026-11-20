@@ -9,7 +9,7 @@ import { formatPrice } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Engine Sourcing",
-  description: "New, reconditioned and used marine engines, gearboxes and outboards sourced, supplied and fitted in the North West of Ireland.",
+  description: "New, reconditioned and used marine engines, gearboxes and outboards sourced, supplied and fitted in Ireland and Malta.",
 };
 
 export default function EngineSourcingPage() {

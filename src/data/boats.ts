@@ -17,7 +17,7 @@ export type BoatListing = {
 
 /**
  * Sample listings — replace with real boats. Each listing can take a refundable
- * reservation deposit through Stripe checkout.
+ * reservation deposit through myPOS checkout.
  */
 export const boats: BoatListing[] = [
   {
@@ -55,7 +55,7 @@ export const boats: BoatListing[] = [
     year: 1998,
     lengthFt: 32,
     engine: "Yanmar 3GM30 diesel",
-    location: "Sligo Harbour",
+    location: "Msida Marina, Malta",
     price: 3900000,
     status: "Under Offer",
     summary: "Sample listing. Solid bluewater cruiser, osmosis-treated hull, rewired and new standing rigging.",

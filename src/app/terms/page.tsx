@@ -13,9 +13,9 @@ export default function TermsPage() {
           Template terms — please have these reviewed by a solicitor before launch.
         </p>
         <h2>1. About us</h2>
-        <p>This website is operated by {site.name} ({site.domain}), based in the North West of Ireland. Contact: {site.email}.</p>
+        <p>This website is operated by {site.name} ({site.domain}), operating in Ireland and Malta. Contact: {site.email}.</p>
         <h2>2. Prices & payment</h2>
-        <p>All prices are in euro and include VAT at the applicable Irish rate. Payments are processed securely by Stripe; we never see or store your full card details.</p>
+        <p>All prices are in euro and include VAT at the applicable rate. Payments are processed securely by myPOS; we never see or store your full card details.</p>
         <h2>3. Services & bookings</h2>
         <ul>
           <li>Online service purchases and deposits secure a booking. We will contact you within one working day to agree a date.</li>
@@ -26,7 +26,7 @@ export default function TermsPage() {
         </ul>
         <h2>4. Shop orders, delivery & returns</h2>
         <ul>
-          <li>We deliver to the Republic of Ireland and Northern Ireland, usually within 2–4 working days of dispatch.</li>
+          <li>We deliver to the Republic of Ireland, Northern Ireland, Malta and Gozo, usually within 2–4 working days of dispatch in Ireland and longer to Malta.</li>
           <li>Under EU consumer law you may cancel a shop order within 14 days of receipt. Items must be unused and in original packaging. Parts ordered specifically for your engine may be excluded where permitted by law.</li>
           <li>Gift vouchers are valid for two years from purchase and are non-refundable once issued.</li>
         </ul>

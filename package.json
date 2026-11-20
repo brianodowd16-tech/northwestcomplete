@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit",
     "woo:csv": "node --no-warnings --experimental-strip-types woocommerce/export-csv.mjs",
     "woo:sync": "node --no-warnings --experimental-strip-types woocommerce/sync.mjs",
-    "woo:images": "node woocommerce/upload-images.mjs"
+    "woo:images": "node woocommerce/upload-images.mjs",
+    "test": "node --no-warnings --experimental-strip-types --test tests/*.test.mts",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build"
   },
   "engines": {
     "node": ">=18.18"
@@ -19,8 +21,7 @@
   "dependencies": {
     "next": "^15.5.27",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "stripe": "^17.7.0"
+    "react-dom": "^19.1.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

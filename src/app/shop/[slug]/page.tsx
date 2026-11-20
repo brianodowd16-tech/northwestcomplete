@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import { Icon } from "@/components/Icon";
 import { getProduct, products } from "@/data/products";
-import { getCatalogItem, SHIPPING } from "@/lib/catalog";
+import { COUNTRIES, getCatalogItem, SHIPPING } from "@/lib/catalog";
 import { formatPrice } from "@/lib/site";
 
 type Params = Promise<{ slug: string }>;
@@ -65,8 +65,7 @@ export default async function ProductPage({ params }: { params: Params }) {
           <div className="mt-8 rounded-xl bg-white p-5 text-sm text-slate-600 ring-1 ring-slate-200">
             {product.shippable ? (
               <p>
-                Tracked delivery in 2–4 working days across Ireland & NI: {formatPrice(SHIPPING.standard)}, free over{" "}
-                {formatPrice(SHIPPING.freeOver)}. Free collection, or we&apos;ll bring it to your boat when we&apos;re next working on it.
+                Tracked delivery to Ireland & NI {formatPrice(SHIPPING.standard)} (free over {formatPrice(SHIPPING.freeOver)}), Malta & Gozo {formatPrice(COUNTRIES[2].delivery)} (free over {formatPrice(COUNTRIES[2].freeOver)}). Free collection, or we&apos;ll bring it to your boat when we&apos;re next working on it.
               </p>
             ) : (
               <p>Delivered by email within one working day of payment.</p>

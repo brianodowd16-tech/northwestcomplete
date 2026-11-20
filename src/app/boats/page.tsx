@@ -7,7 +7,7 @@ import { formatPrice } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Boats for Sale",
-  description: "Used boats for sale in the North West of Ireland — every listing inspected by our marine engineers.",
+  description: "Used boats for sale in Ireland and Malta — every listing inspected by our marine engineers.",
 };
 
 export default function BoatsPage() {

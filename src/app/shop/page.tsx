@@ -8,7 +8,7 @@ import { SHIPPING } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: "Shop",
-  description: "Boat care products, engine service parts, solar and electrical components and gift vouchers — delivered across Ireland.",
+  description: "Boat care products, engine service parts, solar and electrical components and gift vouchers — delivered across Ireland and Malta.",
 };
 
 export default async function ShopPage({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
@@ -21,7 +21,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
       <PageHeader
         eyebrow="Shop"
         title="Parts, care products & gift vouchers"
-        intro={`The products we trust on our own jobs. Tracked delivery across Ireland & Northern Ireland — free over ${formatPrice(SHIPPING.freeOver)} — or collect from us.`}
+        intro={`The products we trust on our own jobs. Tracked delivery to Ireland, Northern Ireland, Malta and Gozo, free over ${formatPrice(SHIPPING.freeOver)} in Ireland. Or collect from us.`}
       />
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         <nav className="flex flex-wrap gap-2" aria-label="Categories">

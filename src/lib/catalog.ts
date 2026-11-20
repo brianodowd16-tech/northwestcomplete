@@ -87,9 +87,30 @@ export function getCatalogItem(id: string): CatalogItem | undefined {
   return undefined;
 }
 
-export const SHIPPING = {
-  /** Flat-rate An Post delivery within Ireland, in cents. */
-  standard: 795,
-  /** Orders at or above this value (cents) ship free. */
-  freeOver: 10000,
+export type DeliveryCountry = {
+  code: "IE" | "NI" | "MT";
+  /** ISO 3166-1 alpha-3 code sent to myPOS. */
+  iso3: "IRL" | "GBR" | "MLT";
+  name: string;
+  /** Tracked delivery price in cents. */
+  delivery: number;
+  /** Orders of goods at or above this value (cents) ship free. */
+  freeOver: number;
 };
+
+export const COUNTRIES: DeliveryCountry[] = [
+  { code: "IE", iso3: "IRL", name: "Ireland", delivery: 795, freeOver: 10000 },
+  { code: "NI", iso3: "GBR", name: "Northern Ireland", delivery: 795, freeOver: 10000 },
+  { code: "MT", iso3: "MLT", name: "Malta & Gozo", delivery: 1495, freeOver: 15000 },
+];
+
+export const getCountry = (code: string) => COUNTRIES.find((c) => c.code === code);
+
+/** Delivery price in cents for a goods subtotal; 0 when collecting or above the free threshold. */
+export function deliveryPrice(country: DeliveryCountry, goodsTotal: number, method: "delivery" | "collect") {
+  if (method === "collect" || goodsTotal === 0 || goodsTotal >= country.freeOver) return 0;
+  return country.delivery;
+}
+
+/** Shown in shop copy: the Irish rate and threshold. */
+export const SHIPPING = { standard: COUNTRIES[0].delivery, freeOver: COUNTRIES[0].freeOver };

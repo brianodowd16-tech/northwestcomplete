@@ -17,14 +17,14 @@ export default function PrivacyPage() {
         <h2>What we collect</h2>
         <ul>
           <li>Details you give us in enquiry forms: name, email, phone, boat details and your message.</li>
-          <li>Order details: name, email, phone, billing and delivery address, and what you bought. Card payments are handled by Stripe.</li>
+          <li>Order details: name, email, phone, billing and delivery address, and what you bought. Card payments are handled by myPOS.</li>
           <li>Your basket is stored in your own browser (local storage) — it isn&apos;t sent to us until you check out.</li>
         </ul>
         <h2>Why we use it</h2>
         <p>To respond to enquiries, deliver services and products you have paid for, and meet our legal and tax obligations. We do not sell your data or use it for marketing without your consent.</p>
         <h2>Who we share it with</h2>
         <ul>
-          <li>Stripe (payment processing)</li>
+          <li>myPOS (payment processing)</li>
           <li>Our email provider (to deliver enquiry and order notifications)</li>
           <li>Couriers, for shop deliveries</li>
         </ul>
