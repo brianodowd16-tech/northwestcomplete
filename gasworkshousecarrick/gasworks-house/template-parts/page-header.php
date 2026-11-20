@@ -6,7 +6,7 @@
  */
 
 ?>
-<header class="page-hero" style="--hero-image:url('<?php echo esc_url( gwh_hero_url() ); ?>')">
+<header class="page-hero" style="<?php echo esc_attr( gwh_hero_style() ); ?>">
 	<div class="wrap">
 		<p class="kicker"><?php esc_html_e( 'Gasworks House', 'gasworks-house' ); ?></p>
 		<h1 class="page-hero-title"><?php single_post_title(); ?></h1>

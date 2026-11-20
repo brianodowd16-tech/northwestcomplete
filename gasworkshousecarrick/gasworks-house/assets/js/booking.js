@@ -221,7 +221,7 @@
 				var sp = split(q.total, arrival);
 				html += '<div class="summary-due"><div><span>' + (sp.balance ? 'Due today (' + cfg.depositPct + '% deposit)' : 'Due today (paid in full)') +
 					'</span><span>' + money(sp.now) + '</span></div>' +
-					(sp.balance ? '<div><span>Balance, charged automatically ' + nice(sp.balanceOn) + '</span><span>' + money(sp.balance) + '</span></div>' : '') + '</div>';
+					(sp.balance ? '<div><span>Balance, ' + (cfg.autoBalance ? 'charged automatically ' : 'due ') + nice(sp.balanceOn) + '</span><span>' + money(sp.balance) + '</span></div>' : '') + '</div>';
 			}
 			if (!guests) {
 				html += '<p class="summary-note">Enter your group size below. Over ' + p.baseGuests + ' guests: +' + money(p.weekendExtra) +
@@ -374,7 +374,7 @@
 			.catch(function () {});
 	}
 
-	/* ---------- Back from Stripe ---------- */
+	/* ---------- Back from the payment page ---------- */
 	function handleReturn() {
 		var params = new URLSearchParams(window.location.search);
 		var state = params.get('booking');
@@ -384,6 +384,10 @@
 
 		if (state === 'cancelled') {
 			showStatus('Payment cancelled, so your dates weren\'t booked. You can try again below.', false);
+			return;
+		}
+		if (state === 'pay-cancelled') {
+			showStatus('Payment cancelled. You can use the link in your email again whenever you\'re ready.', false);
 			return;
 		}
 		if (state === 'nothing-due') {
@@ -406,7 +410,7 @@
 						form.innerHTML = '<div class="book-done"><p class="book-done-title">🎉 You\'re booked!</p>' +
 							'<p class="summary-dates">' + nice(b.arrival) + ' → ' + nice(b.departure, { year: 'numeric' }) + '</p>' +
 							'<p>Paid today: <strong>' + money(b.paid) + '</strong>' +
-							(b.balance ? '<br>Balance of ' + money(b.balance) + ' charged automatically on ' + nice(b.balanceOn) : '') + '</p>' +
+							(b.balance ? '<br>Balance of ' + money(b.balance) + (cfg.autoBalance ? ' charged automatically on ' : ' due on ') + nice(b.balanceOn) + (cfg.autoBalance ? '' : ' (we\'ll email you a payment link)') : '') + '</p>' +
 							'<p class="summary-note">Confirmation sent to ' + b.email + '.</p></div>';
 						refresh();
 					} else if (++tries < 10) {

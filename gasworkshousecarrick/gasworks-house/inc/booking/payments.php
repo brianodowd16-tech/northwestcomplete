@@ -1,6 +1,8 @@
 <?php
 /**
- * Stripe payments: Checkout for the deposit, automatic balance charge, and the damage-deposit hold.
+ * Online payments: deposit at booking, automatic balance charge, and the damage-deposit hold.
+ * Two gateways share this flow: myPOS (inc/booking/mypos.php) and Stripe (this file).
+ * Bookings remember which gateway took their deposit, so switching later is safe.
  *
  * Money flow for a booking:
  *   1. Guest pays the deposit (or everything, if arrival is close) in Stripe Checkout. Their card
@@ -33,8 +35,52 @@ function gwh_stripe_webhook_secret() {
 	return defined( 'GWH_STRIPE_WEBHOOK_SECRET' ) ? GWH_STRIPE_WEBHOOK_SECRET : (string) gwh_bset( 'stripe_webhook_secret' );
 }
 
-function gwh_payments_enabled() {
+function gwh_stripe_ready() {
 	return (bool) preg_match( '/^(sk|rk)_(test|live)_/', gwh_stripe_key() );
+}
+
+/**
+ * Active gateway for new bookings: 'mypos', 'stripe' or '' (requests only).
+ */
+function gwh_gateway() {
+	$choice = (string) gwh_bset( 'gateway' );
+	if ( 'mypos' === $choice || ( 'auto' === $choice || '' === $choice ) && gwh_mypos_ready() ) {
+		return gwh_mypos_ready() ? 'mypos' : '';
+	}
+	if ( 'stripe' === $choice || 'auto' === $choice || '' === $choice ) {
+		return gwh_stripe_ready() ? 'stripe' : '';
+	}
+	return '';
+}
+
+function gwh_payments_enabled() {
+	return '' !== gwh_gateway();
+}
+
+/** Gateway a booking was paid through. */
+function gwh_booking_gateway( $b ) {
+	if ( ! empty( $b['gateway'] ) ) {
+		return $b['gateway'];
+	}
+	return $b['customer'] ? 'stripe' : '';
+}
+
+function gwh_gateway_name( $gateway = null ) {
+	return 'mypos' === ( null === $gateway ? gwh_gateway() : $gateway ) ? 'myPOS' : 'Stripe';
+}
+
+/**
+ * Open a payment page for a booking.
+ *
+ * @return string|WP_Error URL to send the guest to.
+ */
+function gwh_start_payment( $b, $amount, $purpose, $label ) {
+	$gateway = 'booking' === $purpose ? gwh_gateway() : gwh_booking_gateway( $b );
+	if ( 'mypos' === $gateway ) {
+		// Our own page posts the signed form to myPOS, so emailed links work too.
+		return gwh_payment_link( $b, $purpose );
+	}
+	return gwh_create_checkout( $b, $amount, $purpose, $label );
 }
 
 function gwh_stripe_test_mode() {
@@ -173,6 +219,44 @@ function gwh_create_checkout( $b, $amount, $purpose, $label ) {
 }
 
 /**
+ * Mark a booking paid and confirmed, then email the guest and the owner.
+ */
+function gwh_confirm_paid_booking( $id, $paid, $meta ) {
+	$b     = gwh_booking( $id );
+	$split = gwh_payment_split( (float) $b['total'], $b['arrival'] );
+	$bal   = max( 0, round( (float) $b['total'] - $paid, 2 ) );
+	gwh_booking_meta( $id, array_merge( $meta, array(
+		'status'         => 'confirmed',
+		'paid'           => $paid,
+		'balance'        => $bal,
+		'balance_date'   => $bal > 0 ? ( $split['balance_date'] ? $split['balance_date'] : gwh_today() ) : '',
+		'balance_status' => $bal > 0 ? 'scheduled' : 'paid',
+	) ) );
+	$b    = gwh_booking( $id );
+	$auto = 'stripe' === $b['gateway'] || gwh_mypos_token_charges();
+
+	if ( ! gwh_is_available( $b['arrival'], $b['departure'], $id ) ) {
+		wp_mail( gwh_owner_email(), '⚠️ Double booking: ' . get_post_field( 'post_title', $id ), "A guest has just paid for dates that now clash with another booking (probably from Airbnb). Please contact them and refund if needed.\n\n" . gwh_booking_summary( $b ) . "\n\n" . admin_url( 'post.php?action=edit&post=' . $id ) );
+	}
+
+	$balance_note = $bal > 0
+		? "\n\nYour balance of " . gwh_money( $bal ) . ' is due on ' . gwh_nice_date( $b['balance_date'] ) . ( $auto ? ". We'll charge it to the same card automatically." : ". We'll email you a secure payment link that day." )
+		: '';
+	$deposit      = gwh_pricing()['deposit'];
+	$hold_note    = $deposit > 0
+		? "\n\nShortly before you arrive we'll place a " . gwh_money( $deposit ) . ' damage-deposit hold' . ( $auto ? ' on the same card' : ' (we\'ll email you a link)' ) . ". It's a hold, not a charge, and it's released " . GWH_RELEASE_DAYS_AFTER . ' days after check-out.'
+		: '';
+	gwh_mail_guest( $b, 'Your booking is confirmed',
+		"You're booked! We can't wait to host your group.\n\n" . gwh_booking_summary( $b ) . $balance_note . $hold_note
+		. "\n\nWe'll send check-in details before you arrive. Any questions, just reply to this email." );
+	wp_mail( gwh_owner_email(), 'New booking (paid by ' . gwh_gateway_name( $b['gateway'] ) . '): ' . get_post_field( 'post_title', $id ),
+		gwh_booking_summary( $b ) . "\n\nName:  {$b['name']}\nEmail: {$b['email']}\nPhone: {$b['phone']}\n\nMessage:\n{$b['message']}\n\n" . admin_url( 'post.php?action=edit&post=' . $id ),
+		array( 'Reply-To: ' . $b['name'] . ' <' . $b['email'] . '>' ) );
+	do_action( 'gwh_booking_confirmed', $id );
+	return gwh_booking( $id );
+}
+
+/**
  * Handle a completed Checkout Session. Safe to call more than once (webhook and return page
  * can race), so it checks state and takes a lock before doing anything.
  */
@@ -194,33 +278,12 @@ function gwh_handle_session( $session ) {
 		$pi = gwh_stripe( 'GET', 'payment_intents/' . $session['payment_intent'] );
 		$pm = is_wp_error( $pi ) ? '' : ( is_array( $pi['payment_method'] ) ? $pi['payment_method']['id'] : $pi['payment_method'] );
 
-		$paid  = round( $session['amount_total'] / 100, 2 );
-		$split = gwh_payment_split( (float) $b['total'], $b['arrival'] );
-		$bal   = max( 0, round( (float) $b['total'] - $paid, 2 ) );
-		gwh_booking_meta( $id, array(
-			'status'         => 'confirmed',
+		gwh_confirm_paid_booking( $id, round( $session['amount_total'] / 100, 2 ), array(
+			'gateway'        => 'stripe',
 			'customer'       => $session['customer'],
 			'payment_intent' => $session['payment_intent'],
 			'payment_method' => $pm,
-			'paid'           => $paid,
-			'balance'        => $bal,
-			'balance_date'   => $bal > 0 ? ( $split['balance_date'] ? $split['balance_date'] : gwh_today() ) : '',
-			'balance_status' => $bal > 0 ? 'scheduled' : 'paid',
 		) );
-		$b = gwh_booking( $id );
-
-		if ( ! gwh_is_available( $b['arrival'], $b['departure'], $id ) ) {
-			// Someone booked the same dates on Airbnb in the minutes before Airbnb synced.
-			wp_mail( gwh_owner_email(), '⚠️ Double booking: ' . get_post_field( 'post_title', $id ), "A guest has just paid for dates that now clash with another booking (probably from Airbnb). Please contact them and refund in Stripe if needed.\n\n" . gwh_booking_summary( $b ) . "\n\n" . admin_url( 'post.php?action=edit&post=' . $id ) );
-		}
-
-		gwh_mail_guest( $b, 'Your booking is confirmed',
-			"You're booked! We can't wait to host your group.\n\n" . gwh_booking_summary( $b )
-			. ( gwh_pricing()['deposit'] > 0 ? "\n\nThe day before you arrive we'll place a " . gwh_money( gwh_pricing()['deposit'] ) . " damage-deposit hold on the same card. It's a hold, not a charge, and it's released " . GWH_RELEASE_DAYS_AFTER . " days after check-out." : '' )
-			. "\n\nWe'll send the address and check-in details before you arrive. Any questions, just reply to this email." );
-		wp_mail( gwh_owner_email(), 'New booking (paid): ' . get_post_field( 'post_title', $id ),
-			gwh_booking_summary( $b ) . "\n\nName:  {$b['name']}\nEmail: {$b['email']}\nPhone: {$b['phone']}\n\nMessage:\n{$b['message']}\n\n" . admin_url( 'post.php?action=edit&post=' . $id ),
-			array( 'Reply-To: ' . $b['name'] . ' <' . $b['email'] . '>' ) );
 		return gwh_booking( $id );
 	}
 
@@ -249,12 +312,30 @@ function gwh_serve_pay_link() {
 	nocache_headers();
 	$b   = gwh_booking_by( 'token', sanitize_text_field( wp_unslash( $_GET['gwh_pay'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification
 	$for = isset( $_GET['for'] ) ? sanitize_key( $_GET['for'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+	if ( $b && 'booking' === $for && 'checkout' === $b['status'] && gwh_hold_active( $b ) && 'mypos' === gwh_gateway() ) {
+		$params = gwh_mypos_hosted_params( $b, gwh_payment_split( (float) $b['total'], $b['arrival'] )['now'], 'booking', gwh_first_payment_label( $b ) );
+		if ( ! is_wp_error( $params ) ) {
+			gwh_mypos_render_redirect( $params );
+		}
+	}
 	if ( ! $b || ! gwh_payments_enabled() || 'confirmed' !== $b['status'] ) {
-		wp_safe_redirect( home_url( '/' ) );
+		wp_safe_redirect( add_query_arg( 'booking', $b && 'booking' === $for ? 'cancelled' : 'nothing-due', home_url( '/' ) ) . '#book' );
 		exit;
 	}
 
-	$url = null;
+	$mypos = 'mypos' === gwh_booking_gateway( $b ) && gwh_mypos_ready();
+	$url   = null;
+	if ( $mypos && 'balance' === $for && (float) $b['balance'] > 0 && 'paid' !== $b['balance_status'] ) {
+		$params = gwh_mypos_hosted_params( $b, $b['balance'], 'balance', __( 'Balance - Gasworks House stay', 'gasworks-house' ) );
+	} elseif ( $mypos && 'hold' === $for && 'held' !== $b['hold_status'] && gwh_pricing()['deposit'] > 0 ) {
+		$params = gwh_mypos_hosted_params( $b, gwh_pricing()['deposit'], 'hold', __( 'Damage deposit (hold only, not charged)', 'gasworks-house' ) );
+	}
+	if ( $mypos && isset( $params ) && ! is_wp_error( $params ) ) {
+		gwh_mypos_render_redirect( $params );
+	}
+	if ( $mypos ) {
+		$for = '';
+	}
 	if ( 'balance' === $for && (float) $b['balance'] > 0 && 'paid' !== $b['balance_status'] ) {
 		$url = gwh_create_checkout( $b, $b['balance'], 'balance', __( 'Balance', 'gasworks-house' ) );
 	} elseif ( 'hold' === $for && 'held' !== $b['hold_status'] && gwh_pricing()['deposit'] > 0 ) {
@@ -364,17 +445,24 @@ function gwh_rest_checkout( WP_REST_Request $req ) {
 	}
 	$b     = gwh_booking( $id );
 	$split = gwh_payment_split( $quote['total'], $b['arrival'] );
-	$label = $split['balance'] > 0
-		/* translators: %s: percent */
-		? sprintf( __( '%s%% deposit – Gasworks House stay', 'gasworks-house' ), gwh_bset( 'deposit_percent' ) )
-		: __( 'Gasworks House stay – paid in full', 'gasworks-house' );
-
-	$url = gwh_create_checkout( $b, $split['now'], 'booking', $label );
+	if ( 'mypos' === gwh_gateway() ) {
+		gwh_booking_meta( $id, array( 'session' => 'mp_' . wp_generate_password( 24, false ), 'gateway' => 'mypos' ) );
+		$b = gwh_booking( $id );
+	}
+	$url = gwh_start_payment( $b, $split['now'], 'booking', gwh_first_payment_label( $b ) );
 	if ( is_wp_error( $url ) ) {
 		update_post_meta( $id, '_gwh_status', 'abandoned' );
 		return gwh_rest_error( __( 'We couldn\'t open the payment page. Please try again in a moment.', 'gasworks-house' ), 502 );
 	}
 	return rest_ensure_response( array( 'ok' => true, 'url' => $url ) );
+}
+
+function gwh_first_payment_label( $b ) {
+	$split = gwh_payment_split( (float) $b['total'], $b['arrival'] );
+	return $split['balance'] > 0
+		/* translators: %s: percent */
+		? sprintf( __( '%s%% deposit – Gasworks House stay', 'gasworks-house' ), gwh_bset( 'deposit_percent' ) )
+		: __( 'Gasworks House stay – paid in full', 'gasworks-house' );
 }
 
 function gwh_rest_checkout_status( WP_REST_Request $req ) {
@@ -385,7 +473,7 @@ function gwh_rest_checkout_status( WP_REST_Request $req ) {
 		return gwh_rest_error( __( 'Booking not found.', 'gasworks-house' ), 404 );
 	}
 	// Don't wait for the webhook: ask Stripe directly.
-	if ( 'confirmed' !== $b['status'] ) {
+	if ( 'confirmed' !== $b['status'] && 'mypos' !== $b['gateway'] ) {
 		$session = gwh_stripe( 'GET', 'checkout/sessions/' . rawurlencode( $session_id ) );
 		if ( ! is_wp_error( $session ) ) {
 			$b = gwh_handle_session( $session );
@@ -453,37 +541,60 @@ function gwh_charge_balance( $id ) {
 		return;
 	}
 	update_post_meta( $id, '_gwh_balance_status', 'processing' );
-	$pi = gwh_charge_saved_card( $b, $b['balance'], 'balance' );
+	if ( 'mypos' === gwh_booking_gateway( $b ) ) {
+		$pi = gwh_mypos_charge_token( $b, $b['balance'], 'balance' );
+		$ok = true === $pi;
+	} else {
+		$pi = gwh_charge_saved_card( $b, $b['balance'], 'balance' );
+		$ok = ! is_wp_error( $pi ) && 'succeeded' === $pi['status'];
+	}
 
-	if ( ! is_wp_error( $pi ) && 'succeeded' === $pi['status'] ) {
+	if ( $ok ) {
 		gwh_booking_meta( $id, array( 'balance_status' => 'paid', 'paid' => round( (float) $b['paid'] + (float) $b['balance'], 2 ) ) );
 		gwh_mail_guest( gwh_booking( $id ), 'Balance paid', "We've charged your balance of " . gwh_money( $b['balance'] ) . " to your saved card. You're all paid up. See you soon!" );
 		return;
 	}
-	update_post_meta( $id, '_gwh_balance_status', 'failed' );
+	$link_only = is_wp_error( $pi ) && 'needs_guest' === $pi->get_error_code();
+	update_post_meta( $id, '_gwh_balance_status', $link_only ? 'link_sent' : 'failed' );
 	$why = is_wp_error( $pi ) ? $pi->get_error_message() : 'status ' . $pi['status'];
-	gwh_mail_guest( $b, 'Action needed: your balance payment',
-		"We tried to charge your balance of " . gwh_money( $b['balance'] ) . " but your card needs your approval (or was declined).\n\nPlease pay here:\n" . gwh_payment_link( $b, 'balance' ) );
-	wp_mail( gwh_owner_email(), 'Balance payment failed: ' . get_post_field( 'post_title', $id ), "The automatic balance charge failed ({$why}). The guest has been emailed a payment link.\n\n" . admin_url( 'post.php?action=edit&post=' . $id ) );
+	gwh_mail_guest( $b, $link_only ? 'Your balance is due' : 'Action needed: your balance payment',
+		( $link_only
+			? 'Your balance of ' . gwh_money( $b['balance'] ) . ' for ' . gwh_nice_date( $b['arrival'] ) . ' is now due.'
+			: 'We tried to charge your balance of ' . gwh_money( $b['balance'] ) . ' but your card needs your approval (or was declined).' )
+		. "\n\nPlease pay securely here:\n" . gwh_payment_link( $b, 'balance' ) );
+	if ( ! $link_only ) {
+		wp_mail( gwh_owner_email(), 'Balance payment failed: ' . get_post_field( 'post_title', $id ), "The automatic balance charge failed ({$why}). The guest has been emailed a payment link.\n\n" . admin_url( 'post.php?action=edit&post=' . $id ) );
+	}
 }
 
 function gwh_place_hold( $id ) {
 	$b       = gwh_booking( $id );
 	$deposit = gwh_pricing()['deposit'];
 	// Only bookings paid online have a saved card; phone bookings and blocked dates are skipped.
-	if ( 'confirmed' !== $b['status'] || $deposit <= 0 || '' !== (string) $b['hold_status'] || ! $b['customer'] ) {
+	if ( 'confirmed' !== $b['status'] || $deposit <= 0 || ! in_array( (string) $b['hold_status'], array( '', 'failed' ), true ) || '' === gwh_booking_gateway( $b ) ) {
 		return;
 	}
 	update_post_meta( $id, '_gwh_hold_status', 'processing' );
-	$pi = gwh_charge_saved_card( $b, $deposit, 'hold', true );
-
-	if ( ! is_wp_error( $pi ) && 'requires_capture' === $pi['status'] ) {
-		gwh_booking_meta( $id, array( 'hold_status' => 'held', 'hold_pi' => $pi['id'] ) );
+	if ( 'mypos' === gwh_booking_gateway( $b ) ) {
+		$pi = gwh_mypos_hold_token( $b, $deposit );
+		if ( ! is_wp_error( $pi ) ) {
+			gwh_booking_meta( $id, array( 'hold_status' => 'held', 'hold_pi' => $pi ) );
+			return;
+		}
+	} else {
+		$pi = gwh_charge_saved_card( $b, $deposit, 'hold', true );
+		if ( ! is_wp_error( $pi ) && 'requires_capture' === $pi['status'] ) {
+			gwh_booking_meta( $id, array( 'hold_status' => 'held', 'hold_pi' => $pi['id'] ) );
+			return;
+		}
+	}
+	$link_only = is_wp_error( $pi ) && 'needs_guest' === $pi->get_error_code();
+	update_post_meta( $id, '_gwh_hold_status', $link_only ? 'link_sent' : 'failed' );
+	gwh_mail_guest( $b, 'Action needed: damage deposit',
+		"Before your stay we place a " . gwh_money( $deposit ) . " damage-deposit hold on your card (a hold, not a charge)." . ( $link_only ? '' : ' Your bank needs you to approve it.' ) . "\n\nPlease approve it here before you arrive:\n" . gwh_payment_link( $b, 'hold' ) );
+	if ( $link_only ) {
 		return;
 	}
-	update_post_meta( $id, '_gwh_hold_status', 'failed' );
-	gwh_mail_guest( $b, 'Action needed: damage deposit',
-		"Before your stay we place a " . gwh_money( $deposit ) . " damage-deposit hold on your card (a hold, not a charge). Your bank needs you to approve it.\n\nPlease approve it here before you arrive:\n" . gwh_payment_link( $b, 'hold' ) );
 	wp_mail( gwh_owner_email(), 'Damage deposit hold failed: ' . get_post_field( 'post_title', $id ), "The damage-deposit hold couldn't be placed automatically. The guest has been emailed a link to approve it.\n\n" . admin_url( 'post.php?action=edit&post=' . $id ) );
 }
 
@@ -492,7 +603,9 @@ function gwh_release_hold( $id ) {
 	if ( 'held' !== $b['hold_status'] || ! $b['hold_pi'] ) {
 		return new WP_Error( 'no_hold', 'No active hold' );
 	}
-	$res = gwh_stripe( 'POST', 'payment_intents/' . $b['hold_pi'] . '/cancel' );
+	$res = 'mypos' === gwh_booking_gateway( $b )
+		? gwh_mypos_finish_hold( $b['hold_pi'], gwh_mypos_hold_amount( $b ), false )
+		: gwh_stripe( 'POST', 'payment_intents/' . $b['hold_pi'] . '/cancel' );
 	if ( ! is_wp_error( $res ) ) {
 		update_post_meta( $id, '_gwh_hold_status', 'released' );
 	}
@@ -504,7 +617,14 @@ function gwh_capture_hold( $id, $amount ) {
 	if ( 'held' !== $b['hold_status'] || ! $b['hold_pi'] ) {
 		return new WP_Error( 'no_hold', 'No active hold' );
 	}
-	$amount = min( (float) $amount, gwh_pricing()['deposit'] );
+	$amount = min( (float) $amount, 'mypos' === gwh_booking_gateway( $b ) ? (float) gwh_mypos_hold_amount( $b ) : gwh_pricing()['deposit'] );
+	if ( 'mypos' === gwh_booking_gateway( $b ) ) {
+		$res = gwh_mypos_finish_hold( $b['hold_pi'], $amount, true );
+		if ( ! is_wp_error( $res ) ) {
+			gwh_booking_meta( $id, array( 'hold_status' => 'captured', 'hold_captured' => $amount ) );
+		}
+		return $res;
+	}
 	$res    = gwh_stripe( 'POST', 'payment_intents/' . $b['hold_pi'] . '/capture', array( 'amount_to_capture' => gwh_cents( $amount ) ) );
 	if ( ! is_wp_error( $res ) ) {
 		gwh_booking_meta( $id, array( 'hold_status' => 'captured', 'hold_captured' => $amount ) );

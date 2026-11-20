@@ -13,7 +13,7 @@ $gwh_facts    = array_filter( array(
 	__( 'Min. nights', 'gasworks-house' )  => gwh_bset( 'min_nights' ),
 ) );
 ?>
-<section class="hero<?php echo $gwh_hero_url ? ' has-image' : ''; ?>"<?php echo $gwh_hero_url ? ' style="--hero-image:url(\'' . esc_url( $gwh_hero_url ) . '\')"' : ''; ?>>
+<section class="hero<?php echo $gwh_hero_url ? ' has-image' : ''; ?>"<?php echo $gwh_hero_url ? ' style="' . esc_attr( gwh_hero_style() ) . '"' : ''; ?>>
 	<div class="hero-glow" aria-hidden="true"></div>
 	<div class="wrap hero-inner">
 		<p class="eyebrow"><?php echo esc_html( gwh_mod( 'hero_eyebrow' ) ); ?></p>

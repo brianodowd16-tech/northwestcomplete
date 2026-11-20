@@ -47,6 +47,7 @@ function gwh_calendar_config() {
 		'checkoutUrl'  => rest_url( 'gwh/v1/checkout' ),
 		'statusUrl'    => rest_url( 'gwh/v1/checkout-status' ),
 		'payments'     => gwh_payments_enabled(),
+		'autoBalance'  => 'stripe' === gwh_gateway() || gwh_mypos_token_charges(),
 		'depositPct'   => (float) gwh_bset( 'deposit_percent' ),
 		'balanceDays'  => absint( gwh_bset( 'balance_days' ) ),
 		'holdBefore'   => GWH_HOLD_DAYS_BEFORE,

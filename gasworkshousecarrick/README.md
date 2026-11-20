@@ -63,10 +63,10 @@ Airbnb only re-reads imported calendars every few hours, so there's a small wind
 
 1. The guest picks dates on the calendar (booked nights are greyed out, and the minimum stay is enforced) and sees the price.
 2. They send a request. The dates are **held** (default 3 days) and blocked on your site and on Airbnb, and both of you get an email.
-3. In **Bookings**, click **Confirm & email guest**. The guest gets your payment instructions (bank details or a Stripe/Revolut payment link). Or click **Decline**, and they get a polite email.
+3. In **Bookings**, click **Confirm & email guest**. The guest gets your payment instructions (bank details or a payment link). Or click **Decline**, and they get a polite email.
 4. Requests you don't act on expire after the hold period, and the dates free up again.
 
-You can also add phone or email bookings, or block dates for maintenance, with **Bookings → Add booking or block dates**. Without Stripe keys, guests pay using your payment instructions. With Stripe keys, see Online payments below.
+You can also add phone or email bookings, or block dates for maintenance, with **Bookings → Add booking or block dates**. Without online payments set up, guests pay using your payment instructions. With myPOS (or Stripe) set up, see Online payments below.
 
 **Prices** (already set as the defaults; change them in the settings page):
 
@@ -77,35 +77,87 @@ You can also add phone or email bookings, or block dates for maintenance, with *
 
 Plus a €60 cleaning fee per stay. Example: 20 guests, Friday to Sunday = €1,400 + (8 × €70 × 2) + €60 = **€2,580**.
 
-The €300 damage deposit is a **card pre-authorisation** (a hold, not a charge). It's shown to guests and in emails but isn't added to the total. With Stripe connected, the site places and releases the hold automatically (see Online payments). Without Stripe, place it yourself close to check-in, because card holds lapse after about 7 days.
+The €300 damage deposit is a **card pre-authorisation** (a hold, not a charge). It's shown to guests and in emails but isn't added to the total. With online payments set up, the site places and releases the hold automatically (see Online payments). Without them, place it yourself close to check-in, because card holds lapse after about 7 days.
 
 Prices can't be pulled from Airbnb automatically (Airbnb's calendar link only contains dates), so keep your Airbnb prices in step by hand.
 
-## Online payments (Stripe)
+## Online payments (myPOS)
 
-Guests book instantly and pay by card through **Stripe Checkout**. Until you add Stripe keys, the site takes requests instead (see above).
+Guests book instantly and pay by card, Apple Pay or Google Pay on **myPOS's secure payment page**. Until a payment provider is set up, the site takes requests instead (see above). Stripe is still built in as an alternative (see the end of this section).
 
 **What happens:**
 
-1. The guest picks dates, enters their group size, optionally adds the Moon River cruise, and clicks **Book & pay**. The dates are held for about 30 minutes while they're on the Stripe payment page.
-2. They pay a **30% deposit**, or the full amount if arriving within 14 days. Their card is saved securely at Stripe (never on your site), and the booking is confirmed and emailed straight away.
-3. **14 days before arrival**, the balance is charged to the saved card automatically.
-4. **The day before arrival**, a **€300 damage-deposit hold** is placed on the card (a hold, not a charge). It's released automatically **2 days after check-out**, unless you capture some or all of it from the booking screen. Card holds lapse after about 7 days, which is why the window is kept short.
-5. If a bank asks the guest to approve a charge or hold (common with Irish cards), or a card is declined, the guest is emailed a link to pay, and you're emailed too. The booking screen shows a ⚠️ until it's sorted.
+1. The guest picks dates, enters their group size, optionally adds the Moon River cruise, and clicks **Book & pay**. The dates are held for about 30 minutes while they're on the myPOS page.
+2. They pay a **30% deposit**, or the full amount if arriving within 14 days. myPOS stores a secure token for the card (the card number never touches your site). myPOS tells the website the payment went through, and the booking is confirmed and emailed straight away.
+3. **14 days before arrival**, the balance is taken.
+4. **The day before arrival**, a **€300 damage-deposit hold** is placed (a hold, not a charge). It's released automatically **2 days after check-out**, unless you capture some or all of it from the booking screen.
+5. If anything needs the guest (card declined, or the bank wants approval), the guest is emailed a secure link and you're emailed too. The booking screen shows what's outstanding.
 
-Refunds and cancellations are done in your Stripe dashboard.
+**Steps 3 and 4 have two modes:**
 
-**Setup (about 10 minutes):**
+- **Fully automatic.** The balance and the hold go on the saved card with nothing for the guest to do. myPOS has to switch on stored-card payments for your store first. Ask myPOS support to enable *card tokenisation / recurring payments (IPCIAPurchase and IPCIAPreAuthorization with a card token)*. Then tick **Automatic card charges** in the settings.
+- **Link mode** (the default until then). On the day each one is due, the guest is emailed a secure myPOS link to pay the balance or approve the hold. It still runs by itself; the guest just taps the link.
 
-1. In Stripe, go to **Developers → API keys** and copy the **test** secret key (`sk_test_…`).
-2. In WordPress, go to **Bookings → Settings & Airbnb sync → Online payments** and paste it in. **Never send your keys by email or chat.** To keep keys out of the database, you can instead add `define( 'GWH_STRIPE_SECRET_KEY', 'sk_…' );` and `define( 'GWH_STRIPE_WEBHOOK_SECRET', 'whsec_…' );` to `wp-config.php` (Hostinger → File Manager).
-3. In Stripe, go to **Developers → Webhooks → Add endpoint**. Paste the webhook URL shown on the settings page and choose the events `checkout.session.completed`, `checkout.session.async_payment_succeeded` and `checkout.session.expired`. Copy the **Signing secret** (`whsec_…`) into the settings page.
-4. Make a test booking on your site with card **4242 4242 4242 4242** (any future expiry date and any CVC). Check the confirmation email and the booking screen. To test a card that needs bank approval, use **4000 0027 6000 3184**.
-5. When you're happy, swap in the **live** keys (`sk_live_…`) and create a live-mode webhook the same way. It has a different signing secret.
+Safety built in:
+- Every message to and from myPOS is signed and checked.
+- A payment for the wrong amount is refused.
+- If someone books the same dates on Airbnb while a guest is paying, the website refuses the payment, myPOS reverses it, and the guest is told they weren't charged.
+
+Refunds are done in your myPOS account.
+
+**Setup (about 15 minutes):**
+
+1. In your myPOS account, go to **Online → Online stores** and create a store for `gasworkshousecarrick.com`. If you can, start with a test store.
+2. Open the store's integration or keys page and generate the **Configuration pack**: one long block of text that holds your store ID, wallet and keys.
+3. In WordPress, go to **Bookings → Settings & Airbnb sync → 4. Online payments**. Choose **myPOS**, paste the pack, tick **Test mode**, and save. **Never send the pack by email or chat.** It contains your private key. To keep it out of the database, add `define( 'GWH_MYPOS_CONFIG_PACK', '…' );` to `wp-config.php` instead (Hostinger → File Manager).
+4. If myPOS asks for a notification URL, use the one shown on the settings page (`https://gasworkshousecarrick.com/?gwh_mypos=notify`). It must be https.
+5. Make a test booking using myPOS's test cards from their developer site. Check the confirmation email and the booking screen.
+6. Go live: generate the pack for your live store, paste it in, untick **Test mode**, and make a small real booking to confirm.
 
 **Moon River cruise add-on:** €25 per person, and guests choose the headcount (up to their group size) and which day of their stay. It's added to the total and marked "subject to availability"; you book the sailing with Moon River. Change the name, price and text, or switch it off, under **5. Cruise add-on** in the settings.
 
-**Hosting notes:** the balance and hold jobs run on WordPress's scheduler, which is triggered by site visits. For exact timing, set up a Hostinger **Cron Job** that runs every 15 minutes: `wget -q -O - https://gasworkshousecarrick.com/wp-cron.php?doing_wp_cron >/dev/null 2>&1`. Also make sure LiteSpeed Cache doesn't cache `/wp-json/` (it's excluded by default).
+**Stripe instead:** choose **Stripe** under *Take payments with* and follow the steps on the settings page: a secret key plus a webhook for `checkout.session.completed`, `checkout.session.async_payment_succeeded` and `checkout.session.expired`. Each booking remembers which provider took its deposit, so switching later doesn't break existing bookings.
+
+## Automation
+
+These run by themselves every hour:
+
+| Job | When |
+|---|---|
+| Airbnb calendar sync (both ways) | hourly, plus right before every booking |
+| Unpaid checkouts and expired requests free their dates | hourly |
+| Balance charged, or payment link emailed | 14 days before arrival |
+| Damage hold placed, or approval link emailed | 1 day before arrival |
+| Damage hold released | 2 days after check-out |
+| **Arrival details** to the guest, with a copy to you (includes any unpaid balance and the cruise booking) | 3 days before arrival |
+| **Thank-you + review request** (links to your Google profile) | day after check-out |
+
+Edit the arrival text (fill in parking, how to get in, Wi-Fi) and the review link, or switch the emails off, under **6. Automatic guest emails**. That section also shows when the jobs last ran.
+
+**Set up the Hostinger cron job (important).** WordPress only runs scheduled jobs when someone visits the site. To make payments and emails go out on time:
+
+1. In hPanel go to **Advanced → Cron Jobs**, choose *Custom*, and run every 15 minutes. Use this command:
+   `wget -q -O - "https://gasworkshousecarrick.com/wp-cron.php?doing_wp_cron" >/dev/null 2>&1`
+2. Optionally add `define( 'DISABLE_WP_CRON', true );` to `wp-config.php` so visitors never wait on it.
+
+## Speed & search
+
+Built in:
+- Hero photo served as WebP, with a 32 KB version for phones and 94 KB for desktop (was 253 KB). It's preloaded so it appears first.
+- All scripts are deferred.
+- WordPress extras the site doesn't use (emoji script, block styles, feed and embed links) are removed.
+- The Airbnb widget only loads when it scrolls into view.
+- Every page gets its own description, plus link-preview tags so WhatsApp and Facebook show the house photo.
+- Google gets LodgingBusiness structured data (address, Eircode, phone, map, Airbnb and Google profile links).
+- Bookings and payment pages are kept out of search.
+
+If you install Yoast or Rank Math, the theme steps back and lets the plugin handle titles and descriptions.
+
+Also do these on Hostinger:
+- Turn on **LiteSpeed Cache** (hPanel → WordPress → LiteSpeed). The booking and payment URLs already tell it not to cache them.
+- In LiteSpeed's **Image Optimization**, enable WebP for photos you upload yourself.
+- In **Google Search Console**, add the site and submit `https://gasworkshousecarrick.com/wp-sitemap.xml`.
+- Make sure your **Google Business Profile** website link points to `https://gasworkshousecarrick.com`.
 
 ## Branding
 
@@ -163,7 +215,10 @@ gasworks-house/
   inc/booking/core.php   availability, pricing, calendar sync (import/export)
   inc/booking/api.php    public API used by the calendar
   inc/booking/admin.php  Bookings screen, confirm/decline, payments panel, settings page
-  inc/booking/payments.php  Stripe Checkout, webhook, balance charge, damage hold
+  inc/booking/payments.php  payment flow shared by both providers, plus Stripe
+  inc/booking/mypos.php     myPOS Checkout: signed requests, notifications, token charges, holds
+  inc/booking/automation.php arrival and review emails, scheduler health check
+  inc/performance.php  speed trims, hero preload, sitemap/robots rules
   assets/css/main.css
   assets/js/main.js    mobile menu, tabs, lightbox
   assets/js/booking.js availability calendar and booking form

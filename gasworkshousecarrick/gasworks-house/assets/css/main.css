@@ -132,6 +132,9 @@ p { margin: 0 0 1em; }
 	content: ""; position: absolute; inset: 0; z-index: -2;
 	background: var(--hero-image) center / cover no-repeat;
 }
+@media (max-width: 760px) {
+	.hero.has-image::before, .page-hero::before { background-image: var(--hero-image-sm, var(--hero-image)); }
+}
 .hero.has-image::after {
 	content: ""; position: absolute; inset: 0; z-index: -1;
 	background: linear-gradient(90deg, rgba(23, 21, 26, .75) 0%, rgba(23, 21, 26, .35) 65%, rgba(23, 21, 26, .15) 100%), linear-gradient(180deg, rgba(23, 21, 26, .5) 0%, rgba(23, 21, 26, .1) 40%, rgba(23, 21, 26, .9) 100%);

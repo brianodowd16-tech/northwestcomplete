@@ -309,14 +309,14 @@ function gwh_draft_content( $key ) {
 				. $h( 'What we collect' )
 				. $ul( array(
 					'When you book or send a request: your name, email address, phone number, dates, group size, occasion and any message you send.',
-					'When you pay: payments are handled by Stripe. We do not see or store your full card number. Stripe stores your card so the balance and damage-deposit hold can be taken, as explained when you book.',
+					'When you pay: payments are handled by myPOS, a regulated payment provider. We do not see or store your full card number. myPOS stores a secure token for your card so the balance and damage-deposit hold can be taken, as explained when you book.',
 					'When you contact us by WhatsApp, phone or email: the details you choose to share.',
 				) )
 				. $h( 'How we use it' )
 				. $p( 'We use your details to manage your booking, take payments, send booking emails and answer your questions (to perform our contract with you), and to keep records we are legally required to keep. We do not sell your data or use it for marketing without your consent.' )
 				. $h( 'Who we share it with' )
 				. $ul( array(
-					'Stripe, to process payments.',
+					'myPOS, to process payments.',
 					'Our website host [Hostinger] and email provider, to run the site and send emails.',
 					'Airbnb receives only the dates you have booked (to keep calendars in sync), never your name or details.',
 					'Moon River, if you book the cruise add-on: [the group size and date only].',

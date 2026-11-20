@@ -71,4 +71,25 @@
 		});
 	});
 
+	// Airbnb embed: load Airbnb's script only when the box is about to be seen.
+	var embed = document.querySelector('[data-airbnb-sdk]');
+	if (embed) {
+		var loadSdk = function () {
+			if (embed.getAttribute('data-loaded')) return;
+			embed.setAttribute('data-loaded', '1');
+			var s = document.createElement('script');
+			s.async = true;
+			s.src = embed.getAttribute('data-airbnb-sdk');
+			document.body.appendChild(s);
+		};
+		if ('IntersectionObserver' in window) {
+			var io = new IntersectionObserver(function (entries) {
+				if (entries[0].isIntersecting) { loadSdk(); io.disconnect(); }
+			}, { rootMargin: '400px' });
+			io.observe(embed);
+		} else {
+			loadSdk();
+		}
+	}
+
 })();

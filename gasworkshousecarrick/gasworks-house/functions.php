@@ -9,15 +9,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'GWH_VERSION', '1.5.0' );
+define( 'GWH_VERSION', '1.6.0' );
 
 require get_template_directory() . '/inc/defaults.php';
 require get_template_directory() . '/inc/customizer.php';
 require get_template_directory() . '/inc/tour.php';
 require get_template_directory() . '/inc/pages.php';
+require get_template_directory() . '/inc/performance.php';
 require get_template_directory() . '/inc/booking/core.php';
 require get_template_directory() . '/inc/booking/api.php';
 require get_template_directory() . '/inc/booking/payments.php';
+require get_template_directory() . '/inc/booking/mypos.php';
+require get_template_directory() . '/inc/booking/automation.php';
 require get_template_directory() . '/inc/booking/admin.php';
 
 /**
@@ -59,12 +62,13 @@ add_action( 'after_setup_theme', 'gwh_setup' );
 function gwh_assets() {
 	wp_enqueue_style( 'gwh-fonts', 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Manrope:wght@400;500;700&display=swap', array(), null );
 	wp_enqueue_style( 'gwh-main', get_template_directory_uri() . '/assets/css/main.css', array(), GWH_VERSION );
-	wp_enqueue_script( 'gwh-main', get_template_directory_uri() . '/assets/js/main.js', array(), GWH_VERSION, true );
+	$defer = array( 'in_footer' => true, 'strategy' => 'defer' );
+	wp_enqueue_script( 'gwh-main', get_template_directory_uri() . '/assets/js/main.js', array(), GWH_VERSION, $defer );
 	if ( is_front_page() || is_page_template( 'page-templates/house.php' ) ) {
-		wp_enqueue_script( 'gwh-tour', get_template_directory_uri() . '/assets/js/tour.js', array(), GWH_VERSION, true );
+		wp_enqueue_script( 'gwh-tour', get_template_directory_uri() . '/assets/js/tour.js', array(), GWH_VERSION, $defer );
 	}
 	if ( is_front_page() || is_page_template( 'page-templates/book.php' ) ) {
-		wp_enqueue_script( 'gwh-booking', get_template_directory_uri() . '/assets/js/booking.js', array(), GWH_VERSION, true );
+		wp_enqueue_script( 'gwh-booking', get_template_directory_uri() . '/assets/js/booking.js', array(), GWH_VERSION, $defer );
 		wp_add_inline_script( 'gwh-booking', 'window.GWH_BOOKING = ' . wp_json_encode( gwh_calendar_config() ) . ';', 'before' );
 	}
 }
@@ -82,20 +86,37 @@ add_filter( 'wp_resource_hints', 'gwh_preconnect', 10, 2 );
  * Meta description, Open Graph and structured data on the front page.
  */
 function gwh_head_meta() {
-	if ( ! is_front_page() ) {
+	// Leave it to an SEO plugin if one is active.
+	if ( defined( 'WPSEO_VERSION' ) || defined( 'RANK_MATH_VERSION' ) || defined( 'AIOSEO_VERSION' ) || defined( 'SEOPRESS_VERSION' ) ) {
 		return;
 	}
+	$site  = get_bloginfo( 'name' );
 	$desc  = gwh_mod( 'meta_description' );
-	$title = get_bloginfo( 'name' );
-	$image = gwh_hero_url();
+	$url   = home_url( '/' );
+	$title = $site;
+	if ( ! is_front_page() && is_singular() ) {
+		$post  = get_queried_object();
+		$text  = has_excerpt( $post ) ? get_the_excerpt( $post ) : wp_strip_all_tags( strip_shortcodes( $post->post_content ) );
+		$text  = trim( preg_replace( '/\s+/', ' ', $text ) );
+		$desc  = $text ? wp_html_excerpt( $text, 155, '…' ) : $desc;
+		$url   = get_permalink( $post );
+		$title = get_the_title( $post ) . ' | ' . $site;
+	} elseif ( ! is_front_page() ) {
+		return;
+	}
+	$image = gwh_share_image();
 
 	echo '<meta name="description" content="' . esc_attr( $desc ) . "\">\n";
 	echo '<meta property="og:type" content="website">' . "\n";
+	echo '<meta property="og:site_name" content="' . esc_attr( $site ) . "\">\n";
+	echo '<meta property="og:locale" content="en_IE">' . "\n";
 	echo '<meta property="og:title" content="' . esc_attr( $title ) . "\">\n";
 	echo '<meta property="og:description" content="' . esc_attr( $desc ) . "\">\n";
-	echo '<meta property="og:url" content="' . esc_url( home_url( '/' ) ) . "\">\n";
-	if ( $image ) {
-		echo '<meta property="og:image" content="' . esc_url( $image ) . "\">\n";
+	echo '<meta property="og:url" content="' . esc_url( $url ) . "\">\n";
+	echo '<meta property="og:image" content="' . esc_url( $image ) . "\">\n";
+	echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
+	if ( ! is_front_page() ) {
+		return;
 	}
 
 	$schema = array(
@@ -121,8 +142,14 @@ function gwh_head_meta() {
 	if ( gwh_mod( 'contact_email' ) ) {
 		$schema['email'] = gwh_mod( 'contact_email' );
 	}
-	if ( $image ) {
-		$schema['image'] = $image;
+	$schema['image']      = $image;
+	$schema['priceRange'] = '€€';
+	$same                 = array_values( array_filter( array( gwh_mod( 'airbnb_url' ), gwh_mod( 'maps_listing_url' ) ) ) );
+	if ( $same ) {
+		$schema['sameAs'] = $same;
+	}
+	if ( absint( gwh_mod( 'bedrooms' ) ) ) {
+		$schema['numberOfRooms'] = absint( gwh_mod( 'bedrooms' ) );
 	}
 	echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . "</script>\n";
 }
@@ -229,10 +256,22 @@ function gwh_whatsapp_icon() {
 /**
  * Hero photo: Customizer choice, otherwise the kitchen and living room with the stove lit.
  */
-function gwh_hero_url() {
+function gwh_hero_url( $size = 'full' ) {
 	$id  = absint( gwh_mod( 'hero_image' ) );
-	$url = $id ? wp_get_attachment_image_url( $id, 'full' ) : '';
-	return $url ? $url : get_template_directory_uri() . '/assets/img/kitchen-living.jpg';
+	$url = $id ? wp_get_attachment_image_url( $id, 'small' === $size ? 'large' : 'full' ) : '';
+	return $url ? $url : get_template_directory_uri() . '/assets/img/hero-' . ( 'small' === $size ? '960' : '1920' ) . '.webp';
+}
+
+/**
+ * Inline CSS variables for the hero background: a full-size and a phone-size image.
+ */
+function gwh_hero_style() {
+	return '--hero-image:url(\'' . esc_url( gwh_hero_url() ) . '\');--hero-image-sm:url(\'' . esc_url( gwh_hero_url( 'small' ) ) . '\')';
+}
+
+/** Image for link previews (Facebook, WhatsApp, iMessage): 1200×630 JPEG. */
+function gwh_share_image() {
+	return absint( gwh_mod( 'hero_image' ) ) ? gwh_hero_url() : get_template_directory_uri() . '/assets/img/og-image.jpg';
 }
 
 /**

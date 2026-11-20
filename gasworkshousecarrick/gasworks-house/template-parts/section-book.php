@@ -118,7 +118,9 @@ $gwh_airbnb = gwh_mod( 'airbnb_url' );
 					<p class="book-note">
 						<?php
 						/* translators: %d: days */
-						echo esc_html( sprintf( __( '🔒 Secure payment by Stripe. The balance is charged to the same card %d days before arrival.', 'gasworks-house' ), absint( gwh_bset( 'balance_days' ) ) ) );
+						echo esc_html( sprintf( 'stripe' === gwh_gateway() || gwh_mypos_token_charges()
+							? __( '🔒 Secure card payment. The balance is charged to the same card %d days before arrival.', 'gasworks-house' )
+							: __( '🔒 Secure card payment with Apple Pay and Google Pay. We\'ll email you a link for the balance %d days before arrival.', 'gasworks-house' ), absint( gwh_bset( 'balance_days' ) ) ) );
 						?>
 					</p>
 				<?php else : ?>
@@ -131,7 +133,7 @@ $gwh_airbnb = gwh_mod( 'airbnb_url' );
 			<ol class="steps">
 				<li><strong><?php esc_html_e( 'Pick your dates', 'gasworks-house' ); ?></strong><span><?php esc_html_e( 'Live availability, synced with Airbnb.', 'gasworks-house' ); ?></span></li>
 				<?php if ( gwh_payments_enabled() ) : ?>
-					<li><strong><?php esc_html_e( 'Pay your deposit', 'gasworks-house' ); ?></strong><span><?php esc_html_e( 'Securely by card with Stripe.', 'gasworks-house' ); ?></span></li>
+					<li><strong><?php esc_html_e( 'Pay your deposit', 'gasworks-house' ); ?></strong><span><?php esc_html_e( 'Securely by card, Apple Pay or Google Pay.', 'gasworks-house' ); ?></span></li>
 					<li><strong><?php esc_html_e( 'You\'re booked', 'gasworks-house' ); ?></strong><span><?php esc_html_e( 'Instant confirmation by email.', 'gasworks-house' ); ?></span></li>
 				<?php else : ?>
 					<li><strong><?php esc_html_e( 'Send your request', 'gasworks-house' ); ?></strong><span><?php esc_html_e( 'We hold the dates for you.', 'gasworks-house' ); ?></span></li>
@@ -145,9 +147,9 @@ $gwh_airbnb = gwh_mod( 'airbnb_url' );
 						<p><strong><?php esc_html_e( 'Prefer Airbnb?', 'gasworks-house' ); ?></strong> <?php esc_html_e( 'You can book us there too.', 'gasworks-house' ); ?></p>
 						<?php if ( gwh_mod( 'airbnb_embed' ) && preg_match( '#/rooms/(\d+)#', $gwh_airbnb, $gwh_room ) ) : ?>
 							<?php $gwh_airbnb_host = wp_parse_url( $gwh_airbnb, PHP_URL_HOST ); ?>
-							<div class="airbnb-embed-frame" data-id="<?php echo esc_attr( $gwh_room[1] ); ?>" data-view="home" data-hide-price="true" style="width:100%;max-width:450px;height:300px">
+							<?php // Airbnb's script is heavy: main.js loads it only when this box scrolls near view. ?>
+							<div class="airbnb-embed-frame" data-id="<?php echo esc_attr( $gwh_room[1] ); ?>" data-view="home" data-hide-price="true" data-airbnb-sdk="<?php echo esc_url( 'https://' . $gwh_airbnb_host . '/embeddable/airbnb_jssdk' ); ?>" style="width:100%;max-width:450px;height:300px">
 								<a class="btn btn-ghost" href="<?php echo esc_url( $gwh_airbnb ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'View on Airbnb', 'gasworks-house' ); ?></a>
-								<script async src="https://<?php echo esc_attr( $gwh_airbnb_host ); ?>/embeddable/airbnb_jssdk"></script>
 							</div>
 						<?php else : ?>
 							<a class="btn btn-ghost" href="<?php echo esc_url( $gwh_airbnb ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'View on Airbnb', 'gasworks-house' ); ?></a>

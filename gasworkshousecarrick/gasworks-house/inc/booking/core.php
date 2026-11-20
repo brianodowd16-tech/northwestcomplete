@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 const GWH_BLOCKING_STATUSES = array( 'pending', 'checkout', 'confirmed' );
 
-// Minutes a stay is held while the guest is paying in Stripe Checkout (Stripe's minimum session life is 30).
+// Minutes a stay is held while the guest is on the payment page.
 const GWH_CHECKOUT_HOLD_MINUTES = 35;
 
 function gwh_booking_defaults() {
@@ -31,6 +31,10 @@ function gwh_booking_defaults() {
 		'hold_days'            => '3',
 		'deposit_percent'      => '30',
 		'balance_days'         => '14',
+		'gateway'              => 'auto',
+		'mypos_config_pack'    => '',
+		'mypos_test'           => '1',
+		'mypos_token_charges'  => '0',
 		'stripe_secret_key'    => '',
 		'stripe_webhook_secret' => '',
 		'cruise_enabled'       => '1',
@@ -38,6 +42,11 @@ function gwh_booking_defaults() {
 		'cruise_price'         => '25',
 		'cruise_description'   => 'Cruise the Shannon on the Moon River. Subject to availability: we\'ll confirm your sailing time.',
 		'notify_email'         => '',
+		'arrival_email'        => '1',
+		'arrival_days'         => '3',
+		'arrival_info'         => function_exists( 'gwh_default_arrival_info' ) ? gwh_default_arrival_info() : '',
+		'review_email'         => '1',
+		'review_url'           => '',
 		'checkin_time'         => '4pm',
 		'checkout_time'        => '11am',
 		'payment_instructions' => "To secure your dates, please pay a 30% deposit within 3 days by bank transfer:\n\nAccount name:\nIBAN:\nBIC:\nReference: your name and arrival date\n\nThe balance is due 14 days before arrival.",
@@ -239,7 +248,7 @@ function gwh_booking( $post_id ) {
 		'cruise_people', 'cruise_date', 'token',
 		// Payments.
 		'session', 'customer', 'payment_intent', 'payment_method', 'paid', 'balance', 'balance_date', 'balance_status',
-		'hold_status', 'hold_pi', 'hold_captured',
+		'hold_status', 'hold_pi', 'hold_captured', 'gateway',
 	);
 	$out  = array( 'id' => (int) $post_id );
 	foreach ( $keys as $key ) {
