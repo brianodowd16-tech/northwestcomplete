@@ -1,0 +1,22 @@
+name: Live site check
+
+# Every 30 minutes: is the storefront up, is the catalogue loading, and is
+# the payment callback alive? Fails (and GitHub emails you) if anything is down.
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: vars.SITE_URL != ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: npm run smoke
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}

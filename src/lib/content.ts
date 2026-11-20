@@ -1,5 +1,6 @@
 import "server-only";
 import { WC_URL } from "./config";
+import { wpFetch } from "./http";
 import { decodeEntities } from "./woo";
 
 /**
@@ -33,7 +34,7 @@ export type RangePage = { title: string; groups: RangeGroup[]; images: string[];
 type WpPage = { id: number; slug: string; title: { rendered: string }; content: { rendered: string }; modified: string };
 
 async function wpPage(slug: string): Promise<WpPage | null> {
-  const res = await fetch(
+  const res = await wpFetch(
     `${WC_URL}/wp-json/wp/v2/pages?slug=${encodeURIComponent(slug)}&_fields=id,slug,title,content,modified`,
     { next: { revalidate: 3600, tags: [CONTENT_TAG] } },
   );

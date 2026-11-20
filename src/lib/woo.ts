@@ -1,5 +1,6 @@
 import "server-only";
 import { WC_URL, wooCredentials } from "./config";
+import { wpFetch } from "./http";
 import { minorToCents } from "./money";
 
 /* ---------- Catalogue (public Store API, cached) ---------- */
@@ -74,8 +75,7 @@ function mapProduct(p: StoreProduct): Product {
 }
 
 async function storeGet<T>(path: string, fresh = false): Promise<T> {
-  const res = await fetch(`${WC_URL}/wp-json/wc/store/v1${path}`, {
-    headers: { Accept: "application/json" },
+  const res = await wpFetch(`${WC_URL}/wp-json/wc/store/v1${path}`, {
     ...(fresh ? { cache: "no-store" as const } : { next: { revalidate: 300, tags: [PRODUCTS_TAG] } }),
   });
   if (!res.ok) throw new Error(`WooCommerce ${path} → ${res.status}`);
@@ -109,11 +109,10 @@ export class WooNotConfigured extends Error {
 async function rest<T>(method: string, path: string, body?: unknown): Promise<T> {
   const creds = wooCredentials();
   if (!creds) throw new WooNotConfigured();
-  const res = await fetch(`${WC_URL}/wp-json/wc/v3${path}`, {
+  const res = await wpFetch(`${WC_URL}/wp-json/wc/v3${path}`, {
     method,
     cache: "no-store",
     headers: {
-      Accept: "application/json",
       "Content-Type": "application/json",
       Authorization: "Basic " + Buffer.from(`${creds.key}:${creds.secret}`).toString("base64"),
     },

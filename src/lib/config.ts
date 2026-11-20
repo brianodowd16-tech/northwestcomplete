@@ -1,7 +1,7 @@
 import "server-only";
 import { MYPOS_SANDBOX } from "./mypos-sandbox";
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+export const SITE_URL = (process.env.SITE_URL || "http://localhost:3000").replace(/\/$/, "");
 
 export const WC_URL = (process.env.WC_URL || "https://odowdscarrick.com").replace(/\/$/, "");
 
