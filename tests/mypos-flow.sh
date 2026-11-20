@@ -19,6 +19,7 @@ cat > "$T/config.php" <<PHP
   'mypos_sid' => '000000000000010', 'mypos_wallet' => '61938166610', 'mypos_key_index' => 1,
   'mypos_private_key' => '$T/merchant.key', 'mypos_public_cert' => '$T/mypos.crt',
   'site_url' => 'https://northwestcomplete.com', 'data_dir' => '$T/data',
+  'odoo_url' => 'http://127.0.0.1:$((PORT+1))', 'odoo_api_key' => 'KEY123',
   'notify_email' => 'team@example.test', 'from_email' => 'hello@example.test',
 ];
 PHP
@@ -28,6 +29,8 @@ cat >> "$T/mail.log"; echo "-----" >> "$T/mail.log"
 SH
 chmod +x "$T/sendmail"
 
+ODOO_LOG="$T/odoo.log" php -S "127.0.0.1:$((PORT+1))" "$ROOT/tests/fake-odoo.php" >/dev/null 2>&1 & ODOO=$!
+trap 'kill $SRV $ODOO 2>/dev/null || true; rm -rf "$T"' EXIT
 NWC_CONFIG="$T/config.php" php -d "sendmail_path=$T/sendmail -t" -S "127.0.0.1:$PORT" -t "$ROOT" >"$T/server.log" 2>&1 & SRV=$!
 for i in $(seq 1 30); do curl -s -o /dev/null "$BASE/api/order-status.php" && break; sleep 0.2; done
 
@@ -74,4 +77,26 @@ CLIENT=$(grep -c "^To: pat@example.com" "$T/mail.log" || true)
 [ "$CLIENT" = 1 ] || fail "client email sent $CLIENT times (expected once)"
 grep -q 'myPOS transaction IPC_TRN_123' "$T/mail.log" || fail "team email missing transaction"
 echo "ok  paid once, repeat notification harmless, emails sent once"
+# 4. Odoo: one contact search, one contact, one won opportunity (JSON-2 API).
+[ "$(grep -c 'res.partner/create' "$T/odoo.log")" = 1 ] || fail "expected one Odoo contact create"
+[ "$(grep -c 'crm.lead/create' "$T/odoo.log")" = 1 ] || fail "expected one Odoo opportunity create"
+[ "$(grep -c 'crm.lead/action_set_won' "$T/odoo.log")" = 1 ] || fail "opportunity not marked won"
+grep -q 'Bearer KEY123' "$T/odoo.log" || fail "Odoo API key not sent"
+grep -q '"expected_revenue":500' "$T/odoo.log" || fail "opportunity value wrong"
+echo "ok  Odoo contact and won opportunity created once"
+# 5. Website enquiry creates a lead and an auto-reply.
+curl -s -H 'X-Requested-With: fetch' --data-urlencode 'name=Sam Byrne' --data-urlencode 'email=sam@example.com' \
+  --data-urlencode 'message=Need a new booking system' --data started=1 "$BASE/contact.php" | grep -q '"ok":true' || fail "contact form"
+[ "$(grep -c 'crm.lead/create' "$T/odoo.log")" = 2 ] || fail "enquiry did not create an Odoo lead"
+grep -q "^To: sam@example.com" "$T/mail.log" || fail "no auto-reply to enquirer"
+echo "ok  enquiry created an Odoo lead and sent an auto-reply"
+# 6. Older Odoo (/jsonrpc) path: logs in, then creates the contact and the lead.
+cat > "$T/legacy.php" <<PHP
+<?php return ['odoo_url' => 'http://127.0.0.1:$((PORT+1))', 'odoo_db' => 'nwc', 'odoo_login' => 'me@example.com',
+  'odoo_api_key' => 'KEY123', 'odoo_legacy_api' => true, 'data_dir' => '$T/data'];
+PHP
+: > "$T/odoo.log"
+NWC_CONFIG="$T/legacy.php" php -r 'require "'"$ROOT"'/api/_lib.php"; $r = odoo_record_lead("Lee Kay", "lee@example.com", "", "", "hi", ""); exit(isset($r["lead"]) ? 0 : 1);' || fail "legacy Odoo call failed"
+grep -q '"method":"authenticate"' "$T/odoo.log" && grep -q '"crm.lead","create"' "$T/odoo.log" || fail "legacy Odoo calls not made"
+echo "ok  older Odoo (/jsonrpc) works too"
 echo "ALL PASSED"

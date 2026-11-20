@@ -121,11 +121,11 @@ $recent[] = $now;
 
 // Follow-up automation. Failures here never affect the enquiry itself.
 try {
-    if (nwc_config()['hubspot_token'] !== '') {
-        hubspot_record_lead($name, $email, $business, $service, $message);
+    if (odoo_enabled()) {
+        odoo_record_lead($name, $email, $business, $service, $message, $source);
     }
 } catch (Throwable $e) {
-    error_log('contact.php HubSpot: ' . $e->getMessage());
+    error_log('contact.php Odoo: ' . $e->getMessage());
 }
 $first = explode(' ', $name)[0];
 @mail($email, '=?UTF-8?B?' . base64_encode('We have your message, ' . $first) . '?=',

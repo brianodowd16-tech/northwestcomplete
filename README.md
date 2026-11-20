@@ -38,12 +38,12 @@ To deploy manually, open **Actions → Deploy to Hostinger → Run workflow**.
 Clients book the €500 systems audit on `book-audit.html` and pay by card on myPOS's hosted payment page. The site sends a signed form to myPOS; when the customer pays, myPOS posts a signed notification to `api/mypos-notify.php`. The signature is verified with myPOS's public certificate, and the amount, currency and store are checked against our own order record before the site runs each enabled step once:
 
 1. **Xero:** creates an approved sales invoice (no VAT), records the payment against the bank account you choose, and emails the invoice to the client.
-2. **HubSpot:** creates or updates the contact and adds a won deal.
+2. **Odoo CRM:** creates or updates the contact and adds an opportunity marked as won.
 3. **Client email:** confirmation with reference and, if set, your booking link.
 4. **Team email:** full details plus how every step went.
 5. **Optional webhook:** the paid order as signed JSON, for n8n, Make or Zapier.
 
-Website enquiries (`contact.php`) also create a HubSpot contact when a token is set, and send the enquirer an automatic acknowledgement from Brían.
+Website enquiries (`contact.php`) also create a contact and a new lead in your Odoo CRM pipeline when Odoo is configured, and send the enquirer an automatic acknowledgement from Brían.
 
 A step that fails never blocks the others; the team email shows what failed. A forged or wrong-amount notification is never accepted.
 
@@ -52,7 +52,7 @@ A step that fails never blocks the others; the team email shows what failed. A f
 1. **Config:** copy `nwc-config.sample.php` to `nwc-config.php` in the folder *above* `public_html` on Hostinger (File Manager), and fill it in. It holds all keys and is never deployed or committed.
 2. **myPOS:** in your myPOS account open Online > Checkout > Your online store, create a store, and download the configuration pack. Put its Store ID, client number and key index in the config, save the private key and the myPOS public certificate next to `nwc-config.php` (above `public_html`), and point `mypos_private_key` and `mypos_public_cert` at them. Keep `mypos_sandbox => true` while testing with a myPOS test store, then use live details and `false`. If the pack gives a different checkout address, set `mypos_checkout_url`.
 3. **Xero:** at developer.xero.com create a Web app with redirect URI `https://northwestcomplete.com/api/xero-connect.php`, put the client ID and secret in the config, set `xero_payment_account_code` to the Xero bank account your myPOS payouts land in, set an `admin_key` (any long random string), then open `https://northwestcomplete.com/api/xero-connect.php?key=YOUR_ADMIN_KEY` and approve.
-4. **HubSpot:** create a private app with contacts read/write and deals write scopes, and paste its token into `hubspot_token`.
+4. **Odoo:** in Odoo go to your avatar > Preferences > Account Security > New API Key, then set `odoo_url`, `odoo_db` and `odoo_api_key` in the config. Odoo 19 and newer use the default settings; for Odoo 18 or older set `odoo_legacy_api => true` and add your login in `odoo_login`.
 
 Order records and Xero tokens are stored in `nwc-data/`, next to the config and outside the web root.
 

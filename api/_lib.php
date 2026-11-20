@@ -7,7 +7,7 @@
  * See nwc-config.sample.php for every setting.
  *
  * When an audit is paid, fulfil_paid_order() runs every enabled step:
- * Xero invoice + payment, HubSpot contact + deal, client and team emails,
+ * Xero invoice + payment, Odoo CRM contact + won opportunity, client and team emails,
  * and an optional webhook for any other automation tool.
  */
 
@@ -47,9 +47,11 @@ function nwc_config(): array
         'xero_line_amount_types'    => 'NoTax',
         'xero_tax_type'             => '',
         'xero_email_invoice'        => true,
-        'hubspot_token'             => '',
-        'hubspot_pipeline'          => 'default',
-        'hubspot_dealstage'         => 'closedwon',
+        'odoo_url'                  => '',
+        'odoo_db'                   => '',
+        'odoo_login'                => '',
+        'odoo_api_key'              => '',
+        'odoo_legacy_api'           => false,
         'automation_webhook_url'    => '',
         'automation_webhook_secret' => '',
         'data_dir'                  => null,
@@ -253,7 +255,7 @@ function fulfil_paid_order(string $ref, array $payment): array
         // the team email reports how every step went.
         $steps = [
             'xero'    => fn () => xero_enabled() ? xero_record_sale($record) : 'not configured',
-            'hubspot' => fn () => $c['hubspot_token'] !== '' ? hubspot_record_sale($record) : 'not configured',
+            'odoo'    => fn () => odoo_enabled() ? odoo_record_sale($record) : 'not configured',
             'webhook' => fn () => $c['automation_webhook_url'] !== '' ? post_automation_event($record) : 'not configured',
             'client_email' => fn () => send_client_confirmation($record),
         ];
@@ -333,7 +335,7 @@ function send_team_notification(array $r): string
 
 /**
  * Sends the paid order to your automation platform (e.g. an n8n Webhook node),
- * which can then create the Xero invoice and payment, the HubSpot deal, the
+ * which can then create the Xero invoice and payment, the CRM record, the
  * booking email, and so on. Signed so the receiver can check it came from us.
  */
 function post_automation_event(array $r): string
@@ -381,7 +383,7 @@ function post_automation_event(array $r): string
     return 'sent';
 }
 
-/* ---------- HTTP helper for Xero and HubSpot ---------- */
+/* ---------- HTTP helper for Xero and Odoo ---------- */
 
 function http_json(string $method, string $url, array $headers, $body = null, bool $form = false): array
 {
@@ -554,64 +556,119 @@ function xero_record_sale(array $r): array
     return $result;
 }
 
-/* ---------- HubSpot: contact + won deal ---------- */
+/* ---------- Odoo CRM: contact + won opportunity ---------- */
 
-function hubspot_call(string $method, string $path, ?array $body = null): array
-{
-    $base = getenv('NWC_HUBSPOT_BASE') ?: 'https://api.hubapi.com';
-    return http_json($method, $base . $path, ['Authorization: Bearer ' . nwc_config()['hubspot_token']], $body);
-}
+/*
+ * Odoo 19+ uses the JSON-2 API (/json/2/<model>/<method>) with an API key.
+ * Older Odoo (14-18) uses /jsonrpc, selected with 'odoo_legacy_api' => true
+ * (then 'odoo_login' is needed as well). Create the API key in Odoo under
+ * Preferences > Account Security, for a user allowed to use CRM and Contacts.
+ */
 
-function hubspot_record_sale(array $r): array
+function odoo_enabled(): bool
 {
     $c = nwc_config();
-    [$first, $last] = array_pad(explode(' ', $r['name'], 2), 2, '');
-    $props = array_filter([
-        'email'     => $r['email'],
-        'firstname' => $first,
-        'lastname'  => $last,
-        'company'   => $r['business'],
-        'phone'     => $r['phone'],
-    ], fn ($v) => $v !== '');
-
-    // Update the contact if the email already exists, otherwise create it.
-    $res = hubspot_call('PATCH', '/crm/v3/objects/contacts/' . rawurlencode($r['email']) . '?idProperty=email', ['properties' => $props]);
-    if ($res['status'] === 404) {
-        $res = hubspot_call('POST', '/crm/v3/objects/contacts', ['properties' => $props]);
-    }
-    $contactId = http_ok($res, 'HubSpot contact')['id'] ?? null;
-
-    $deal = http_ok(hubspot_call('POST', '/crm/v3/objects/deals', [
-        'properties' => [
-            'dealname'  => $c['audit_name'] . ' - ' . ($r['business'] !== '' ? $r['business'] : $r['name']),
-            'amount'    => (string) round($r['amount'] / 100, 2),
-            'pipeline'  => $c['hubspot_pipeline'],
-            'dealstage' => $c['hubspot_dealstage'],
-            'closedate' => $r['paid_at'],
-            'description' => "Paid via myPOS. Reference {$r['ref']}.\n\n" . $r['notes'],
-        ],
-        'associations' => $contactId ? [[
-            'to'    => ['id' => $contactId],
-            'types' => [['associationCategory' => 'HUBSPOT_DEFINED', 'associationTypeId' => 3]],
-        ]] : [],
-    ]), 'HubSpot deal');
-    return ['contact' => $contactId, 'deal' => $deal['id'] ?? null];
+    return $c['odoo_url'] !== '' && $c['odoo_api_key'] !== '' && ($c['odoo_db'] !== '' || !$c['odoo_legacy_api']);
 }
 
-/** Creates or updates a HubSpot contact for a website enquiry. */
-function hubspot_record_lead(string $name, string $email, string $business, string $service, string $message): array
+function odoo_post(string $path, array $headers, array $body): array
 {
-    [$first, $last] = array_pad(explode(' ', $name, 2), 2, '');
-    $props = array_filter([
-        'email'     => $email,
-        'firstname' => $first,
-        'lastname'  => $last,
-        'company'   => $business,
-        'message'   => mb_substr(($service !== '' ? "[$service] " : '') . $message, 0, 5000),
-    ], fn ($v) => $v !== '');
-    $res = hubspot_call('PATCH', '/crm/v3/objects/contacts/' . rawurlencode($email) . '?idProperty=email', ['properties' => $props]);
-    if ($res['status'] === 404) {
-        $res = hubspot_call('POST', '/crm/v3/objects/contacts', ['properties' => $props]);
+    $res = http_json('POST', rtrim(nwc_config()['odoo_url'], '/') . $path, $headers, $body);
+    $data = $res['data'];
+    if ($res['status'] < 200 || $res['status'] >= 300 || isset($data['error'])) {
+        $msg = $data['error']['data']['message'] ?? $data['error']['message'] ?? $data['message'] ?? $res['raw'];
+        throw new RuntimeException("Odoo returned HTTP {$res['status']}: " . mb_substr(is_string($msg) ? $msg : json_encode($msg), 0, 300));
     }
-    return ['contact' => http_ok($res, 'HubSpot contact')['id'] ?? null];
+    return $data;
+}
+
+/** Calls a model method. $named holds the method's named arguments (JSON-2 style). */
+function odoo_call(string $model, string $method, array $named, array $legacyArgs): mixed
+{
+    $c = nwc_config();
+    if (!$c['odoo_legacy_api']) {
+        $headers = ['Authorization: Bearer ' . $c['odoo_api_key']];
+        if ($c['odoo_db'] !== '') {
+            $headers[] = 'X-Odoo-Database: ' . $c['odoo_db'];
+        }
+        $res = http_json('POST', rtrim($c['odoo_url'], '/') . "/json/2/$model/$method", $headers, $named);
+        if ($res['status'] < 200 || $res['status'] >= 300) {
+            $msg = $res['data']['message'] ?? $res['raw'];
+            throw new RuntimeException("Odoo $model.$method returned HTTP {$res['status']}: " . mb_substr(is_string($msg) ? $msg : json_encode($msg), 0, 300));
+        }
+        return json_decode($res['raw'], true);
+    }
+    static $uid = null;
+    $rpc = fn (string $service, string $m, array $args) => odoo_post('/jsonrpc', [], [
+        'jsonrpc' => '2.0', 'method' => 'call', 'id' => 1,
+        'params'  => ['service' => $service, 'method' => $m, 'args' => $args],
+    ])['result'] ?? null;
+    $uid ??= $rpc('common', 'authenticate', [$c['odoo_db'], $c['odoo_login'], $c['odoo_api_key'], new stdClass()]);
+    if (!$uid) {
+        throw new RuntimeException('Odoo login failed: check odoo_db, odoo_login and odoo_api_key');
+    }
+    return $rpc('object', 'execute_kw', [$c['odoo_db'], $uid, $c['odoo_api_key'], $model, $method, $legacyArgs, new stdClass()]);
+}
+
+function odoo_find_partner(string $email): ?int
+{
+    $domain = [['email', '=ilike', $email]];
+    $rows = odoo_call('res.partner', 'search_read', ['domain' => $domain, 'fields' => ['id'], 'limit' => 1], [$domain, ['id'], 0, 1]);
+    return $rows[0]['id'] ?? null;
+}
+
+function odoo_create(string $model, array $vals): int
+{
+    $ids = odoo_call($model, 'create', ['vals_list' => [$vals]], [[$vals]]);
+    $id = is_array($ids) ? ($ids[0] ?? null) : $ids;
+    if (!$id) {
+        throw new RuntimeException("Odoo did not create the $model record");
+    }
+    return (int) $id;
+}
+
+/** Finds the contact by email or creates it, and returns its id. */
+function odoo_upsert_partner(string $name, string $email, string $business, string $phone = ''): int
+{
+    $vals = array_filter(['name' => $name, 'email' => $email, 'company_name' => $business, 'phone' => $phone], fn ($v) => $v !== '');
+    $id = odoo_find_partner($email);
+    if ($id === null) {
+        return odoo_create('res.partner', $vals);
+    }
+    unset($vals['name'], $vals['email']); // don't overwrite what's already on file
+    if ($vals) {
+        odoo_call('res.partner', 'write', ['ids' => [$id], 'vals' => $vals], [[$id], $vals]);
+    }
+    return $id;
+}
+
+/** A paid audit becomes a contact plus an opportunity marked as won. */
+function odoo_record_sale(array $r): array
+{
+    $c = nwc_config();
+    $partner = odoo_upsert_partner($r['name'], $r['email'], $r['business'], $r['phone']);
+    $lead = odoo_create('crm.lead', [
+        'name'             => $c['audit_name'] . ' - ' . ($r['business'] !== '' ? $r['business'] : $r['name']),
+        'type'             => 'opportunity',
+        'partner_id'       => $partner,
+        'expected_revenue' => round($r['amount'] / 100, 2),
+        'description'      => "Paid via myPOS. Reference {$r['ref']}.\nSource: " . (($r['source'] ?? '') !== '' ? $r['source'] : 'direct / unknown') . "\n\n" . $r['notes'],
+    ]);
+    odoo_call('crm.lead', 'action_set_won', ['ids' => [$lead]], [[$lead]]);
+    return ['contact' => $partner, 'opportunity' => $lead];
+}
+
+/** A website enquiry becomes a contact plus a new lead in the pipeline. */
+function odoo_record_lead(string $name, string $email, string $business, string $service, string $message, string $source): array
+{
+    $partner = odoo_upsert_partner($name, $email, $business);
+    $lead = odoo_create('crm.lead', [
+        'name'        => 'Website enquiry' . ($service !== '' ? ": $service" : '') . ($business !== '' ? " - $business" : " - $name"),
+        'type'        => 'opportunity',
+        'partner_id'  => $partner,
+        'contact_name' => $name,
+        'email_from'  => $email,
+        'description' => ($source !== '' ? "Source: $source\n\n" : '') . $message,
+    ]);
+    return ['contact' => $partner, 'lead' => $lead];
 }

@@ -47,11 +47,13 @@ return [
     'xero_tax_type'             => '',    // only needed once VAT registered
     'xero_email_invoice'        => true,  // Xero emails the paid invoice to the client
 
-    // --- HubSpot (Settings > Integrations > Private apps) ---
-    // Scopes: crm.objects.contacts.read/write, crm.objects.deals.write
-    'hubspot_token'     => '',
-    'hubspot_pipeline'  => 'default',
-    'hubspot_dealstage' => 'closedwon',
+    // --- Odoo CRM (open source). Paid audits and website enquiries are added automatically ---
+    // Create the API key in Odoo: your avatar > Preferences > Account Security > New API Key.
+    'odoo_url'        => '',              // e.g. https://yourcompany.odoo.com
+    'odoo_db'         => '',              // database name (needed for self-hosted or Odoo 18 and older)
+    'odoo_api_key'    => '',
+    'odoo_legacy_api' => false,           // true only for Odoo 18 or older (uses /jsonrpc)
+    'odoo_login'      => '',              // your Odoo login email; only needed when odoo_legacy_api is true
 
     // --- Optional: send each paid order to another tool (n8n, Make, Zapier) ---
     'automation_webhook_url'    => '',
