@@ -58,16 +58,113 @@
 
   <main id="main">
     <!-- HERO -->
-    <section class="hero">
+    <section class="hero hero--welcome">
       <div class="hero__glow" aria-hidden="true"></div>
-      <div class="wrap hero__inner">
-        <p class="eyebrow reveal"><span class="dot"></span> Digital transformation for businesses in Malta and Ireland</p>
-        <h1 class="reveal">Modern technology,<br><span class="grad">made simple.</span></h1>
-        <p class="lead reveal">We help established businesses replace outdated, disconnected systems with modern, secure technology that works together. Every step is planned, priced and explained in plain English, and we look after everything once it's running.</p>
-        <div class="hero__cta reveal">
-          <a href="#audit" class="btn">Book a systems audit <span aria-hidden="true">→</span></a>
-          <a href="malta.html" class="btn btn--ghost">Serving Malta</a>
+      <div class="wrap welcome" id="welcome">
+        <div class="welcome__main">
+          <p class="eyebrow reveal"><span class="dot"></span> Digital transformation for businesses in Malta and Ireland</p>
+          <h1 class="reveal">Modern technology, <span class="grad">made simple.</span></h1>
+          <ol class="journey" aria-hidden="true">
+            <li class="is-active" data-step="1"><span>1</span> Your challenge</li>
+            <li data-step="2"><span>2</span> My plan</li>
+            <li data-step="3"><span>3</span> Get started</li>
+          </ol>
+          <div class="say reveal">
+            <img class="say__avatar" src="assets/team/brian.jpg" alt="Brían O'Dowd, Founder &amp; CEO" width="52" height="52">
+            <div class="say__bubble"><strong>Hi, I'm Brían, welcome.</strong> <span id="welcome-say">Tell me what's causing you the most trouble in your business right now, and I'll show you exactly how I'd fix it.</span></div>
+          </div>
+
+          <div class="welcome__panel" id="welcome-panel" data-state="pick">
+            <div class="pick" id="welcome-pick">
+              <p class="pick__q" id="pick-q">What's holding your business back?</p>
+              <div class="problems" role="group" aria-labelledby="pick-q">
+            <button type="button" class="problem" data-key="connect" aria-controls="welcome-answer">
+              <span class="problem__icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.5 12h4l5-5.5M11.5 12l5 5.5"/></svg></span>
+              <span><strong>We type the same thing into several systems</strong><small>Bookings, payments and accounts that don’t talk to each other</small></span>
+            </button>
+            <button type="button" class="problem" data-key="see" aria-controls="welcome-answer">
+              <span class="problem__icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
+              <span><strong>I can’t see how the business is really doing</strong><small>Figures scattered across tills, bookings and accounts</small></span>
+            </button>
+            <button type="button" class="problem" data-key="admin" aria-controls="welcome-answer">
+              <span class="problem__icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-6"/></svg></span>
+              <span><strong>Accounts and payroll take far too long</strong><small>Invoices, bank matching, timesheets and the month-end scramble</small></span>
+            </button>
+            <button type="button" class="problem" data-key="legacy" aria-controls="welcome-answer">
+              <span class="problem__icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg></span>
+              <span><strong>Our systems are old and I’m afraid to touch them</strong><small>Legacy software that nobody wants to change</small></span>
+            </button>
+            <button type="button" class="problem" data-key="customers" aria-controls="welcome-answer">
+              <span class="problem__icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3"/><path d="M6 20a6 6 0 0 1 12 0"/><circle cx="4.5" cy="11" r="2"/><circle cx="19.5" cy="11" r="2"/></svg></span>
+              <span><strong>I’m losing enquiries and bookings</strong><small>Slow replies, missed follow-ups, no online booking</small></span>
+            </button>
+            <button type="button" class="problem" data-key="safe" aria-controls="welcome-answer">
+              <span class="problem__icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3 4 6v6c0 4.5 3.4 8.2 8 9 4.6-.8 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg></span>
+              <span><strong>I’m worried about security and backups</strong><small>Passwords, who has access, and whether our data is safe</small></span>
+            </button>
+              </div>
+              <p class="welcome__foot">Not sure where to start? <a href="book-audit.html">Book the €500 systems audit</a> and I'll find it for you. <span aria-hidden="true">·</span> <a href="malta.html">Serving Malta</a></p>
+            </div>
+
+            <div class="reply" id="welcome-answer" tabindex="-1" aria-live="polite" hidden>
+              <button type="button" class="reply__back"><span aria-hidden="true">←</span> Choose a different challenge</button>
+            <div class="answer" data-key="connect" data-service="Workflow automation" hidden>
+              <h2 class="answer__title" tabindex="-1">We type the same thing into several systems</h2>
+              <p class="answer__say" data-say="That’s one of the most common things owners tell me. Usually the software is fine. It just isn’t connected. I’ll map exactly where your information is typed in twice, then connect your systems so every booking, payment and invoice is recorded once.">That’s one of the most common things owners tell me. Usually the software is fine. It just isn’t connected. I’ll map exactly where your information is typed in twice, then connect your systems so every booking, payment and invoice is recorded once.</p>
+              <p class="answer__label">How I’d fix it</p>
+              <ul class="answer__how"><li>Find every place data is re-typed by hand</li><li>Connect your booking, payments, tills and Xero</li><li>Automate it, fully documented and yours to keep</li></ul>
+            </div>
+            <div class="answer" data-key="see" data-service="Reporting dashboards" hidden>
+              <h2 class="answer__title" tabindex="-1">I can’t see how the business is really doing</h2>
+              <p class="answer__say" data-say="You shouldn’t have to wait for month-end to know where you stand. I’ll bring your figures together from your accounts, tills and bookings into one live screen that anyone on your team can read.">You shouldn’t have to wait for month-end to know where you stand. I’ll bring your figures together from your accounts, tills and bookings into one live screen that anyone on your team can read.</p>
+              <p class="answer__label">How I’d fix it</p>
+              <ul class="answer__how"><li>One screen for sales, costs and bookings</li><li>Built from the systems you already use</li><li>Explained in plain English, no training course needed</li></ul>
+            </div>
+            <div class="answer" data-key="admin" data-service="Accounts automation" hidden>
+              <h2 class="answer__title" tabindex="-1">Accounts and payroll take far too long</h2>
+              <p class="answer__say" data-say="Hours lost to paperwork are hours not spent on customers. I’ll make sales, payments and invoices flow into Xero on their own and match your bank, and have rosters and timesheets feed straight into payroll.">Hours lost to paperwork are hours not spent on customers. I’ll make sales, payments and invoices flow into Xero on their own and match your bank, and have rosters and timesheets feed straight into payroll.</p>
+              <p class="answer__label">How I’d fix it</p>
+              <ul class="answer__how"><li>Sales and payments flow into Xero automatically</li><li>Bank matching without re-typing</li><li>Timesheets and rosters flow into payroll</li></ul>
+            </div>
+            <div class="answer" data-key="legacy" data-service="Digital transformation (modernisation planning)" hidden>
+              <h2 class="answer__title" tabindex="-1">Our systems are old and I’m afraid to touch them</h2>
+              <p class="answer__say" data-say="That’s completely understandable, and you’re not alone. We never rip everything out. I’ll review what you have, show you what’s at risk, and modernise one piece at a time, without disrupting your day-to-day work.">That’s completely understandable, and you’re not alone. We never rip everything out. I’ll review what you have, show you what’s at risk, and modernise one piece at a time, without disrupting your day-to-day work.</p>
+              <p class="answer__label">How I’d fix it</p>
+              <ul class="answer__how"><li>An audit that maps what you have and what’s at risk</li><li>A costed plan, step by step</li><li>Each change tested with you before it goes live</li></ul>
+            </div>
+            <div class="answer" data-key="customers" data-service="Customer management (CRM: Odoo and Salesforce)" hidden>
+              <h2 class="answer__title" tabindex="-1">I’m losing enquiries and bookings</h2>
+              <p class="answer__say" data-say="Every missed enquiry is money left on the table. I’ll set up online booking with secure payment, a customer system where nothing slips through the cracks, and advertising you can measure against real bookings.">Every missed enquiry is money left on the table. I’ll set up online booking with secure payment, a customer system where nothing slips through the cracks, and advertising you can measure against real bookings.</p>
+              <p class="answer__label">How I’d fix it</p>
+              <ul class="answer__how"><li>Online booking and payment, open 24 hours a day</li><li>A CRM so every enquiry is followed up (Odoo or Salesforce)</li><li>Facebook and Instagram ads tracked to real sales</li></ul>
+            </div>
+            <div class="answer" data-key="safe" data-service="Microsoft 365 setup and management" hidden>
+              <h2 class="answer__title" tabindex="-1">I’m worried about security and backups</h2>
+              <p class="answer__say" data-say="Worrying about this is a good sign. Most businesses only think about it after something goes wrong. I’ll check who can get into what, protect every account properly and make sure your data is backed up and that the backups work.">Worrying about this is a good sign. Most businesses only think about it after something goes wrong. I’ll check who can get into what, protect every account properly and make sure your data is backed up and that the backups work.</p>
+              <p class="answer__label">How I’d fix it</p>
+              <ul class="answer__how"><li>Two-step sign-in and proper access control</li><li>Backups that are actually tested</li><li>Microsoft 365 set up and managed for you</li></ul>
+            </div>
+              <div class="reply__cta">
+                <a href="book-audit.html" class="btn" data-welcome-book>Start with the €500 systems audit <span aria-hidden="true">→</span></a>
+                <a href="#contact" class="btn btn--ghost" data-welcome-ask>Ask me about this</a>
+              </div>
+              <p class="reply__note">The audit is a fixed €500. I walk you through the findings myself, in plain English.</p>
+              <div class="pills" aria-label="Other challenges"><button type="button" class="pill" data-key="connect">We type the same thing into several systems</button><button type="button" class="pill" data-key="see">I can’t see how the business is really doing</button><button type="button" class="pill" data-key="admin">Accounts and payroll take far too long</button><button type="button" class="pill" data-key="legacy">Our systems are old and I’m afraid to touch them</button><button type="button" class="pill" data-key="customers">I’m losing enquiries and bookings</button><button type="button" class="pill" data-key="safe">I’m worried about security and backups</button></div>
+            </div>
+          </div>
         </div>
+
+        <div class="stage reveal" id="stage" aria-hidden="true">
+          <div class="stage__scene">
+            <div class="stage__glow"></div>
+            <div class="stage__ring stage__ring--a"></div>
+            <div class="stage__ring stage__ring--b"></div>
+            <div class="stage__card"><img src="assets/team/brian.jpg" alt="" width="512" height="512"></div>
+            <div class="orbit"><div class="orb" data-key="connect" style="--a:0"><div class="orb__face"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.5 12h4l5-5.5M11.5 12l5 5.5"/></svg></div></div><div class="orb" data-key="see" style="--a:60"><div class="orb__face"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div></div><div class="orb" data-key="admin" style="--a:120"><div class="orb__face"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-6"/></svg></div></div><div class="orb" data-key="legacy" style="--a:180"><div class="orb__face"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg></div></div><div class="orb" data-key="customers" style="--a:240"><div class="orb__face"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3"/><path d="M6 20a6 6 0 0 1 12 0"/><circle cx="4.5" cy="11" r="2"/><circle cx="19.5" cy="11" r="2"/></svg></div></div><div class="orb" data-key="safe" style="--a:300"><div class="orb__face"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3 4 6v6c0 4.5 3.4 8.2 8 9 4.6-.8 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg></div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="wrap hero__inner">
         <ul class="hero__stats reveal" aria-label="Highlights">
           <li><strong>One team</strong><span>Software, equipment and support</span></li>
           <li><strong>Fixed price</strong><span>Agreed before any work starts</span></li>
@@ -437,5 +534,6 @@
   </footer>
 
   <script src="script.js" defer></script>
+  <script src="welcome.js" defer></script>
 </body>
 </html>

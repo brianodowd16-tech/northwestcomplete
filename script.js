@@ -68,6 +68,13 @@ const addSource = (formEl) => {
   input.value = v;
 };
 
+// Booking page: remind the visitor of the challenge they chose on the home page.
+try {
+  const notes = document.getElementById("co-notes");
+  const chosen = sessionStorage.getItem("nwc_problem");
+  if (notes && chosen && !notes.value) notes.value = `What I'd most like to fix: ${chosen}\n`;
+} catch { /* ignore */ }
+
 // Contact details
 document.querySelectorAll("[data-contact-email]").forEach((a) => {
   a.href = `mailto:${CONTACT_EMAIL}`;
