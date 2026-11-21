@@ -553,3 +553,5 @@ img.team__avatar { background: var(--surface-2); object-position: center 20%; }
   .stage { order: -1; height: 262px; margin: -8px 0 34px; }
   .say__bubble { font-size: 1rem; }
 }
+
+@media (min-width: 680px) { .team { grid-template-columns: repeat(2, 1fr); } }
