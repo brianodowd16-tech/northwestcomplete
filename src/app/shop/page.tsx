@@ -14,11 +14,11 @@ export default async function ShopPage() {
   const available = products.filter((p) => p.purchasable);
 
   return (
-    <div className="wrap" style={{ paddingBottom: 72 }}>
-      <header style={{ padding: "48px 0 32px" }}>
+    <div className="wrap" style={{ paddingBottom: 96 }}>
+      <header className="page-head">
         <p className="eyebrow">Special offers</p>
         <h1>Showroom deals</h1>
-        <p className="lead">Reduced showroom stock and end-of-line offers. Order online and collect from the showroom, or we'll call to arrange delivery.</p>
+        <p className="lead">Reduced showroom stock and end-of-line pieces from leading makers. Pay securely online and collect from our Carrick-on-Shannon showroom.</p>
       </header>
       {available.length ? (
         <div className="grid">

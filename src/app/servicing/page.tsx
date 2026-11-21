@@ -12,20 +12,20 @@ const SERVICES = [
   { title: "Grates & fire bricks", text: "Burnt-out grates, baffles and fire bricks replaced to bring your stove back to full efficiency." },
   { title: "Door refurbishment", text: "Sticking or \"wet\" doors repaired and rehung in our own workshop." },
   { title: "Cleaning products", text: "Glass cleaners, stove paint, ash vacuums, chimney brushes and more in store." },
-  { title: "Expert advice", text: "Not sure what part you need? Bring in the old one or send us a photo." },
+  { title: "Expert advice", text: "Not sure what part you need? Bring in the old one, or email a photo with the make and model." },
 ];
 
 export default function ServicingPage() {
   return (
-    <div className="wrap" style={{ paddingBottom: 72 }}>
-      <header style={{ padding: "48px 0 32px" }}>
+    <div className="wrap" style={{ paddingBottom: 96 }}>
+      <header className="page-head">
         <p className="eyebrow">Maintenance &amp; servicing</p>
         <h1>Keep your stove burning safely</h1>
         <p className="lead">We provide a full stove maintenance service for stoves of every make, wherever you bought them.</p>
       </header>
       <div className="tiles">
         {SERVICES.map((s) => (
-          <div key={s.title} className="tile" style={{ minHeight: 0 }}>
+          <div key={s.title} className="tile">
             <div>
               <h3>{s.title}</h3>
               <p>{s.text}</p>

@@ -8,6 +8,8 @@ const wcMovedOff = !["odowdscarrick.com", "www.odowdscarrick.com"].includes(wc.h
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // The assistant reads the knowledge base from disk at runtime.
+  outputFileTracingIncludes: { "/api/assistant": ["./content/**"] },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [

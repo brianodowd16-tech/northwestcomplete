@@ -9,11 +9,11 @@ export const metadata: Metadata = {
 
 export default function RangeIndex() {
   return (
-    <div className="wrap" style={{ paddingBottom: 72 }}>
-      <header style={{ padding: "48px 0 32px" }}>
+    <div className="wrap" style={{ paddingBottom: 96 }}>
+      <header className="page-head">
         <p className="eyebrow">Our range</p>
         <h1>Over 80 fires on live display</h1>
-        <p className="lead">Browse the brands and models we stock, then call in to see them burning. Every fire can be ordered through the showroom with expert advice on flues, hearths and fitting.</p>
+        <p className="lead">Browse the makers and models we carry, then visit the showroom to see them burning. Every fire is specified with expert advice on output, flues, hearths and fitting.</p>
       </header>
       <div className="tiles">
         {RANGE_CATEGORIES.map((c) => (

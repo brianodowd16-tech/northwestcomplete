@@ -8,15 +8,13 @@ export function ProductCard({ product, priority }: { product: Product; priority?
   const pct = product.onSale ? Math.round((1 - product.priceCents / product.regularPriceCents) * 100) : 0;
   return (
     <Link href={`/shop/${product.slug}`} className="card">
-      {!product.inStock ? <span className="badge badge--muted">Sold out</span> : pct >= 5 ? <span className="badge">−{pct}%</span> : null}
       <div className="card__media">
-        {img && <Image src={img.src} alt={img.alt} fill sizes="(max-width: 600px) 100vw, (max-width: 1000px) 50vw, 300px" priority={priority} />}
+        {!product.inStock ? <span className="badge">Sold out</span> : pct >= 5 ? <span className="badge badge--ember">Save {pct}%</span> : null}
+        {img && <Image src={img.src} alt={img.alt} fill sizes="(max-width: 520px) 100vw, (max-width: 1020px) 50vw, 25vw" priority={priority} />}
       </div>
       <div className="card__body">
         <h3 className="card__title">{product.name}</h3>
-        <div className="card__meta">
-          <Price now={product.priceCents} was={product.regularPriceCents} currency={product.currency} />
-        </div>
+        <Price now={product.priceCents} was={product.regularPriceCents} currency={product.currency} />
       </div>
     </Link>
   );

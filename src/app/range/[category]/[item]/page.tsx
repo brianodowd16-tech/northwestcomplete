@@ -28,7 +28,7 @@ export default async function RangeItemPage({ params }: Props) {
   if (!page) notFound();
 
   return (
-    <div className="wrap" style={{ paddingBottom: 72 }}>
+    <div className="wrap" style={{ paddingBottom: 96 }}>
       <ol className="crumbs">
         <li><Link href="/">Home</Link></li>
         <li><Link href="/range">Our range</Link></li>

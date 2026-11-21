@@ -1,14 +1,10 @@
 import "server-only";
 import { z } from "zod";
 import { SITE_URL, myposConfig } from "./config";
-import { toCents } from "./money";
+import { getFulfilment } from "./fulfilment";
+import { centsToDecimal, toCents } from "./money";
 import { buildPurchase, toMyPosOrderId, type Fields } from "./mypos";
 import { createOrder, getProductsLive, type WooOrder } from "./woo";
-
-export const FULFILMENT = {
-  collect: { method_id: "local_pickup", title: "Click & Collect – Carrick-on-Shannon showroom" },
-  delivery: { method_id: "flat_rate", title: "Delivery – we'll call to arrange a date" },
-} as const;
 
 const text = (max: number) => z.string().trim().min(1).max(max);
 
@@ -27,7 +23,7 @@ export const CheckoutSchema = z.object({
     county: z.string().trim().max(60).default(""),
     eircode: z.string().trim().max(10).default(""),
   }),
-  fulfilment: z.enum(["collect", "delivery"]),
+  fulfilment: z.string().default("collect"),
   notes: z.string().trim().max(500).default(""),
 });
 
@@ -80,6 +76,9 @@ export async function startCheckout(req: CheckoutRequest): Promise<{ orderId: nu
     if (item.qty > p.maxQty) throw new CheckoutError(`Only ${p.maxQty} × ${p.name} can be ordered.`, 409);
   }
 
+  const method = getFulfilment(req.fulfilment);
+  if (!method) throw new CheckoutError("That collection option isn't available. Please refresh and try again.");
+
   const c = req.customer;
   const address = {
     first_name: c.firstName,
@@ -90,13 +89,18 @@ export async function startCheckout(req: CheckoutRequest): Promise<{ orderId: nu
     postcode: c.eircode,
     country: "IE",
   };
-  const method = FULFILMENT[req.fulfilment];
+  const shippingCents = method.quote
+    ? await method.quote({
+        items: req.items.map((i) => ({ productId: i.id, quantity: i.qty, unitCents: products.get(i.id)!.priceCents })),
+        address: { city: c.city, county: c.county, eircode: c.eircode, country: "IE" },
+      })
+    : 0;
 
   const order = await createOrder({
     billing: { ...address, email: c.email, phone: c.phone },
-    shipping: req.fulfilment === "delivery" ? address : undefined,
+    shipping: method.id === "collect" ? undefined : address,
     line_items: req.items.map((i) => ({ product_id: i.id, quantity: i.qty })),
-    shipping_lines: [{ method_id: method.method_id, method_title: method.title, total: "0" }],
+    shipping_lines: [{ method_id: method.wooMethodId, method_title: method.label, total: centsToDecimal(shippingCents) }],
     customer_note: req.notes || undefined,
   });
 

@@ -35,14 +35,14 @@ export default async function OrderPage({ params, searchParams }: Props) {
           <h1>Thank you, {order.billing.first_name}!</h1>
           <p className="lead">
             Your payment was successful and a confirmation has been sent to {order.billing.email}.{" "}
-            {collect ? "We'll call you as soon as your order is ready to collect." : "We'll call you shortly to arrange delivery."}
+            {collect ? "We'll email you as soon as your order is ready to collect from the showroom." : "We'll be in touch shortly about your order."}
           </p>
         </>
       ) : failed ? (
         <>
           <p className="eyebrow">Order #{order.number}</p>
           <h1>Payment didn't go through</h1>
-          <p className="lead">You haven't been charged. Your basket is saved, so you can <Link className="link" href="/checkout">try again</Link> or call us on {STORE.phone}.</p>
+          <p className="lead">You haven't been charged. Your basket is saved, so you can <Link className="link" href="/checkout">try again</Link> or email us at {STORE.email}.</p>
         </>
       ) : (
         <>
@@ -53,7 +53,7 @@ export default async function OrderPage({ params, searchParams }: Props) {
       )}
 
       <div className="panel" style={{ marginTop: 32 }}>
-        <h2 style={{ fontSize: "1.2rem" }}>Order summary</h2>
+        <h2>Order summary</h2>
         <div className="totals">
           {order.line_items.map((li) => (
             <div key={li.id}><span>{li.quantity} × {li.name}</span><span>{formatPrice(toCents(li.total) + toCents(li.total_tax), order.currency)}</span></div>
@@ -66,7 +66,7 @@ export default async function OrderPage({ params, searchParams }: Props) {
         {order.transaction_id && <p className="muted" style={{ fontSize: ".85rem" }}>Payment reference: {order.transaction_id}</p>}
       </div>
       <p style={{ marginTop: 24 }}>
-        Questions about your order? Call <a className="link" href={`tel:${STORE.phoneIntl}`}>{STORE.phone}</a> or email <a className="link" href={`mailto:${STORE.email}`}>{STORE.email}</a>.
+        Questions about your order? Email <a className="link" href={`mailto:${STORE.email}`}>{STORE.email}</a> and quote order #{order.number}.
       </p>
     </div>
   );

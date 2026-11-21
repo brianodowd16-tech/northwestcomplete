@@ -40,14 +40,14 @@ export function CartView() {
         ))}
       </div>
       <aside className="panel summary" aria-label="Order summary">
-        <h2 style={{ fontSize: "1.3rem" }}>Summary</h2>
+        <h2>Summary</h2>
         <div className="totals">
           <div><span>Subtotal</span><span>{formatPrice(subtotalCents)}</span></div>
-          <div className="muted"><span>Collection / delivery</span><span>Chosen at checkout</span></div>
+          <div className="muted"><span>Click &amp; Collect</span><span>Free</span></div>
           <div className="grand"><span>Total</span><span>{formatPrice(subtotalCents)}</span></div>
         </div>
         <Link href="/checkout" className="btn btn--primary btn--block">Checkout securely</Link>
-        <p className="secure">Prices include VAT. Final prices are confirmed at checkout.</p>
+        <p className="secure">Prices include VAT. Collection from our Carrick-on-Shannon showroom.</p>
       </aside>
     </div>
   );

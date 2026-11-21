@@ -15,28 +15,28 @@ export default function AboutPage() {
         <div className="split">
           <div>
             <p className="eyebrow">About us</p>
-            <h1>Family-run since {STORE.since}</h1>
+            <h1>Family-run since <span className="accent">{STORE.since}</span></h1>
             <p className="lead">We are a family-run business in Carrick-on-Shannon, Co. Roscommon. We stock and display the best traditional and contemporary fireplaces, stoves, gas and electric fires to suit your taste and budget.</p>
             <p>Our fireplaces are made from a range of materials including marble, cast iron, wood, granite and limestone. Our award-winning showroom has over 80 different displays, so we guarantee you'll find the perfect fire for your needs. We also carry hearths, flues and stove accessories in store.</p>
             <p>We'll help you every step of the way, and we want every visit to our showroom to be enjoyable and memorable.</p>
-            <Link href="/contact" className="btn btn--primary">Plan your visit</Link>
+            <div className="hero__actions"><Link href="/contact" className="btn btn--dark">Plan your visit</Link><Link href="/#consultation" className="btn btn--outline">Start a consultation</Link></div>
           </div>
           <div className="split__media">
-            <Image src={STORE.heroImage} alt="The O'Dowd's showroom" fill sizes="(max-width: 860px) 100vw, 560px" priority />
+            <Image src={STORE.showroomImage} alt="The O'Dowd's showroom" fill sizes="(max-width: 860px) 100vw, 560px" priority />
           </div>
         </div>
       </div>
-      <section className="section section--sand">
+      <section className="section section--paper">
         <div className="wrap">
-          <h2>What customers say</h2>
-          <div className="grid">
-            <blockquote className="panel" style={{ margin: 0 }}>
+          <p className="eyebrow">What customers say</p>
+          <div className="quotes">
+            <blockquote className="quote">
               <p>“Great selection and lovely displays. Ian was so helpful, friendly and an absolute pleasure to deal with. That really helped me with buying the twin wall flue and stove.”</p>
-              <footer className="muted">Nicola, Google</footer>
+              <footer><strong>Nicola</strong> · Google review</footer>
             </blockquote>
-            <blockquote className="panel" style={{ margin: 0 }}>
+            <blockquote className="quote">
               <p>“I come here at least once a year to get my stove glass replaced or tightened. Great range of stoves and fuels for sale and the staff are excellent.”</p>
-              <footer className="muted">Fergal Jennings, Google</footer>
+              <footer><strong>Fergal Jennings</strong> · Google review</footer>
             </blockquote>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { CheckoutError, CheckoutSchema, startCheckout } from "@/lib/checkout";
+import { STORE } from "@/lib/config";
 import { WooNotConfigured } from "@/lib/woo";
 
 export async function POST(request: Request) {
@@ -14,8 +15,8 @@ export async function POST(request: Request) {
     console.error("[checkout]", err);
     const message =
       err instanceof WooNotConfigured
-        ? "Online checkout isn't switched on yet. Please call us on 071 96 20153 to order."
-        : "We couldn't start your payment. Please try again, or call us on 071 96 20153.";
+        ? `Online checkout isn't switched on yet. Please email ${STORE.email} to order.`
+        : `We couldn't start your payment. Please try again, or email ${STORE.email}.`;
     return NextResponse.json({ error: message }, { status: 503 });
   }
 }

@@ -18,9 +18,12 @@ WooCommerce product webhook ──► /api/revalidate ──► storefront refre
 
 | Area | Details |
 | --- | --- |
-| Pages | Home, Special Offers (`/shop`), product pages, the full showroom range (`/range`, about 300 models, grouped by brand), Servicing, About, Contact, Terms, Privacy, basket, checkout and order confirmation |
+| Pages | Home, Special Offers (`/shop`), product pages, the full showroom range (`/range`, about 300 models, grouped by brand), Servicing, About, Visit Us (with enquiry form), Terms, Privacy, basket, checkout and order confirmation |
+| Consultation | A guided, clickable consultation on the homepage that recommends fuel, heat output and flue options based on Irish practice. It ends in a consultation request to your team. An optional "ask anything" box answers from the knowledge base using Claude |
+| Fulfilment | Click & Collect only for now. Courier partners plug into `src/lib/fulfilment.ts` without touching checkout |
 | Payments | myPOS Checkout (IPC 1.4). Requests are RSA-signed, callbacks are signature-checked, and the order is paid only if the amount and currency match. Repeat callbacks are handled safely, and rollbacks put the order on hold |
 | Safety | The basket only sends product ids and quantities. Prices and stock are re-checked against WooCommerce at checkout, and order pages need the private order key |
+| Merchandising | The homepage shows only in-stock offers over €100 (`MERCH` in `src/lib/config.ts`). The full list stays on `/shop` |
 | Speed | Static pages with background refresh (products every 5 minutes, range every hour, instantly via webhook), AVIF/WebP images, two self-hosted fonts |
 | SEO | Titles and descriptions, sitemap, robots.txt, Product and LocalBusiness structured data, and 301 redirects from the old WordPress URLs |
 | Automation | CI (typecheck, tests, build) on every push, a live-site check every 30 minutes, and auto-refresh when products change |
@@ -34,7 +37,7 @@ npm run dev                  # http://localhost:3000
 npm test                     # unit tests (signing, callbacks, maths, parsing)
 ```
 
-Without WooCommerce keys, browsing works but checkout tells shoppers to phone instead.
+Without WooCommerce keys, browsing works but checkout asks shoppers to email their order instead.
 
 ## Going live: checklist
 
@@ -72,12 +75,19 @@ To refresh range pages straight away after editing them, use `https://<site>/api
    - Point DNS where Vercel tells you.
 3. The storefront passes old `/wp-content/...` image links through to the subdomain, and redirects old page URLs such as `/contact-us` and `/clearance`. That way no image or link breaks.
 
-### 6. Turn on the 30-minute live-site check
+### 6. Online consultation
+1. **Where requests go:** set `ENQUIRY_WEBHOOK_URL` to any endpoint that accepts JSON. That can be a CRM (HubSpot, Pipedrive), a Zapier or Make zap that emails the team or posts to Teams, or a Slack incoming webhook. Each request includes the customer's answers, the recommendation and a priority (`high` if they want it within a month).
+2. **The "ask anything" box:** set `ANTHROPIC_API_KEY`. The assistant answers only from the knowledge base, never quotes prices, stock or lead times, and directs gas and electrical work to registered installers.
+3. **Train it on your business:** edit `content/knowledge-base.md`. It's plain Markdown covering your process, products, policies and FAQs. To manage it outside the code, publish it as a plain-text or Markdown URL and set `KNOWLEDGE_BASE_URL`. Changes are picked up within an hour.
+4. **Change the guided questions or the advice:** edit `src/lib/consultation.ts`. It's all plain data and functions, and covered by tests.
+
+### 7. Turn on the 30-minute live-site check
 In GitHub, go to **Settings → Secrets and variables → Actions → Variables** and add `SITE_URL=https://odowdscarrick.com`. If the site, the catalogue or the payment callback stops responding, the workflow fails and GitHub emails you.
 
 ### Before launch, please review
 - **Terms and privacy pages** (`src/app/terms`, `src/app/privacy`): sensible defaults written to Irish consumer rules, but check them against how you actually trade.
-- **Delivery:** the delivery option is "we'll call to arrange", with no charge online. If you want fixed delivery prices, they can be added at checkout.
+- **Courier delivery:** add a provider to `FULFILMENT_OPTIONS` in `src/lib/fulfilment.ts`, with a `quote()` function for prices. Checkout, validation and the WooCommerce order pick it up automatically.
+- **Knowledge base:** `content/knowledge-base.md` is written from common Irish heating-sector practice. Review it, and add your own process, warranties and FAQs.
 
 ## Project layout
 
@@ -87,6 +97,10 @@ src/lib/payments.ts     myPOS callback handling (the only place orders become pa
 src/lib/checkout.ts     validates the basket against live prices and creates the Woo order
 src/lib/woo.ts          WooCommerce catalogue (Store API) and orders (REST API)
 src/lib/content.ts      turns the Elementor range pages into structured data
+src/lib/consultation.ts guided consultation questions and recommendation rules
+src/lib/assistant.ts    "ask anything" answers via Claude, grounded in the knowledge base
+src/lib/fulfilment.ts   collection/delivery options (courier partners plug in here)
+content/knowledge-base.md  what the consultation assistant knows
 src/app/...             pages and API routes
 tests/                  unit tests
 scripts/smoke.mjs       live-site check used by the monitor workflow

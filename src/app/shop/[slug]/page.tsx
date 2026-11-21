@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import sanitizeHtml from "sanitize-html";
 import { AddToCart } from "@/components/AddToCart";
 import { Gallery } from "@/components/Gallery";
+import { Icon } from "@/components/Icon";
 import { JsonLd } from "@/components/JsonLd";
 import { Price } from "@/components/Price";
 import { SITE_URL, STORE } from "@/lib/config";
@@ -75,9 +76,9 @@ export default async function ProductPage({ params }: Props) {
       <div className="pdp">
         <Gallery images={product.images} name={product.name} />
         <div className="pdp__info">
-          <h1 style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)" }}>{product.name}</h1>
+          <h1>{product.name}</h1>
           <Price now={product.priceCents} was={product.regularPriceCents} currency={product.currency} large />
-          <p style={{ marginTop: 12 }}>
+          <p style={{ marginTop: 14 }}>
             {!product.inStock ? (
               <span className="stock stock--out">Sold out</span>
             ) : low ? (
@@ -92,13 +93,13 @@ export default async function ProductPage({ params }: Props) {
             line={{ id: product.id, slug: product.slug, name: product.name, image: product.images[0]?.src ?? null, priceCents: product.priceCents, maxQty: product.maxQty }}
           />
           <div className="assure">
-            <div><span aria-hidden>🔒</span><span>Secure card payment by myPOS. Visa &amp; Mastercard accepted.</span></div>
-            <div><span aria-hidden>🏬</span><span>Free Click &amp; Collect from our Carrick-on-Shannon showroom.</span></div>
-            <div><span aria-hidden>📞</span><span>Questions? Call <a className="link" href={`tel:${STORE.phoneIntl}`}>{STORE.phone}</a>. We're happy to advise on fitting and flues.</span></div>
+            <div><Icon name="lock" /><span>Secure card payment by myPOS. Visa &amp; Mastercard accepted.</span></div>
+            <div><Icon name="store" /><span>Free Click &amp; Collect from our Carrick-on-Shannon showroom. We&apos;ll email when it&apos;s ready.</span></div>
+            <div><Icon name="chat" /><span>Need advice on fitting, flues or hearths? <Link className="link" href="/#consultation">Start a consultation</Link>.</span></div>
           </div>
           {description && description !== summary && (
             <section style={{ marginTop: 32 }}>
-              <h2 style={{ fontSize: "1.4rem" }}>Details</h2>
+              <h2>Details</h2>
               <div className="prose" dangerouslySetInnerHTML={{ __html: description }} />
             </section>
           )}

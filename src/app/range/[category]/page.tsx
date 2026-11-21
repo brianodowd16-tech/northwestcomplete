@@ -28,13 +28,13 @@ export default async function CategoryPage({ params }: Props) {
   const hasItems = groups.some((g) => g.items.length);
 
   return (
-    <div className="wrap" style={{ paddingBottom: 72 }}>
+    <div className="wrap" style={{ paddingBottom: 96 }}>
       <ol className="crumbs">
         <li><Link href="/">Home</Link></li>
         <li><Link href="/range">Our range</Link></li>
         <li aria-current="page">{cat.name}</li>
       </ol>
-      <header style={{ paddingBottom: 16 }}>
+      <header className="page-head" style={{ paddingTop: 8 }}>
         <h1>{cat.name}</h1>
         <p className="lead">{cat.blurb}</p>
       </header>

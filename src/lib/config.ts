@@ -58,8 +58,6 @@ export const STORE = {
   name: "O'Dowd's Fireplaces & Stoves",
   shortName: "O'Dowds",
   since: 1967,
-  phone: "071 96 20153",
-  phoneIntl: "+353719620153",
   email: "info@odowdscarrick.com",
   address: {
     street: "Station Road",
@@ -70,6 +68,39 @@ export const STORE = {
   },
   mapUrl: "https://www.google.com/maps/search/?api=1&query=O%27Dowds+Fireplaces+and+Stoves+Carrick+on+Shannon",
   logo: "https://odowdscarrick.com/wp-content/uploads/2020/11/cropped-LOGO-2020-600x306.png",
-  heroImage: "https://odowdscarrick.com/wp-content/uploads/2020/11/IMG_20201117_111759-scaled-e1606137354380.jpg",
+  heroImage: "https://odowdscarrick.com/wp-content/uploads/2022/10/Studio-1-Edge-1.jpg",
+  showroomImage: "https://odowdscarrick.com/wp-content/uploads/2020/11/IMG_20201117_111759-scaled-e1606137354380.jpg",
+  consultImage: "https://odowdscarrick.com/wp-content/uploads/2026/02/pulsetrimroomset_1400x1400.webp",
   currency: "EUR",
 } as const;
+
+/** Cover photography for the main range categories on the homepage. */
+export const RANGE_COVERS: Record<string, string> = {
+  stoves: "https://odowdscarrick.com/wp-content/uploads/2026/04/teodora.webp",
+  fireplaces: "https://odowdscarrick.com/wp-content/uploads/2026/02/pro-AoPbVevG-scaled.jpeg",
+  "gas-fires": "https://odowdscarrick.com/wp-content/uploads/2025/05/gazco-riva-2-600.jpg",
+  "electric-fires": "https://odowdscarrick.com/wp-content/uploads/2024/11/hdi4-2-scaled.jpeg",
+};
+
+/** Merchandising rules for the homepage. Prices in cents. */
+export const MERCH = {
+  /** Only products priced above this appear on the homepage (the full list stays on /shop). */
+  featuredMinCents: 100_00,
+  featuredCount: 4,
+} as const;
+
+/** Manufacturers carried in the showroom (from the current range pages). */
+export const BRANDS = [
+  "Stovax",
+  "Gazco",
+  "Jøtul",
+  "Nordica Extraflame",
+  "Nestor Martin",
+  "Dik Geurts",
+  "Mazona",
+  "ACR",
+  "Heat Design",
+  "Evonic",
+  "Esse",
+  "Edilkamin",
+] as const;
