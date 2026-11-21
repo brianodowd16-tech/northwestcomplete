@@ -458,3 +458,13 @@ img.team__avatar { background: var(--surface-2); object-position: center 20%; }
 .prose a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .prose strong { color: var(--text); }
 .prose__meta { font-size: 0.95rem; }
+
+/* Case studies */
+.case { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; padding: 32px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
+.case__client { font: 600 clamp(1.3rem, 2.6vw, 1.8rem)/1.2 var(--font-display); letter-spacing: -0.015em; }
+.case__meta { color: var(--muted); margin-top: 6px; }
+.case--full { display: grid; justify-content: stretch; gap: 14px; padding: 36px; background: radial-gradient(110% 120% at 0% 0%, rgba(94, 234, 212, 0.1), transparent 60%), var(--surface); }
+.case--full .eyebrow, .case--full h2 { margin: 0; }
+.case__about { color: var(--muted); font-size: 1.1rem; max-width: 62ch; }
+.case__src { color: var(--muted); font-size: 0.9rem; }
+.case__src a { color: var(--accent); }
