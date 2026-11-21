@@ -1,6 +1,6 @@
 import { sendEmail } from "@/lib/email";
 import { getMyposConfig, openToken, tokenSecret, verifyCallback } from "@/lib/mypos";
-import { formatPrice, site } from "@/lib/site";
+import { formatPrice, getMarket, site } from "@/lib/site";
 
 // myPOS posts IPCPurchaseNotify here server-to-server once a payment succeeds.
 // It must answer exactly "OK" with HTTP 200, otherwise myPOS treats the payment as failed.
@@ -25,11 +25,12 @@ export async function POST(request: Request) {
 }
 
 async function notifyPaid(request: Request, data: Record<string, string>, cfg: NonNullable<ReturnType<typeof getMyposConfig>>) {
+  const market = getMarket(new URL(request.url).searchParams.get("m"));
   {
     const cents = Math.round(Number.parseFloat(data.amount ?? "0") * 100);
     const amount = Number.isFinite(cents) ? formatPrice(cents) : `€${data.amount}`;
     await sendEmail({
-      subject: `PAID: order ${data.orderid} — ${amount}`,
+      subject: `[${market.name}] PAID: order ${data.orderid} — ${amount}`,
       text: [
         `myPOS has confirmed payment.`,
         "",
@@ -47,7 +48,7 @@ async function notifyPaid(request: Request, data: Record<string, string>, cfg: N
       await sendEmail({
         to: customer.e,
         replyTo: site.email,
-        subject: `Thanks for your order ${data.orderid} — ${site.name}`,
+        subject: `Thanks for your order ${data.orderid} — ${market.name}`,
         text: [
           `Hi ${customer.n || "there"},`,
           "",
@@ -58,8 +59,8 @@ async function notifyPaid(request: Request, data: Record<string, string>, cfg: N
           "",
           `Questions? WhatsApp ${site.contactName} on ${site.phone} or reply to this email.`,
           "",
-          site.name,
-          site.url,
+          market.name,
+          market.url,
         ].join("\n"),
       });
     }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getMyposConfig, verifyCallback } from "@/lib/mypos";
-import { site } from "@/lib/site";
+import { getMarket, marketFromHost } from "@/lib/site";
 
 // myPOS sends the customer back here after paying (GET or POST). Payment is only
 // confirmed by the notify callback; this just shows the thank-you page.
@@ -14,7 +14,7 @@ async function handle(request: Request) {
   const cfg = getMyposConfig();
   const data = cfg ? verifyCallback(cfg, entries) : null;
   const order = data?.orderid ?? "";
-  const target = new URL("/checkout/success", site.url);
+  const target = new URL("/checkout/success", getMarket(marketFromHost(request.headers.get("host"))).url);
   if (order) target.searchParams.set("order", order);
   return NextResponse.redirect(target, 303);
 }

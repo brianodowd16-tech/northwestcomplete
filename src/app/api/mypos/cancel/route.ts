@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { site } from "@/lib/site";
+import { getMarket, marketFromHost } from "@/lib/site";
 
 // myPOS sends the customer here when they cancel on the payment page. Nothing was charged.
-function handle() {
-  return NextResponse.redirect(new URL("/checkout?cancelled=1", site.url), 303);
+function handle(request: Request) {
+  return NextResponse.redirect(new URL("/checkout?cancelled=1", getMarket(marketFromHost(request.headers.get("host"))).url), 303);
 }
 
 export const GET = handle;

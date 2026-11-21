@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import { deliveryPrice, getCatalogItem, getCountry } from "@/lib/catalog";
 import { sendEmail } from "@/lib/email";
 import { buildPurchase, getMyposConfig, sealToken, tokenSecret, type MyposCartItem } from "@/lib/mypos";
-import { formatPrice, site } from "@/lib/site";
+import { formatPrice, getMarket, site } from "@/lib/site";
 
 type Body = {
   lines?: { id: unknown; quantity: unknown }[];
   customer?: Record<string, unknown>;
+  market?: string;
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
+  const market = getMarket(body.market);
   const c = body.customer;
   const customer = {
     firstNames: str(c, "firstName", 60),
@@ -47,7 +49,8 @@ export async function POST(request: Request) {
     city: str(c, "city", 60),
     zip: str(c, "zip", 20),
   };
-  const country = getCountry(str(c, "country", 4));
+  const code = str(c, "country", 4);
+  const country = (market.checkoutCountries as string[]).includes(code) ? getCountry(code) : undefined;
   const method = str(c, "delivery", 10) === "collect" ? "collect" : "delivery";
   const boat = str(c, "boat", 120);
   const location = str(c, "location", 120);
@@ -95,7 +98,7 @@ export async function POST(request: Request) {
 
   const id = orderId();
   // myPOS calls these server-to-server and redirects the customer to them, so they must be the public https URL.
-  const base = site.url.replace(/\/$/, "");
+  const base = market.url.replace(/\/$/, "");
   const token = sealToken({ e: customer.email, n: customer.firstNames }, tokenSecret(cfg));
   const purchase = buildPurchase(cfg, {
     orderId: id,
@@ -104,13 +107,13 @@ export async function POST(request: Request) {
     customer: { ...customer, country: country.iso3 },
     urlOk: `${base}/api/mypos/ok`,
     urlCancel: `${base}/api/mypos/cancel`,
-    urlNotify: `${base}/api/mypos/notify?c=${token}`,
+    urlNotify: `${base}/api/mypos/notify?m=${market.id}&c=${token}`,
     note: [boat && `Boat: ${boat}`, location && `Kept at: ${location}`].filter(Boolean).join(" | ").slice(0, 200),
   });
 
   const total = purchase.amount;
   await sendEmail({
-    subject: `Order ${id} started — ${formatPrice(total)} (awaiting payment)`,
+    subject: `[${market.name}] Order ${id} started — ${formatPrice(total)} (awaiting payment)`,
     replyTo: customer.email,
     text: [
       `A customer has gone to the myPOS payment page. You'll get a second email when payment is confirmed.`,

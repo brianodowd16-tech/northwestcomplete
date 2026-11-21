@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root,
+[data-market="ie"] {
+  color-scheme: light;
+  --navy-50: 238 244 251;
+  --navy-100: 214 227 243;
+  --navy-200: 173 198 230;
+  --navy-300: 126 163 211;
+  --navy-400: 79 124 188;
+  --navy-500: 47 94 163;
+  --navy-600: 33 74 135;
+  --navy-700: 27 59 109;
+  --navy-800: 21 45 82;
+  --navy-900: 13 29 54;
+  --navy-950: 8 18 36;
+  --sea-50: 236 251 248;
+  --sea-100: 207 244 236;
+  --sea-200: 160 232 218;
+  --sea-300: 103 213 195;
+  --sea-400: 51 187 168;
+  --sea-500: 23 158 142;
+  --sea-600: 15 127 116;
+  --sea-700: 16 102 94;
+  --sea-800: 17 81 76;
+  --sea-900: 18 68 64;
+  --brass-400: 231 184 90;
+  --brass-500: 214 158 46;
+  --brass-600: 176 125 28;
+  --page: #f7f6f1;
+  --page-rgb: 247 246 241;
+}
+
+/* Malta: ink and champagne gold for a quieter, more exclusive look */
+[data-market="mt"] {
+  --navy-50: 243 242 239;
+  --navy-100: 228 226 220;
+  --navy-200: 201 197 187;
+  --navy-300: 163 158 146;
+  --navy-400: 122 118 108;
+  --navy-500: 87 84 77;
+  --navy-600: 63 61 56;
+  --navy-700: 44 43 40;
+  --navy-800: 30 29 27;
+  --navy-900: 20 20 19;
+  --navy-950: 11 11 10;
+  --sea-50: 250 246 238;
+  --sea-100: 242 233 214;
+  --sea-200: 230 211 173;
+  --sea-300: 216 187 132;
+  --sea-400: 201 164 101;
+  --sea-500: 184 144 79;
+  --sea-600: 156 119 64;
+  --sea-700: 125 95 52;
+  --sea-800: 95 72 42;
+  --sea-900: 70 53 34;
+  --brass-400: 216 187 132;
+  --brass-500: 201 164 101;
+  --brass-600: 184 144 79;
+  --page: #f6f3ec;
+  --page-rgb: 246 243 236;
+}
+
+body {
+  @apply text-slate-800 antialiased;
+  background-color: var(--page);
+}
+
+.hero-bg {
+  background:
+    radial-gradient(1200px 400px at 85% -10%, rgb(var(--sea-400) / 0.3), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgb(var(--navy-500) / 0.45), transparent 60%),
+    linear-gradient(160deg, rgb(var(--navy-950)) 0%, rgb(var(--navy-800)) 55%, rgb(var(--sea-700)) 130%);
+}
+
+.waves {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 80'%3E%3Cpath fill='%23f6f3ec' d='M0 40c120 20 240 30 360 20s240-40 360-40 240 30 360 40 240-10 360-20v80H0z'/%3E%3C/svg%3E");
+  background-size: 100% 100%;
+}
+
+.product-tile {
+  background: linear-gradient(135deg, rgb(var(--navy-700)) 0%, rgb(var(--sea-700)) 100%);
+}
+
+.prose-legal h2 {
+  @apply mt-8 font-display text-xl font-semibold text-navy-900;
+}
+.prose-legal p,
+.prose-legal li {
+  @apply mt-3 leading-relaxed text-slate-700;
+}
+.prose-legal ul {
+  @apply list-disc pl-6;
+}
