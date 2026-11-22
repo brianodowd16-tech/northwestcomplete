@@ -1,7 +1,7 @@
 import "server-only";
 import { signSession, verifySession, type PaymentProvider, type XeroApp } from "@round/core";
 import { providerForVenue } from "@round/db/integrations";
-import { customerById, staffById, venueBySlug, NotFound, type Customer, type Staff, type Venue } from "@round/db/services";
+import { customerById, staffById, venueById, venueBySlug, NotFound, type Customer, type Staff, type Venue } from "@round/db/services";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
@@ -74,7 +74,8 @@ export async function requireStaffFor(slug: string, opts: { admin?: boolean } = 
   const staff = await currentStaff();
   if (!staff) redirect(`/staff/login?next=${encodeURIComponent(`/staff/${slug}/bar`)}`);
   const venue = await loadVenue(slug);
-  if (staff.venueId !== venue.id) redirect("/staff/login?wrong=1");
+  // Signed in for another venue: send them to their own screens and say why.
+  if (staff.venueId !== venue.id) redirect(`/staff/${(await venueById(staff.venueId)).slug}/bar?other=${encodeURIComponent(venue.name)}`);
   if (opts.admin && staff.role !== "admin") notFound();
   return { staff, venue };
 }

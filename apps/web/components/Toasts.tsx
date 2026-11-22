@@ -19,6 +19,8 @@ function emit() {
 
 /** Shows a short message at the top of the screen. An action adds a button (e.g. Undo). */
 export function toast(text: string, opts: { kind?: Kind; ms?: number; action?: Toast["action"] } = {}) {
+  // The same message twice in a row (e.g. a live update and a refresh) shows once.
+  if (toasts.at(-1)?.text === text) return;
   const t: Toast = { id: ++seq, text, kind: opts.kind ?? "info", action: opts.action };
   toasts = [...toasts.slice(-2), t];
   emit();
