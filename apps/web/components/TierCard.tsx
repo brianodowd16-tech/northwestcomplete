@@ -1,3 +1,4 @@
+import { Grow } from "./Animated";
 import { eur } from "./format";
 
 interface Level {
@@ -9,7 +10,7 @@ export function TierCard({ programme, levels, level, next, spend }: { programme:
   const idx = levels.findIndex((l) => l.name === level.name);
   const pct = next ? Math.min(100, ((spend - level.minSpend12mCents) / (next.minSpend12mCents - level.minSpend12mCents)) * 100) : 100;
   return (
-    <div className="tiercard">
+    <div className="tiercard rise">
       <div className="row small">
         <span className="label" style={{ color: "inherit", opacity: 0.85 }}>
           {programme}
@@ -20,7 +21,7 @@ export function TierCard({ programme, levels, level, next, spend }: { programme:
       </div>
       <h2>{level.name}</h2>
       <div className="progress">
-        <i style={{ width: `${pct}%` }} />
+        <Grow pct={pct} />
       </div>
       <div className="row small">
         <span className="num">{eur(spend)} spent (12 months)</span>

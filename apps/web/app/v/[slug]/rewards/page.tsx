@@ -1,5 +1,6 @@
 import { memberSummary } from "@round/db/services";
 import { redirect } from "next/navigation";
+import { CountUp } from "@/components/Animated";
 import { ConvertPoints } from "@/components/ConvertPoints";
 import { eur } from "@/components/format";
 import { TierCard } from "@/components/TierCard";
@@ -18,8 +19,8 @@ export default async function Rewards({ params }: { params: Promise<{ slug: stri
     <div className="stack">
       <TierCard programme={s.programme.name} levels={s.levels} level={s.level} next={s.next} spend={s.spend12mCents} />
       <div className="stats3">
-        <div className="stat"><b className="num">{s.balances.points.toLocaleString("en-IE")}</b><span>points</span></div>
-        <div className="stat"><b className="num">{eur(s.balances.creditCents)}</b><span>credit</span></div>
+        <div className="stat"><b><CountUp value={s.balances.points} /></b><span>points</span></div>
+        <div className="stat"><b><CountUp value={s.balances.creditCents} format="eur" /></b><span>credit</span></div>
         <div className="stat"><b className="num">{s.balances.doubles}</b><span>2× points</span></div>
       </div>
       <ConvertPoints slug={venue.slug} points={s.balances.points} block={s.programme.pointsPerCreditEuro} />
@@ -59,7 +60,7 @@ export default async function Rewards({ params }: { params: Promise<{ slug: stri
           </div>
         ))}
       </div>
-      <form action="/api/auth/logout" method="post">
+      <form action="/api/auth/logout" method="post" style={{ marginBottom: 20 }}>
         <button className="btn ghost sm">Sign out</button>
       </form>
     </div>

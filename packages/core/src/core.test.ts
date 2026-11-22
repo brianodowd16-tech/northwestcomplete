@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ageOn,
   assertCanAdvance,
+  assertCanRevert,
   balances,
   buildStatement,
   CartError,
@@ -197,5 +198,14 @@ describe("sessions", () => {
     expect(normalisePhone("087 123 4567")).toBe("+353871234567");
     expect(normalisePhone("+353 87 123 4567")).toBe("+353871234567");
     expect(normalisePhone("hello")).toBeNull();
+  });
+});
+
+describe("undo", () => {
+  const now = new Date("2026-11-22T20:00:00Z");
+  it("steps back one status within the window only", () => {
+    expect(assertCanRevert({ status: "ready", startedAt: null, readyAt: new Date(now.getTime() - 60_000), doneAt: null }, now)).toBe("in_progress");
+    expect(() => assertCanRevert({ status: "ready", startedAt: null, readyAt: new Date(now.getTime() - 3 * 60_000), doneAt: null }, now)).toThrow(/Too late/);
+    expect(() => assertCanRevert({ status: "new", startedAt: null, readyAt: null, doneAt: null }, now)).toThrow(/Nothing/);
   });
 });

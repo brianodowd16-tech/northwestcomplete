@@ -1,6 +1,7 @@
 import {
   ageOn,
   assertCanAdvance,
+  assertCanRevert,
   balances,
   buildStatement,
   convertPoints,
@@ -550,6 +551,23 @@ export async function recentOrdersForCustomer(venue: Venue, customerId: string) 
   );
 }
 
+/** Today's paid orders with their docket progress, for the guest's home screen. */
+export async function activeOrdersForCustomer(venue: Venue, customerId: string) {
+  return withTenant(venue.tenantId, async (tx) => {
+    const since = new Date(Date.now() - 12 * 3_600_000);
+    const os = await tx
+      .select()
+      .from(t.orders)
+      .where(and(eq(t.orders.venueId, venue.id), eq(t.orders.customerId, customerId), eq(t.orders.status, "paid"), gte(t.orders.paidAt, since)))
+      .orderBy(desc(t.orders.paidAt));
+    if (!os.length) return [];
+    const ds = await tx.select().from(t.docket).where(inArray(t.docket.orderId, os.map((o) => o.id)));
+    return os
+      .map((o) => ({ order: o, dockets: ds.filter((d) => d.orderId === o.id) }))
+      .filter((x) => x.dockets.some((d) => d.status !== "done"));
+  });
+}
+
 // ---------------------------------------------------------------- staff
 
 export type Staff = typeof t.staffUser.$inferSelect;
@@ -608,6 +626,18 @@ export async function advanceDocket(staff: Staff, docketId: string, to: DocketSt
     assertCanAdvance(d, to);
     const stamp = { in_progress: { startedAt: new Date() }, ready: { readyAt: new Date() }, done: { doneAt: new Date() }, new: {} }[to];
     await tx.update(t.docket).set({ status: to, ...stamp }).where(and(eq(t.docket.id, d.id), eq(t.docket.status, d.status)));
+    await publish(tx, topics.venue(staff.venueId), { kind: "dockets" });
+    await publish(tx, topics.order(d.orderId), { kind: "order" });
+  });
+}
+
+/** Undo a mistaken tap: step the docket back one status, within the undo window. */
+export async function revertDocket(staff: Staff, docketId: string) {
+  await withTenant(staff.tenantId, async (tx) => {
+    const d = await docketForStaff(tx, staff, docketId);
+    const to = assertCanRevert(d);
+    const clear = { in_progress: { startedAt: null }, ready: { readyAt: null }, done: { doneAt: null }, new: {} }[d.status];
+    await tx.update(t.docket).set({ status: to, ...clear }).where(and(eq(t.docket.id, d.id), eq(t.docket.status, d.status)));
     await publish(tx, topics.venue(staff.venueId), { kind: "dockets" });
     await publish(tx, topics.order(d.orderId), { kind: "order" });
   });
@@ -685,6 +715,62 @@ export async function salesSummary(venue: Venue, from: Date, to: Date) {
       collectOrders: paid.filter((o) => o.channel === "collect").length,
       byHour,
       members,
+    };
+  });
+}
+
+/** Back office dashboard for a period, with the previous period of the same length to compare. */
+export async function dashboard(venue: Venue, from: Date, to: Date) {
+  const span = to.getTime() - from.getTime();
+  const [now, before] = [await salesSummary(venue, from, to), await salesSummary(venue, new Date(from.getTime() - span), from)];
+  return withTenant(venue.tenantId, async (tx) => {
+    const os = await tx
+      .select()
+      .from(t.orders)
+      .where(and(eq(t.orders.venueId, venue.id), eq(t.orders.status, "paid"), gte(t.orders.paidAt, from), lt(t.orders.paidAt, to)));
+    const lines = os.length ? await tx.select().from(t.orderLine).where(inArray(t.orderLine.orderId, os.map((o) => o.id))) : [];
+    const items = new Map<string, { name: string; qty: number; grossCents: number }>();
+    for (const l of lines) {
+      const it = items.get(l.name) ?? { name: l.name, qty: 0, grossCents: 0 };
+      it.qty += l.qty;
+      it.grossCents += l.grossCents;
+      items.set(l.name, it);
+    }
+    const days = Math.max(1, Math.round(span / 86_400_000));
+    const byDay = Array.from({ length: days }, (_, i) => {
+      const d0 = from.getTime() + i * 86_400_000;
+      return { day: new Date(d0).toISOString().slice(0, 10), grossCents: os.filter((o) => o.paidAt!.getTime() >= d0 && o.paidAt!.getTime() < d0 + 86_400_000).reduce((s, o) => s + o.grossCents, 0) };
+    });
+    const recent = await tx
+      .select()
+      .from(t.orders)
+      .where(and(eq(t.orders.venueId, venue.id), ne(t.orders.status, "pending_payment")))
+      .orderBy(desc(t.orders.createdAt))
+      .limit(10);
+    const recentIds = recent.map((o) => o.id);
+    const [rDockets, rCust, tables] = recentIds.length
+      ? await Promise.all([
+          tx.select().from(t.docket).where(inArray(t.docket.orderId, recentIds)),
+          tx.select({ id: t.customer.id, name: t.customer.name }).from(t.customer).where(inArray(t.customer.id, recent.map((o) => o.customerId))),
+          tx.select().from(t.venueTable).where(eq(t.venueTable.venueId, venue.id)),
+        ])
+      : [[], [], []];
+    return {
+      now,
+      before,
+      byDay,
+      topItems: [...items.values()].sort((a, b) => b.grossCents - a.grossCents).slice(0, 5),
+      recent: recent.map((o) => ({
+        id: o.id,
+        number: o.number,
+        status: o.status,
+        grossCents: o.grossCents,
+        createdAt: o.createdAt,
+        channel: o.channel,
+        tableNumber: tables.find((x) => x.id === o.tableId)?.number ?? null,
+        guest: (rCust.find((c) => c.id === o.customerId)?.name ?? "Guest").split(" ")[0],
+        dockets: rDockets.filter((d) => d.orderId === o.id).map((d) => ({ station: d.station, status: d.status })),
+      })),
     };
   });
 }
