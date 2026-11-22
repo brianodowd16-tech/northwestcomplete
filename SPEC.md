@@ -1,197 +1,138 @@
-# Round — Phase 1 build spec
+# The Snug Club — final design
 
-> "Round" is a placeholder name (check trademark and domain before committing). This is the Phase 1 spec; `CLAUDE.md` holds the working rules for building it. The clickable prototype ("Round Venue Platform" artifact) shows the intended look of most screens. Where it differs from this file (native inventory, stocktakes, POs, walk-up POS grid, the 18+ checkbox), this file wins.
+> Product name: **The Snug Club**. Check trademark (EUIPO and the Irish Patents Office, classes 9, 42 and 43) and the domain before spending on the brand. `CLAUDE.md` holds the working rules for building it. Section 9 records what is built and what is left.
 
 ## 1. Product in one paragraph
 
-Round is a white-label version of Revolut's **Order & Pay**, built on the Revolut Merchant API, with a full loyalty programme and venue extras on top. Guests with an account scan a QR at their table, or choose **Collect at bar**, order and pay in a web app, and earn points in the venue's own programme. Drinks show on the bar screen and print at the bar for collection. Food shows on the kitchen screen, prints in the kitchen and is run to the table. Everything at the counter (card reader, cash, end of shift) stays on the **Revolut POS** app in Phase 1. MarketMan keeps getting its sales from Revolut POS as it does today. Managers run menus, loyalty, events, tickets and bookings from a back office. Venues pay Round a monthly subscription plus 1% of app payments.
+The Snug Club is a white-label ordering, payments and loyalty platform for Irish bars, hotels and restaurants (then the EU). Guests with an account scan a QR at their table, or choose **Collect at bar**, order and pay on their phone through the venue's own **myPOS** account (Revolut also supported), and earn points in the venue's own loyalty programme. Drinks go to the bar screen and printer for collection; food goes to the kitchen screen and printer and is run to the table. After paying, every guest is offered a link to leave the venue a Google review. Each night the day's app sales go to the venue's **Xero** as one invoice with the card payment applied. Counter sales stay on the venue's existing till. Venues pay a monthly subscription plus 1% of app payments.
 
 ## 2. Decisions
 
 | Area | Decision |
 |---|---|
-| Model | SaaS. Each venue gets its own bespoke loyalty programme; chains can share one programme across venues. |
+| Model | SaaS for bars, hotels and restaurants. Each venue gets its own loyalty programme; groups can share one. |
 | Market | Ireland first (EUR, Irish VAT), then EU. |
-| Pilot | **MJ O'Connor's** and **Drumhierny Woodland Hideaway** (confirm spelling), 20 tables each. Drumhierny is tables only; lodge ordering is a later phase. O'Dowd's / odowdscarrick.com is not part of this project. |
-| What Round is in Phase 1 | A white-label Order & Pay: guest app, bar and kitchen screens, printing, loyalty, events, bookings, back office. Revolut's own Order & Pay has no public API, so Round builds its own on the Merchant API. |
-| Counter sales | **Revolut POS app**, unchanged: Revolut card reader, cash, end of shift and cash reconciliation. A white-label counter POS is a later phase. Counter sales earn no loyalty. |
-| App payments | Account required. Pay in-app, upfront, per order. No split bills. Revolut checkout widget: saved card, Apple Pay, Google Pay, Revolut Pay, card. |
+| Pilot | **MJ O'Connor's** and **Drumhierny Woodland Hideaway**, 20 tables each. Drumhierny is tables only; lodge ordering is a later phase. O'Dowd's / odowdscarrick.com is not part of this project. |
+| App payments | Account required. Pay upfront, per order, no split bills. **myPOS Checkout** (hosted payment page: card, Apple Pay, Google Pay) is the default. Revolut Merchant API is supported for venues that prefer it. Each venue is paid straight into its own merchant account; The Snug Club never holds guest money. |
+| Venue credentials | Each venue's myPOS / Revolut keys and Xero tokens are stored encrypted (AES-256-GCM, key in `SECRETS_KEY`) and entered by the manager in Back office → Settings. Never shown again after saving. |
+| Counter sales | The venue's existing till (Revolut POS or a myPOS terminal), unchanged. Counter sales earn no loyalty. A white-label counter POS is a later phase. |
 | Routing | Drinks → bar screen + bar printer, collected at the bar. Food → kitchen screen + kitchen printer, run to a table. Food is never "collect at bar". |
-| Loyalty | Spend-based levels, points per €, birthday credit, level-up bonus points, bonus credits, double points, referral points, sign-up credit, gift cards, points-to-credit conversion. Only app orders earn. |
-| Inventory | Out of scope. MarketMan gets counter sales (card and cash) from Revolut POS through its existing end-of-day sync. Bars manage their own stock. Staff get a manual sold-out toggle; automatic sell-out from stock levels comes in a later phase for restaurants and cafés. |
-| Age verification | In scope. Proposed approach in section 6, details still to agree. |
-| Hardware | Only Revolut-supplied hardware: Revolut Terminal for counter cards, and the Star TSP143IV / Epson TM-m30III printers Revolut supports. Round's bar and kitchen screens run in a browser on a tablet. |
-| Billing (venues → you) | Monthly subscription per venue **plus 1% of completed app payments** (net of refunds). Revolut has no platform fee split, so Round calculates it and invoices monthly. |
-| Bookings | Each venue sets how far ahead guests can book; default **1 month**. |
-| Guest app | QR web app (PWA) first; native iOS/Android later from the same backend. |
-| V1 extras | Events + ticketing, gig guide, live sport listings, table bookings, venue finder. |
-| Connectivity | Assume online, with backup 4G/eSIM at the venue. No offline mode. If Round is down, the venue keeps trading on Revolut POS. |
+| Loyalty | Spend-based levels, points per €, birthday credit, level-up bonus points, bonus credits, double points, referral points, sign-up credit, gift cards, points-to-credit conversion. Only card-paid app orders earn. |
+| Google reviews | After paying, every guest sees the same "Leave a Google review" button, which opens Google's own review form for the venue. No points, credit or discounts for reviews, and no rating question first: Google bans review incentives and "review gating". The back office counts how many guests opened the form. |
+| Accounting | **Xero**, per venue: one invoice per trading day (sales by VAT rate, less loyalty credit and refunds) plus one payment into the venue's card clearing account. Account codes and tax rates are set per venue with their accountant. |
+| Inventory | Out of scope. MarketMan or the venue's own stock system carries on from its till. Staff get a manual sold-out toggle. |
+| Age verification | Date of birth (18+) at sign-up; staff check physical ID on a guest's first alcohol collection (section 6). Digital ID later. |
+| Billing (venues → you) | Monthly subscription per venue plus **1% of completed app payments** net of refunds. myPOS and Revolut can't split a platform fee from each payment, so The Snug Club calculates it and invoices monthly. |
+| Bookings | Each venue sets how far ahead guests can book; default 1 month. |
+| Apps | Web app (works on any phone from the QR) first. iOS and Android apps wrap the same app and add push notifications ("drinks ready"), submitted from a company developer account. |
+| Connectivity | Assume online, with backup 4G/eSIM. If The Snug Club is down, the venue keeps trading on its till. |
 
 ## 3. Architecture
 
 ```
-Guest PWA (Next.js)        Bar + kitchen screens (Next.js, tablet)        Back office (Next.js)
-        \                                |                                   /
-         \------------------ API (TypeScript, REST + WebSocket) ------------/
-                          |               |                |
-                     Postgres         Job queue         Realtime
-                   (multi-tenant)   (webhooks, print,   (dockets, order
-                                     reconciliation,     status, sold-out)
-                                     loyalty, billing)
-                          |               |
-            Revolut Merchant API      Cloud print → Revolut-supplied printers
-            (orders, widget,          (Star CloudPRNT on TSP143IV,
-             customers, webhooks)      Epson Server Direct Print on TM-m30III)
-
-Separate, unchanged: Revolut POS app + Revolut Terminal (counter, cash, end of shift) → MarketMan
+Guest web app (/v/...)   Bar + kitchen screens (/staff/...)   Back office + Settings (/office/...)
+            \                         |                                /
+             \------------- one Next.js app (apps/web) ---------------/
+                               |                |               |
+                          Postgres 16       pg-boss jobs     Live updates
+                       (row-level tenancy) (in Postgres)   (server-sent events over
+                               |                |            Postgres LISTEN/NOTIFY)
+                               |                |
+   myPOS Checkout ─ hosted page + signed notify │      Xero API ─ nightly invoice + payment
+   Revolut Merchant API ─ widget + webhooks ────┤      Google ─ "write a review" link
+   Cloud printers (Star CloudPRNT / Epson SDP) ─┘
 ```
 
-Stack: Turborepo monorepo, Next.js + TypeScript, Postgres (Neon or Supabase, EU region), Drizzle, pg-boss for jobs, WebSockets (or Supabase Realtime). Host in the EU.
+Stack: Turborepo (pnpm), Next.js 15 + TypeScript, Postgres 16 in the EU, Drizzle, pg-boss, Vitest, GitHub Actions.
 
-Layout: `apps/guest`, `apps/staff` (bar + kitchen screens, ID check, sold-out), `apps/office` (venue back office + platform admin), `packages/db`, `packages/core` (pricing, VAT, loyalty, payments, billing), `packages/ui`.
+Layout: `apps/web`; `packages/core` (pricing, VAT, loyalty, billing, sessions, payment providers, myPOS, Xero, reviews, secrets; no database); `packages/db` (schema, migrations, RLS, seed, services, integrations).
 
-Tenancy: every row carries `tenant_id`; most carry `venue_id`. Enforce with Postgres row-level security and a scoped repository layer. Never trust a venue, table or price from the client.
+Tenancy: every tenant-scoped row has `tenant_id`; Postgres row-level security limits each request to one tenant. Platform-level lookups (a venue slug, a payment notification) use an explicit unscoped path. Never trust a venue, table or price from the browser.
 
 ## 4. Data model
 
-**Tenancy and venue**
-- `tenant` (operator / group)
-- `venue` (name, slug, branding, timezone, VAT number, opening hours, late thresholds, `booking_max_advance` default 1 month, `booking_min_notice`, `booking_max_party`)
-- `table` (venue, number, qr_token, active)
-- `staff_user` (venue access, role: admin | staff); `platform_admin` (you)
+**Tenancy and venue**: `tenant`; `venue` (slug, branding, timezone, VAT number, `payment_provider` mock | mypos | revolut, `google_place_id`, booking window); `venue_table` (QR token); `staff_user` (admin | staff); `venue_integration` (venue × kind mypos | revolut | xero: plain `config`, encrypted `secret_enc`); `subscription` (monthly fee, `app_fee_bps` = 100).
 
-**Menu**
-- `menu_category`
-- `menu_item` (price incl. VAT in cents, vat_rate 9 | 23, station bar | kitchen, contains_alcohol, available_for_collect, active, sold_out)
-- `modifier_group`, `modifier` (basic: e.g. "no ice", steak cooking)
-- `printer` (venue, station, protocol: star_cloudprnt | epson_sdp, device id/MAC, last_seen_at)
+**Menu**: `menu_category`; `menu_item` (price incl. VAT in cents, VAT 9 | 23, station bar | kitchen, alcohol flag, collectable, sold out).
 
-**Guests and loyalty**
-- `customer` (global identity: phone, email, name, date_of_birth, marketing_consent, `age_verified_at`, `age_verified_by_staff_id`, `age_verification_method`: staff_id_check | digital_id, `age_document_type`: age_card | passport | driving_licence; never an image or document number)
-- `payment_method_ref` (customer × venue → Revolut customer ID; card details stay at Revolut)
-- `programme` (venue or group: name, points_per_euro, points_per_credit_euro, signup_credit, referral_points, shared)
-- `programme_level` (name, min_spend_12m, birthday_credit, levelup_points, bonus_credits schedule, double_points_count)
-- `membership` (customer × programme: referral_code, referred_by). Points, credit, spend and level are derived.
-- `loyalty_ledger` (membership, kind: points | credit, delta, reason, order_id, expires_at). All balances are sums of this ledger.
-- `gift_card` (code, initial value, purchaser); balance from ledger.
+**Guests and loyalty**: `customer` (phone, email, name, date of birth, marketing consent, ID-check record without images or numbers); `otp_code`; `programme`; `programme_level`; `membership`; `loyalty_ledger` (points, credit, double-points tokens; all balances are sums).
 
-**Orders and payments**
-- `order` (venue, channel: table | collect, table_id nullable, customer_id, status: draft | pending_payment | paid | cancelled | refunded, gross, vat_9, vat_23, credit_used, amount_paid, revolut_order_id, idempotency_key)
-- `order_line` (menu_item, qty, unit_price, vat_rate, line_vat, modifiers snapshot)
-- `docket` (order, station, status: new | in_progress | ready | done, id_check_required, timestamps per step)
-- `print_job` (docket, printer, status, attempts)
-- `webhook_event` (provider, raw payload, signature_valid, processed_at)
-- `integration_credential` (venue, provider, encrypted secret key, public key, webhook signing secret)
+**Orders**: `orders` (channel table | collect, status pending_payment | paid | cancelled | refunded, gross, VAT 9/23, credit used, amount paid, provider order id, `provider_txn_ref` for refunds, `refunded_at`, `review_clicked_at`, idempotency key); `order_line`; `docket` (station, status, ID-check flag and record); `webhook_event` (every notification stored raw with its signature result).
 
-**Events and bookings**
-- `event` (type: ticketed | gig | sport, starts_at, capacity, price)
-- `ticket` (event, customer, order, code, status: valid | scanned | refunded)
-- `booking` (venue, customer, party size, requested time, notes, status: requested | confirmed | declined | cancelled)
-
-**Billing**
-- `subscription` (venue, monthly_fee_cents, app_fee_bps default 100 = 1%, starts_on, active)
-- `billing_statement` (venue, month, app_gross, app_refunds, app_fee, subscription_fee, VAT on fees at 23%, total, status: draft | issued | paid, external_invoice_id)
-
-**Platform**
-- `audit_log` (actor, action, entity, before/after)
+**Accounting**: `xero_sync` (venue × trading day: done | nothing | error, invoice id, attempts) so no day is posted twice.
 
 ## 5. Key flows
 
-### 5.1 Guest account and sign-in
-1. Sign-in by phone number with a one-time SMS code (email magic link as a fallback). On first sign-in the guest gives a name, date of birth (must be 18+) and email for receipts. Marketing consent is a separate, unticked opt-in.
-2. Joining a venue's programme creates a `membership` and grants the sign-up credit. A referral code entered here is stored for the referral bonus.
-3. The account shows its ID status: **ID not yet checked** or **ID checked** (section 6).
+### 5.1 Sign-in
+Phone number + one-time text code. First time: name, date of birth (18+), email for receipts, separate marketing opt-in. Joining a venue grants its sign-up credit.
 
-### 5.2 App order (table or collect at bar)
-1. Guest scans the table QR → `/v/{venueSlug}/t/{qrToken}`; the server resolves venue + table. Or the guest opens `/v/{venueSlug}` and chooses **Collect at bar**, which shows drinks only.
-2. The server prices the cart. Client prices are for display only. Sold-out items can't be added.
-3. The guest can apply credit and a double-points token.
-4. The server creates a Revolut order: amount in minor units, EUR, `merchant_order_data.reference` = our order ID, `line_items`, the venue's Revolut customer ID so a card can be saved, and the `Revolut-Api-Version` header. If credit covers the whole order, skip Revolut and mark it paid.
-5. The client mounts the Revolut checkout widget (saved card, Apple Pay, Google Pay, Revolut Pay, card). Each guest domain is registered with Revolut for Apple Pay.
-6. **Webhooks:** only release dockets on `ORDER_COMPLETED`. Verify the signature and timestamp, store every event raw, and make handlers idempotent on the Revolut order ID (events can arrive out of order).
-7. **On completion, in one transaction:** mark the order paid, create bar and kitchen dockets (with the ID-check flag if needed), and write loyalty ledger entries. Then enqueue printing and push status to the guest.
-8. **Reconciliation:** a job polls Revolut for any order still `pending_payment` after 3 minutes and settles it. A daily report lists app payments for the venue to match against Revolut settlements.
+### 5.2 Order and pay (myPOS)
+1. Guest scans the table QR (`/v/{venue}/t/{token}`) or picks **Collect at bar** (drinks only).
+2. The server prices the basket (VAT per line, rounded half-up) and applies credit and double points.
+3. The server builds the signed myPOS `IPCPurchase` form: amount, order id, cart lines with loyalty credit as a negative line, customer name and email, return URLs and `URL_Notify = {APP_URL}/api/webhooks/mypos/{venue}`. Signature: values joined with `-`, base64, RSA-SHA256 with the venue's private key.
+4. The guest's browser posts the form to myPOS and pays (card, Apple Pay, Google Pay).
+5. myPOS posts a signed `IPCPurchaseNotify`. The server verifies it with the venue's myPOS certificate over every field received, checks the store ID, venue and **amount**, stores it, and answers `OK`. Only this releases the order: dockets, loyalty, live update. A forged, altered or under-paid notification changes nothing.
+6. myPOS sends the guest back to the order page (or to it with "payment cancelled").
+7. A paid-but-unnotified order can't be looked up at myPOS, so the reconciliation job cancels unpaid orders after 30 minutes. Revolut orders are looked up and settled.
+8. Repeating a request with the same idempotency key returns the same order and checkout.
 
-### 5.3 Bar and kitchen screens, printing
-- Order lines are split by `menu_item.station`. Coffee goes to the bar.
-- Dockets are pushed to the station screens over WebSocket and printed by cloud print on the Revolut-supplied printers: Star CloudPRNT (TSP143IV) or Epson Server Direct Print (TM-m30III). The printer polls Round's server, so no local bridge is needed. The same printers keep serving Revolut POS over the local network.
-- **Bar:** new → pouring → ready → collected. **Kitchen:** new → cooking → ready → served (run to table). The guest app shows each docket live; "Ready at the bar" updates the open web app (push/SMS later).
-- Late thresholds: bar 5 min, kitchen 15 min (venue setting).
-- Every docket shows the table (or "COLLECT") and the guest's first name.
-- **CHECK ID:** a bar docket with alcohol for a guest whose ID hasn't been checked shows a red **CHECK ID** banner with the guest's name and age. It can't be marked collected until staff tap **ID checked** (recording the document type) or **Refused** (the order is refunded through Revolut).
-- **Sold out:** staff toggle any item sold out or back in from the bar or kitchen screen. It updates open guest apps immediately.
+Revolut venues use the Revolut widget and webhooks instead; everything after "paid" is the same.
 
-### 5.4 Loyalty engine (`packages/core/loyalty`)
-- Points = floor(amount paid by card × points_per_euro). Parts paid with credit or a gift card earn nothing. Buying a gift card earns nothing. Revolut POS counter sales earn nothing.
-- Double points: if the guest chooses to use one and has one, that order's points ×2 and one token is used.
-- Level = highest level whose `min_spend_12m` ≤ rolling 12-month app spend. On level-up: award level-up points, grant that level's double-points tokens, and schedule its bonus credits (e.g. 4 × €20, one per quarter).
-- Birthday credit: a daily job credits members on their birthday at their level's amount, expiring after 30 days.
-- Referral: both members get the referral points when the referred member's first paid order completes.
-- Points → credit at the programme's rate, on request.
-- Refunds reverse that order's ledger lines.
-- Shared programmes: membership belongs to the group programme, so points count at every venue in the group.
-- Pilot programmes: MJ O'Connor's "The Snug Club" (Regular €0, Local €400, Stalwart €1,500, Legend €4,000); Drumhierny "Woodland Club" (Sapling €0, Birch €300, Oak €1,200, Yew €3,500). Both: 10 points per €1, 100 points = €1 credit, €10 sign-up credit, 500 referral points. Don't copy The Pass's name, branding or tier numbers.
+### 5.3 Bar and kitchen
+Dockets appear live on the bar or kitchen screen and print. Bar: new → pouring → ready → collected; kitchen: new → cooking → ready → served. A first alcohol order from a guest without a staff ID check shows **CHECK ID** and can't be marked collected until staff record **ID checked** (document type only) or **Refused**. Refusing refunds the card through myPOS (`IPCRefund` with the transaction reference) or Revolut **first**, then marks the order refunded and reverses its loyalty; if the card refund fails, nothing changes and staff can retry.
 
-### 5.5 Events, tickets, bookings
-- Ticketed events sell through the app payment flow (these count toward the 1% fee). Each ticket gets a unique code and QR; door staff scan from the office app on a phone (valid → scanned; repeats are rejected).
-- Gig guide and live sport are free listings.
-- Bookings are requests that staff confirm or decline in the back office. Guests can only pick times within the venue's window: default up to 1 month ahead, plus minimum notice and maximum party size set by the venue. No table-management engine.
-- Venue finder lists the tenant's venues with opening hours and a link to each menu.
+### 5.4 Google reviews
+The manager pastes the venue's Google Place ID in Settings. Every paid order page then shows "Leave a Google review", which goes through `/api/v/{venue}/review/{order}` (records the first click on that order) to `https://search.google.com/local/writereview?placeid=…`. The back office shows today's clicks against orders. Not allowed, ever: rewarding reviews, asking for a rating first, or showing the button only to some guests.
 
-### 5.6 Billing (`packages/core/billing`)
-- On the 1st of each month, a job builds a `billing_statement` per venue for the previous month: completed app payments (orders, tickets, gift cards) minus refunds, × `app_fee_bps`, plus the monthly subscription, plus 23% VAT on your fees.
-- Platform admin reviews and issues the statement. Collect it by Stripe Billing or SEPA direct debit from your own business account (to settle before launch); Round stores the external invoice ID and paid status.
-- Venues see their statements and the underlying app sales in their back office.
+### 5.5 Xero
+1. Manager clicks **Connect to Xero** in Settings (OAuth 2, signed state bound to the manager and venue), picks the organisation, then fills in the account mapping with their accountant: sales account, tax rates for 9% and 23%, account and tax rate for loyalty credit, the bank/clearing account card payments land in, and the invoice contact.
+2. Every night at 03:15 (Europe/Dublin) a job posts **yesterday** for each connected venue, and retries failed days from the past week:
+   - one `ACCREC` invoice, amounts VAT-inclusive: food & hot drinks (9%), drinks (23%), less loyalty credit redeemed, less refunds (by rate), plus credit returned on refunds;
+   - one payment for the card money (paid minus refunded) into the clearing account.
+3. Each post carries an idempotency key (`snug:{venue}:{date}:inv|pay`) and the day is recorded in `xero_sync`, so reruns never duplicate. Tokens refresh automatically; Xero's rotated refresh token is saved before use.
+4. A day where refunds exceed sales is flagged for a manual credit note. Managers can also press **Send yesterday now**.
 
-### 5.7 Back office
-Venue: menu, prices, VAT rates, stations, sold-out; tables and printable QR codes; loyalty programme and levels; events, tickets and bookings (including the booking window); printers; Revolut keys; staff users; sales overview (by hour, by channel, VAT 9%/23% totals, daily payment report); customer lookup with ledger history; billing statements; audit log.
-Platform admin: tenants and venues, subscriptions and fee rates, billing statements.
+### 5.6 Loyalty
+Points = floor(card amount × points per €). Credit and gift-card amounts earn nothing. Double-points tokens, level-ups (every level crossed is awarded), birthday credit, referral (both sides on the first paid order), points → credit, and refunds reversing the order's ledger lines.
+
+### 5.7 Billing
+Each venue's statement: subscription + 1% of completed app payments net of refunds + 23% VAT on fees, shown live in the back office. Collect it by Stripe Billing, SEPA direct debit or your own Xero (open item).
 
 ## 6. Tax and compliance (Ireland)
 
-- **VAT:** since 1 July 2026, food and catering (including hot drinks served with it) is 9%; alcohol, soft drinks and bottled water are 23%. Store the rate on each menu item. Prices are VAT-inclusive; calculate VAT per line (`gross × rate / (100 + rate)`, rounded half-up to the cent) and sum the lines. An accountant confirms each venue's mapping before launch.
-- **Receipts:** an email receipt for every app order, with the VAT breakdown and the venue's VAT number.
-- **Alcohol, minimum age 18 (to agree in detail):** under s.31 of the Intoxicating Liquor Act 1988 (as amended in 2000), the licensee's defence appears to rest on an age card or ID being produced, so a typed-in date of birth isn't enough on its own. Proposed: date of birth at sign-up, plus a staff check of a Garda age card, passport or driving licence on the first alcohol collection (5.3). Staff still challenge anyone who looks under 25. A solicitor signs it off before launch. Long term: digital ID (Yoti, Veriff or similar).
-- **GDPR:** marketing consent separate from account creation; data export and deletion; EU hosting; data processing agreements with venues; no ID images or document numbers stored.
-- **Cards:** never store card data. Payment details stay inside Revolut's widget.
+- **VAT**: food and catering (including hot drinks served with it) 9% since 1 July 2026; alcohol, soft drinks and bottled water 23%. Each venue's accountant confirms the menu rates and the Xero mapping.
+- **Receipts**: email receipt with VAT breakdown and the venue's VAT number.
+- **Alcohol, 18+**: under s.31 of the Intoxicating Liquor Act 1988 (as amended 2000) the licensee's defence appears to rest on an age card or ID being produced, so staff check ID on first collection. A solicitor signs this off before launch.
+- **Google reviews**: no incentives, no gating, no staff review quotas.
+- **GDPR**: EU hosting; separate marketing consent; data export and deletion; data processing agreements with venues; no ID images or numbers; no card data (it stays with myPOS/Revolut).
+- **Secrets**: venue keys and tokens encrypted at rest; `SECRETS_KEY`, `SESSION_SECRET` and the Xero app secret live only in the hosting provider's secret store.
 
-## 7. Phase 1 scope and acceptance
+## 7. Automation
 
-Must have:
-1. Venue onboarding (manual by you): menu with VAT rates, tables + QR codes, Revolut keys, printers, programme rules, booking window, subscription.
-2. Guest PWA: account + sign-in, menu with sold-out, cart, table and collect-at-bar ordering, Revolut checkout with saved cards, live order status, points/credit/level, rewards page, events, tickets, bookings, venue finder.
-3. Staff app: bar and kitchen screens with CHECK ID flow and sold-out toggles; cloud printing to one bar and one kitchen printer.
-4. Back office and platform admin as in 5.7.
-5. Revolut: orders, widget, saved cards, webhooks, reconciliation, refunds on ID refusal.
-6. Loyalty engine with everything in 5.4.
-7. Monthly billing statements (subscription + 1%).
+| What | How |
+|---|---|
+| Payments settle | myPOS signed notify / Revolut webhook, verified and idempotent. |
+| Missed or abandoned payments | `reconcile-payments` job every minute (pg-boss). |
+| Accounting | `xero-nightly` job at 03:15, retries failures for 7 days. |
+| Live screens | Postgres NOTIFY → server-sent events to guest, bar and kitchen. |
+| Quality gate | GitHub Actions on every push: typecheck, 52 unit + Postgres integration tests, production build. |
+| Schedules survive restarts | pg-boss keeps schedules in Postgres; several app instances never double-run a job. |
 
-Later phases: white-label counter POS (Revolut Terminal push + cash), lodge ordering at Drumhierny, automatic sell-out from MarketMan for restaurants and cafés, digital ID verification, Stripe as a second payment provider, native apps, push/SMS notifications, multi-venue reporting, deeper modifiers, staff roles beyond admin/staff.
+## 8. Environment
 
-**Done when**, at either pilot venue:
-- a guest can sign up, order from a table or for collection, and pay;
-- the docket prints and shows at the right station within 3 seconds of payment;
-- a first-time guest's alcohol docket can't be collected without an ID check;
-- an item staff mark sold out disappears from open guest apps;
-- points and level update correctly;
-- a guest can book within the venue's window and staff can confirm it;
-- the month's billing statement shows the subscription plus 1% of app payments.
+`DATABASE_URL`, `APP_URL`, `SESSION_SECRET`, `SECRETS_KEY` (32 random bytes, base64), `XERO_CLIENT_ID`, `XERO_CLIENT_SECRET`, optional `XERO_SCOPES`, `REVOLUT_MODE`. Venue keys are not environment variables: managers enter them in Settings.
 
-## 8. Build order
+## 9. Status
 
-1. Monorepo, Postgres with row-level tenancy, staff email login, guest phone sign-in with date of birth, seed both pilot venues with the prototype data.
-2. Menu, tables, QR codes; guest menu and cart (server-priced, VAT per line); collect-at-bar mode.
-3. `PaymentProvider` (`createOrder`, `getOrder`, `refund`, `verifyWebhook`, `parseWebhook`) with `RevolutProvider` on the sandbox: widget, saved cards, webhooks, reconciliation.
-4. Dockets + realtime bar/kitchen screens, CHECK ID flow, sold-out toggles; then cloud printing.
-5. Loyalty ledger, rules engine, rewards UI; birthday and bonus-credit jobs; gift cards; referrals.
-6. Events, tickets with QR scan, bookings with the venue window, venue finder.
-7. Back office reporting and billing statements.
-8. Hardening: rate limits, audit log, error tracking, backups, load test at 40 tables ordering at once.
+**Built and tested** (branch `prototype`): guest web app; sign-in; table and collect-at-bar ordering; myPOS hosted checkout and verified notifications; Revolut; test payments; bar and kitchen screens with ID checks and refunds; sold-out toggles; loyalty engine; Google review prompt and tracking; Xero connect, mapping and nightly sync; back office with sales, VAT, review clicks and the monthly statement; Settings for payments, reviews and Xero; encrypted venue credentials; pg-boss jobs; CI.
 
-## 9. Open items (none block steps 1–4)
+**Next to build**: text-message provider for sign-in codes; cloud printing to the bar and kitchen printers; menu editor and QR code printing in the back office; events, tickets, bookings, gift cards, birthday and bonus-credit jobs; iOS and Android wrappers with push notifications; hosting and deploy pipeline; staff accounts management; GDPR export and delete.
 
-- Age verification details and a solicitor's sign-off (section 6).
-- Confirm the pilot's Revolut-supplied printers are the TSP143IV / TM-m30III and can run cloud print alongside Revolut POS; older TSP100III models don't support CloudPRNT and would need a local print bridge.
-- How you collect billing statements (Stripe Billing, SEPA direct debit or Revolut Business invoices) and the subscription price.
-- Service charge or tipping for guests in the app.
-- Brand name and domain.
+**To confirm before going live**
+- **myPOS**: run one sandbox payment and one refund to confirm the signature format, `IPCRefund` fields and certificate format (the docs are inconsistent). Each venue needs a myPOS online store, its RSA 2048 key pair exchanged with myPOS, and the notify URL set.
+- **Xero**: register the app; check whether new apps must use Xero's granular scopes (override with `XERO_SCOPES`); the Core tier covers up to 50 connected organisations, above that Plus requires certification. Each venue's accountant fills in the mapping.
+- **Google**: each venue's Place ID.
+- Solicitor sign-off on the ID check; accountant sign-off on VAT rates and Xero mapping.
+- Brand and trademark; MJ O'Connor's loyalty programme is also called "The Snug Club" in the seed data and needs its own name.
+- How you collect your monthly statements, and the subscription price.
+- Apple and Google developer accounts (company accounts need a D-U-N-S number; new personal Google Play accounts need a 14-day closed test).
