@@ -50,7 +50,7 @@ a { color: inherit; }
 .error { background: var(--crit-bg); color: var(--crit); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
 .notice { background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 10px 12px; font-size: 13px; }
 .field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
-.field input, .field select { border: 1px solid var(--line); background: var(--sunk); border-radius: 8px; padding: 10px; width: 100%; }
+.field input, .field select, .field textarea { border: 1px solid var(--line); background: var(--sunk); border-radius: 8px; padding: 10px; width: 100%; }
 .toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; }
 
 /* guest */
@@ -104,7 +104,7 @@ a { color: inherit; }
 .tile.out { background: var(--crit-bg); }
 
 /* office */
-.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
 .kpi b { display: block; font-family: var(--f-display); font-size: 26px; }
 .kpi span { color: var(--muted); font-size: 13px; }
 .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }

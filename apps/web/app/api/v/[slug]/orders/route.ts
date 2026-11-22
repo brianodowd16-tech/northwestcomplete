@@ -1,5 +1,5 @@
 import { createOrder, tableByToken, venueBySlug } from "@round/db/services";
-import { currentGuest, errorJson, json, paymentProvider } from "@/lib/server";
+import { appUrl, currentGuest, errorJson, json, providerFor } from "@/lib/server";
 
 interface Body {
   channel: "table" | "collect";
@@ -21,8 +21,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
     }
     const channel = b.channel === "collect" ? "collect" : "table";
     const table = channel === "table" ? await tableByToken(venue, b.qrToken ?? "") : null;
-    const provider = paymentProvider();
-    const order = await createOrder(
+    const { order, checkout } = await createOrder(
       {
         venue,
         customer: guest,
@@ -32,17 +31,15 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
         creditRequestedCents: b.useCredit ? Number.MAX_SAFE_INTEGER : 0,
         useDouble: b.useDouble === true,
         idempotencyKey: `${guest.id}:${b.idempotencyKey}`,
+        appUrl: appUrl(),
       },
-      provider,
+      await providerFor(venue),
     );
     return json({
       orderId: order.id,
       status: order.status,
       amountCents: order.amountPaidCents,
-      checkout:
-        order.status === "pending_payment"
-          ? { provider: provider.name, token: order.providerToken, publicKey: provider.publicKey, mode: process.env.REVOLUT_API_BASE?.includes("sandbox") ? "sandbox" : "prod" }
-          : null,
+      checkout: checkout && { ...checkout, mode: process.env.REVOLUT_MODE === "prod" ? "prod" : "sandbox" },
     });
   } catch (e) {
     return errorJson(e);

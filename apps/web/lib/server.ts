@@ -1,5 +1,6 @@
 import "server-only";
-import { providerFromEnv, signSession, verifySession, type PaymentProvider } from "@round/core";
+import { signSession, verifySession, type PaymentProvider, type XeroApp } from "@round/core";
+import { providerForVenue } from "@round/db/integrations";
 import { customerById, staffById, venueBySlug, NotFound, type Customer, type Staff, type Venue } from "@round/db/services";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
@@ -10,10 +11,25 @@ export function sessionSecret(): string {
   return s;
 }
 
-const g = globalThis as { __roundProvider?: PaymentProvider };
-export function paymentProvider(): PaymentProvider {
-  g.__roundProvider ??= providerFromEnv(process.env);
-  return g.__roundProvider;
+/** Public base URL, used for payment return/notify URLs and the Xero redirect. */
+export function appUrl(): string {
+  return (process.env.APP_URL || "http://localhost:3000").replace(/\/$/, "");
+}
+
+/** Key that encrypts venue credentials. Required once any venue uses live keys or Xero. */
+export function secretsKey(): string | undefined {
+  return process.env.SECRETS_KEY || undefined;
+}
+
+/** The venue's own payment provider (myPOS, Revolut, or test payments). */
+export function providerFor(venue: Venue): Promise<PaymentProvider> {
+  return providerForVenue(venue, secretsKey());
+}
+
+export function xeroApp(): XeroApp | null {
+  const { XERO_CLIENT_ID: clientId, XERO_CLIENT_SECRET: clientSecret } = process.env;
+  if (!clientId || !clientSecret) return null;
+  return { clientId, clientSecret, redirectUri: `${appUrl()}/api/xero/callback`, scopes: process.env.XERO_SCOPES };
 }
 
 const GUEST_COOKIE = "round_guest";

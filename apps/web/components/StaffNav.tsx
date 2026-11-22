@@ -18,6 +18,11 @@ export function StaffNav({ slug, current, admin }: { slug: string; current: stri
           Back office
         </Link>
       )}
+      {admin && (
+        <Link href={`/office/${slug}/settings`} aria-current={current === "settings" ? "page" : undefined}>
+          Settings
+        </Link>
+      )}
     </nav>
   );
 }

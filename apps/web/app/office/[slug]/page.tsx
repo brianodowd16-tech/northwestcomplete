@@ -1,3 +1,4 @@
+import { reviewStats } from "@round/db/integrations";
 import { billingStatement, salesSummary, venueTables } from "@round/db/services";
 import { eur } from "@/components/format";
 import { StaffNav } from "@/components/StaffNav";
@@ -16,6 +17,7 @@ export default async function Office({ params }: { params: Promise<{ slug: strin
   const now = new Date();
   const bill = await billingStatement(venue, now.getUTCFullYear(), now.getUTCMonth() + 1);
   const tables = await venueTables(venue);
+  const reviews = await reviewStats(venue, start, end);
   const max = Math.max(1, ...s.byHour);
   const month = now.toLocaleString("en-IE", { month: "long", year: "numeric" });
   return (
@@ -31,6 +33,10 @@ export default async function Office({ params }: { params: Promise<{ slug: strin
         <div className="panel kpi"><b className="num">{s.orders}</b><span>Orders ({s.tableOrders} table · {s.collectOrders} collect)</span></div>
         <div className="panel kpi"><b className="num">{eur(s.orders ? Math.round(s.grossCents / s.orders) : 0)}</b><span>Average order</span></div>
         <div className="panel kpi"><b className="num">{s.members}</b><span>Loyalty members</span></div>
+        <div className="panel kpi">
+          <b className="num">{venue.googlePlaceId ? reviews.clicks : "—"}</b>
+          <span>{venue.googlePlaceId ? `Guests who opened the Google review form today (of ${reviews.orders})` : "Google reviews: add your Place ID in Settings"}</span>
+        </div>
       </div>
       <section className="panel stack">
         <div className="row"><h3>Sales by hour</h3><span className="muted small">App orders only; counter sales are in Revolut POS</span></div>

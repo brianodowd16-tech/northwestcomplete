@@ -9,7 +9,7 @@ export default async function Home() {
   return (
     <div className="page stack" style={{ maxWidth: 760 }}>
       <div>
-        <div className="label">Round · prototype</div>
+        <div className="label">The Snug Club</div>
         <h1 style={{ fontSize: 32 }}>Venues</h1>
       </div>
       {withTables.map(({ v, tables }) => (
@@ -29,7 +29,7 @@ export default async function Home() {
         </section>
       ))}
       <p className="muted small">
-        Demo staff logins: <code>staff@mjoconnors.example</code> and <code>staff@drumhierny.example</code>, password <code>round-demo</code>. Payments are simulated until Revolut sandbox keys are set in <code>.env</code>.
+        Demo staff logins: <code>staff@mjoconnors.example</code> and <code>staff@drumhierny.example</code>, password <code>round-demo</code>. Venues use test payments until a manager adds myPOS (or Revolut) keys under Back office → Settings.
       </p>
     </div>
   );

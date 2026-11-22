@@ -12,8 +12,9 @@ const GUEST_TEXT = {
 } as const;
 const STEP = { new: 0, in_progress: 1, ready: 2, done: 3 } as const;
 
-export default async function OrderPage({ params }: { params: Promise<{ slug: string; id: string }> }) {
+export default async function OrderPage({ params, searchParams }: { params: Promise<{ slug: string; id: string }>; searchParams: Promise<{ cancelled?: string }> }) {
   const { slug, id } = await params;
+  const cancelled = (await searchParams).cancelled === "1";
   const venue = await loadVenue(slug);
   const guest = await currentGuest();
   if (!guest) redirect(`/v/${slug}/login?next=/v/${slug}/order/${id}`);
@@ -24,12 +25,18 @@ export default async function OrderPage({ params }: { params: Promise<{ slug: st
   const { order, lines, dockets } = view;
   return (
     <div className="stack">
-      <LiveRefresh slug={slug} orderId={id} />
+      <LiveRefresh slug={slug} orderId={id} paid={order.status === "paid"} />
       <div>
         <div className="label">{order.channel === "table" ? `Table ${view.tableNumber}` : "Collect at the bar"}</div>
         <h1 style={{ fontSize: 28 }}>Order #{order.number}</h1>
       </div>
-      {order.status === "pending_payment" && <div className="notice">Waiting for payment confirmation from Revolut…</div>}
+      {order.status === "pending_payment" && !cancelled && <div className="notice">Waiting for payment confirmation…</div>}
+      {order.status === "pending_payment" && cancelled && (
+        <div className="error">
+          Payment was cancelled, so nothing was charged. <a href={`/v/${slug}/${order.channel === "collect" ? "collect" : ""}`}>Back to the menu</a>
+        </div>
+      )}
+      {order.status === "cancelled" && <div className="error">This order wasn&apos;t paid and has been cancelled.</div>}
       {order.status === "refunded" && <div className="error">This order was refunded in full.</div>}
       {dockets
         .sort((a, b) => a.station.localeCompare(b.station))
@@ -79,6 +86,16 @@ export default async function OrderPage({ params }: { params: Promise<{ slug: st
         {view.pointsEarned > 0 && <div className="chip ok">+{view.pointsEarned} points</div>}
         <span className="muted small">VAT no. {venue.vatNumber}</span>
       </div>
+      {order.status === "paid" && venue.googlePlaceId && (
+        // Same prompt for every guest, nothing given in return: Google bans review incentives and gating.
+        <div className="card">
+          <b>Enjoying {venue.name}?</b>
+          <span className="muted small">A quick Google review helps other people find us.</span>
+          <a className="btn ghost" href={`/api/v/${slug}/review/${order.id}`} target="_blank" rel="noopener">
+            Leave a Google review
+          </a>
+        </div>
+      )}
     </div>
   );
 }

@@ -16,7 +16,8 @@
     "pg": "8.23.1",
     "react": "19.2.9",
     "react-dom": "19.2.9",
-    "server-only": "0.0.1"
+    "server-only": "0.0.1",
+    "pg-boss": "10.4.2"
   },
   "devDependencies": {
     "@types/node": "22.20.5",

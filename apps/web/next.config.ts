@@ -9,7 +9,7 @@ try {
 
 const config: NextConfig = {
   transpilePackages: ["@round/core", "@round/db"],
-  serverExternalPackages: ["pg"],
+  serverExternalPackages: ["pg", "pg-boss"],
 };
 
 export default config;

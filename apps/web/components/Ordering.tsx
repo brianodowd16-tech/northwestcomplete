@@ -30,10 +30,28 @@ interface Props {
 type Cart = Record<string, number>;
 
 interface CheckoutInfo {
-  provider: "mock" | "revolut";
-  token: string;
+  provider: "mock" | "revolut" | "mypos";
+  token: string | null;
   publicKey: string | null;
   mode: "sandbox" | "prod";
+  /** hosted checkout (myPOS): the browser POSTs these signed fields to `action` */
+  redirect: { action: string; fields: [string, string][] } | null;
+}
+
+/** Sends the guest to a hosted checkout with an auto-submitting form, as the provider requires. */
+function submitHostedCheckout(r: { action: string; fields: [string, string][] }) {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = r.action;
+  for (const [name, value] of r.fields) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  }
+  document.body.appendChild(form);
+  form.submit();
 }
 
 export function Ordering({ slug, mode, qrToken, tableNumber, categories, member }: Props) {
@@ -129,6 +147,11 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Couldn't place the order");
       if (!data.checkout) return finish(data.orderId);
+      if (data.checkout.redirect) {
+        // Keep the basket until the guest comes back from the payment page.
+        submitHostedCheckout(data.checkout.redirect);
+        return;
+      }
       setPending({ orderId: data.orderId, amountCents: data.amountCents, checkout: data.checkout });
       if (data.checkout.provider === "revolut") await payWithRevolut(data.orderId, data.checkout);
     } catch (e) {
@@ -140,7 +163,7 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member 
 
   async function payWithRevolut(orderId: string, c: CheckoutInfo) {
     const { default: RevolutCheckout } = await import("@revolut/checkout");
-    const instance = await RevolutCheckout(c.token, c.mode);
+    const instance = await RevolutCheckout(c.token!, c.mode);
     instance.payWithPopup({
       onSuccess: () => finish(orderId), // dockets release on the webhook, not here
       onError: (err: unknown) => setError(String(err)),
@@ -300,7 +323,7 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member 
                 <span className="muted">›</span>
               </button>
             ))}
-            <span className="muted small">No Revolut keys are set, so this stands in for the Revolut checkout widget. Paying sends a signed test webhook.</span>
+            <span className="muted small">This venue is on test payments, so no money moves. Paying sends a signed test notification through the real payment path.</span>
             {error && <div className="error">{error}</div>}
             <button className="btn ghost sm" onClick={() => setPending(null)} disabled={busy}>
               Cancel
