@@ -60,8 +60,25 @@ export const venue = pgTable("venue", {
   vatNumber: text("vat_number").notNull().default(""),
   timezone: text("timezone").notNull().default("Europe/Dublin"),
   bookingMaxAdvanceDays: integer("booking_max_advance_days").notNull().default(31),
+  paymentProvider: text("payment_provider", { enum: ["mock", "revolut", "mypos"] }).notNull().default("mock"),
+  googlePlaceId: text("google_place_id"),
   createdAt: createdAt(),
 });
+
+/** A venue's connection to an outside service. Secrets are AES-GCM encrypted (packages/core/src/secrets.ts). */
+export const venueIntegration = pgTable(
+  "venue_integration",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    kind: text("kind", { enum: ["revolut", "mypos", "xero"] }).notNull(),
+    config: jsonb("config").notNull().$type<Record<string, unknown>>(),
+    secretEnc: text("secret_enc"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("venue_integration_kind").on(t.venueId, t.kind)],
+);
 
 export const venueTable = pgTable(
   "venue_table",
@@ -184,6 +201,9 @@ export const orders = pgTable(
     provider: text("provider").notNull(),
     providerOrderId: text("provider_order_id").unique(),
     providerToken: text("provider_token"),
+    providerTxnRef: text("provider_txn_ref"),
+    refundedAt: timestamp("refunded_at", { withTimezone: true }),
+    reviewClickedAt: timestamp("review_clicked_at", { withTimezone: true }),
     idempotencyKey: text("idempotency_key").notNull().unique(),
     paidAt: timestamp("paid_at", { withTimezone: true }),
     createdAt: createdAt(),
@@ -238,6 +258,23 @@ export const webhookEvent = pgTable("webhook_event", {
   receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/** One row per venue per trading day pushed to Xero, so the nightly job never posts a day twice. */
+export const xeroSync = pgTable(
+  "xero_sync",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    businessDate: date("business_date").notNull(),
+    status: text("status", { enum: ["done", "nothing", "error"] }).notNull(),
+    invoiceId: text("invoice_id"),
+    error: text("error"),
+    attempts: integer("attempts").notNull().default(0),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("xero_sync_day").on(t.venueId, t.businessDate)],
+);
+
 export const subscription = pgTable("subscription", {
   id: id(),
   tenantId: tenantId(),
@@ -271,4 +308,6 @@ export const TENANT_TABLES = [
   "docket",
   "subscription",
   "audit_log",
+  "venue_integration",
+  "xero_sync",
 ] as const;

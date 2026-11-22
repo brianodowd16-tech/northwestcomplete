@@ -32,6 +32,10 @@ async function itemId(venue: svc.Venue, name: string) {
   return cats.flatMap((c) => c.items).find((i) => i.name === name)!.id;
 }
 
+async function place(input: Omit<svc.CreateOrderInput, "appUrl">, p: typeof provider) {
+  return (await svc.createOrder({ ...input, appUrl: "https://app.test" }, p)).order;
+}
+
 async function pay(order: svc.Order) {
   const { rawBody, headers } = provider.simulatePayment(order.providerOrderId!);
   return svc.handleWebhook(provider, rawBody, headers);
@@ -64,7 +68,7 @@ describe("order → payment → dockets → loyalty", () => {
   it("releases dockets only after a verified webhook, exactly once", async () => {
     const c = await guest("+353870000001");
     const [table] = await svc.venueTables(mj);
-    const order = await svc.createOrder(
+    const order = await place(
       {
         venue: mj,
         customer: c,
@@ -85,7 +89,7 @@ describe("order → payment → dockets → loyalty", () => {
     expect(await withTenant(mj.tenantId, (tx) => tx.select().from(t.docket))).toHaveLength(0);
 
     // Same idempotency key → same order.
-    const again = await svc.createOrder(
+    const again = await place(
       { venue: mj, customer: c, channel: "table", tableId: table.id, lines: [{ menuItemId: await itemId(mj, "Soft drink"), qty: 1 }], creditRequestedCents: 0, useDouble: false, idempotencyKey: "k1" },
       provider,
     );
@@ -111,7 +115,7 @@ describe("order → payment → dockets → loyalty", () => {
 
   it("uses credit, earns only on the card amount, and settles a fully-credited order without Revolut", async () => {
     const c = await guest("+353870000002");
-    const order = await svc.createOrder(
+    const order = await place(
       { venue: mj, customer: c, channel: "collect", tableId: null, lines: [{ menuItemId: await itemId(mj, "Soft drink"), qty: 2 }], creditRequestedCents: 99_999, useDouble: false, idempotencyKey: "k2" },
       provider,
     );
@@ -126,7 +130,7 @@ describe("order → payment → dockets → loyalty", () => {
   it("refuses food for collection", async () => {
     const c = await guest("+353870000003");
     await expect(
-      svc.createOrder(
+      place(
         { venue: mj, customer: c, channel: "collect", tableId: null, lines: [{ menuItemId: await itemId(mj, "Fish & chips"), qty: 1 }], creditRequestedCents: 0, useDouble: false, idempotencyKey: "k3" },
         provider,
       ),
@@ -137,7 +141,7 @@ describe("order → payment → dockets → loyalty", () => {
     const c = await guest("+353870000004");
     const [drumTable] = await svc.venueTables(drum);
     await expect(
-      svc.createOrder(
+      place(
         { venue: mj, customer: c, channel: "table", tableId: drumTable.id, lines: [{ menuItemId: await itemId(mj, "Soft drink"), qty: 1 }], creditRequestedCents: 0, useDouble: false, idempotencyKey: "k4" },
         provider,
       ),
@@ -150,7 +154,7 @@ describe("ID check at the bar", () => {
     const c = await guest("+353870000005");
     const staff = (await svc.staffByEmail("staff@mjoconnors.example"))!;
     const mk = async (key: string) => {
-      const o = await svc.createOrder(
+      const o = await place(
         { venue: mj, customer: c, channel: "collect", tableId: null, lines: [{ menuItemId: await itemId(mj, "Pint of lager"), qty: 1 }], creditRequestedCents: 0, useDouble: false, idempotencyKey: key },
         provider,
       );
@@ -173,7 +177,7 @@ describe("ID check at the bar", () => {
   it("refusing ID refunds the order and reverses its points", async () => {
     const c = await guest("+353870000006");
     const staff = (await svc.staffByEmail("staff@mjoconnors.example"))!;
-    const o = await svc.createOrder(
+    const o = await place(
       { venue: mj, customer: c, channel: "collect", tableId: null, lines: [{ menuItemId: await itemId(mj, "Gin & tonic"), qty: 1 }], creditRequestedCents: 0, useDouble: false, idempotencyKey: "ref1" },
       provider,
     );

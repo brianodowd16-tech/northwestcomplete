@@ -18,6 +18,7 @@ import {
   type DocketStatus,
   type LedgerEntry,
   type PaymentProvider,
+  type WebhookEvent,
   type PricedMenuItem,
   type Station,
 } from "@round/core";
@@ -262,11 +263,26 @@ export interface CreateOrderInput {
   creditRequestedCents: number;
   useDouble: boolean;
   idempotencyKey: string;
+  /** public base URL of the app, for the payment provider's return and notify URLs */
+  appUrl: string;
 }
 
 export type Order = typeof t.orders.$inferSelect;
 
-export async function createOrder(input: CreateOrderInput, provider: PaymentProvider): Promise<Order> {
+export interface Checkout {
+  provider: PaymentProvider["name"];
+  token: string | null;
+  publicKey: string | null;
+  redirect: { action: string; fields: [string, string][] } | null;
+}
+
+export interface CreatedOrderResult {
+  order: Order;
+  /** null when nothing is left to pay (credit covered it, or already paid) */
+  checkout: Checkout | null;
+}
+
+export async function createOrder(input: CreateOrderInput, provider: PaymentProvider): Promise<CreatedOrderResult> {
   const { venue, customer } = input;
   if (input.channel === "table" && !input.tableId) throw new Forbidden("Table required");
 
@@ -323,34 +339,32 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
     return { order, isNew: true, cart };
   });
 
-  if (!created.isNew) return created.order;
   const order = created.order;
 
-  if (order.amountPaidCents === 0) {
+  if (order.status !== "pending_payment") return { order, checkout: null };
+  if (created.isNew && order.amountPaidCents === 0) {
     await completeOrder(venue.tenantId, order.id);
-    return (await getOrderRow(venue, order.id))!;
+    return { order: (await getOrderRow(venue, order.id))!, checkout: null };
+  }
+  // A repeated request for a pending order reuses its widget token; hosted checkouts rebuild their form.
+  if (!created.isNew && order.providerToken) {
+    return { order, checkout: { provider: provider.name, token: order.providerToken, publicKey: provider.publicKey, redirect: null } };
   }
 
+  const lines = await withTenant(venue.tenantId, (tx) => tx.select().from(t.orderLine).where(eq(t.orderLine.orderId, order.id)));
+  const names = customer.name.trim().split(/\s+/);
+  const orderUrl = `${input.appUrl}/v/${venue.slug}/order/${order.id}`;
   const p = await provider.createOrder({
     amountCents: order.amountPaidCents,
     currency: "EUR",
     reference: order.id,
     description: `${venue.name} order #${order.number}`,
-    customerEmail: customer.email,
-    // Revolut requires line totals to add up to the order amount, so line items are
-    // left off when loyalty credit reduces the charge (SPEC §9).
-    lineItems:
-      order.creditUsedCents > 0
-        ? []
-        : created.cart!.lines.map((l) => ({
-            name: l.menuItem.name,
-            quantity: l.qty,
-            unitPriceCents: l.unitPriceCents,
-            totalCents: l.grossCents,
-            externalId: l.menuItem.externalItemId,
-          })),
+    lineItems: lines.map((l) => ({ name: l.name, quantity: l.qty, unitPriceCents: l.unitPriceCents, totalCents: l.grossCents, externalId: null })),
+    discountCents: order.creditUsedCents,
+    customer: { email: customer.email, firstName: names[0] || "Guest", lastName: names.slice(1).join(" ") || names[0] || "Guest" },
+    urls: { ok: orderUrl, cancel: `${orderUrl}?cancelled=1`, notify: `${input.appUrl}/api/webhooks/${provider.name}/${venue.slug}` },
   });
-  return withTenant(venue.tenantId, async (tx) => {
+  const updated = await withTenant(venue.tenantId, async (tx) => {
     const [u] = await tx
       .update(t.orders)
       .set({ providerOrderId: p.providerOrderId, providerToken: p.token })
@@ -358,6 +372,7 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
       .returning();
     return u;
   });
+  return { order: updated, checkout: { provider: provider.name, token: p.token, publicKey: provider.publicKey, redirect: p.redirect } };
 }
 
 async function getOrderRow(venue: Venue, orderId: string) {
@@ -372,11 +387,11 @@ async function getOrderRow(venue: Venue, orderId: string) {
  * first call moves pending_payment → paid; later calls (duplicate or
  * out-of-order webhooks, reconciliation) are no-ops and return false.
  */
-export async function completeOrder(tenantId: string, orderId: string): Promise<boolean> {
+export async function completeOrder(tenantId: string, orderId: string, txnRef?: string): Promise<boolean> {
   return withTenant(tenantId, async (tx) => {
     const [order] = await tx
       .update(t.orders)
-      .set({ status: "paid", paidAt: new Date() })
+      .set({ status: "paid", paidAt: new Date(), providerTxnRef: txnRef ?? null })
       .where(and(eq(t.orders.id, orderId), eq(t.orders.status, "pending_payment")))
       .returning();
     if (!order) return false;
@@ -432,10 +447,14 @@ async function maybeAwardReferral(tx: Tx, tenantId: string, m: typeof t.membersh
 
 export type WebhookResult = { status: 200 | 401 | 400; body: string };
 
-export async function handleWebhook(provider: PaymentProvider, rawBody: string, headers: Headers): Promise<WebhookResult> {
+/**
+ * Handles a payment notification. `venue` is the venue named in the notify URL:
+ * hosted checkouts (myPOS) are verified with that venue's own certificate.
+ */
+export async function handleWebhook(provider: PaymentProvider, rawBody: string, headers: Headers, venue?: Venue): Promise<WebhookResult> {
   const db = systemDb();
   const valid = provider.verifyWebhook(rawBody, headers);
-  let parsed: { event: string; providerOrderId: string } | null = null;
+  let parsed: WebhookEvent | null = null;
   try {
     parsed = provider.parseWebhook(rawBody);
   } catch {
@@ -452,34 +471,52 @@ export async function handleWebhook(provider: PaymentProvider, rawBody: string, 
     if (parsed.event === "ORDER_COMPLETED") {
       const [order] = await db.select().from(t.orders).where(eq(t.orders.providerOrderId, parsed.providerOrderId));
       if (order) {
-        // Don't trust event order: ask the provider for the order's current state.
-        const { state } = await provider.getOrder(parsed.providerOrderId);
-        if (state === "completed") await completeOrder(order.tenantId, order.id);
+        if (venue && order.venueId !== venue.id) throw new Error("Notification for another venue's order");
+        if (parsed.amountCents !== undefined && parsed.amountCents !== order.amountPaidCents) {
+          throw new Error(`Amount mismatch: notified ${parsed.amountCents}, expected ${order.amountPaidCents}`);
+        }
+        // A signed hosted-checkout notification is authoritative; otherwise don't trust event
+        // order and ask the provider for the order's current state.
+        const state = parsed.state ?? (provider.getOrder ? (await provider.getOrder(parsed.providerOrderId)).state : null);
+        if (state === "completed") await completeOrder(order.tenantId, order.id, parsed.txnRef);
       }
     }
     await db.update(t.webhookEvent).set({ processedAt: new Date() }).where(eq(t.webhookEvent.id, stored.id));
-    return { status: 200, body: "ok" };
+    return { status: 200, body: "OK" };
   } catch (e) {
     await db.update(t.webhookEvent).set({ error: String(e) }).where(eq(t.webhookEvent.id, stored.id));
     throw e;
   }
 }
 
-/** Settles orders whose webhook never arrived. Run every minute. */
-export async function reconcilePending(provider: PaymentProvider, olderThanMs = 3 * 60_000) {
+/** Unpaid orders older than this are abandoned (hosted checkouts can't be looked up). */
+export const ABANDON_AFTER_MS = 30 * 60_000;
+
+/**
+ * Settles orders whose notification never arrived, and cancels abandoned ones.
+ * Runs every minute. `providerFor` gives each venue's own provider.
+ */
+export async function reconcilePending(providerFor: (venueId: string) => Promise<PaymentProvider>, olderThanMs = 3 * 60_000) {
   const stale = await systemDb()
     .select()
     .from(t.orders)
     .where(and(eq(t.orders.status, "pending_payment"), lt(t.orders.createdAt, new Date(Date.now() - olderThanMs))));
   let settled = 0;
+  const cancel = (o: Order) =>
+    withTenant(o.tenantId, (tx) => tx.update(t.orders).set({ status: "cancelled" }).where(and(eq(t.orders.id, o.id), eq(t.orders.status, "pending_payment"))));
   for (const o of stale) {
-    if (!o.providerOrderId) continue;
-    const { state } = await provider.getOrder(o.providerOrderId);
-    if (state === "completed" && (await completeOrder(o.tenantId, o.id))) settled++;
-    if (state === "cancelled" || state === "failed") {
-      await withTenant(o.tenantId, (tx) =>
-        tx.update(t.orders).set({ status: "cancelled" }).where(and(eq(t.orders.id, o.id), eq(t.orders.status, "pending_payment"))),
-      );
+    const abandoned = Date.now() - o.createdAt.getTime() > ABANDON_AFTER_MS;
+    try {
+      const provider = await providerFor(o.venueId);
+      if (!o.providerOrderId || !provider.getOrder) {
+        if (abandoned) await cancel(o);
+        continue;
+      }
+      const { state } = await provider.getOrder(o.providerOrderId);
+      if (state === "completed" && (await completeOrder(o.tenantId, o.id))) settled++;
+      else if (state === "cancelled" || state === "failed" || (abandoned && state === "pending")) await cancel(o);
+    } catch (e) {
+      console.error("reconcile", o.id, e);
     }
   }
   return settled;
@@ -594,27 +631,34 @@ export async function recordIdCheck(staff: Staff, docketId: string, documentType
   });
 }
 
-/** Staff refused service: refund the whole order, reverse its loyalty, close its dockets. */
+/**
+ * Staff refused service: refund the whole order, reverse its loyalty, close its dockets.
+ * The card refund goes first, so a failed refund leaves the order untouched for a retry.
+ */
 export async function refuseId(staff: Staff, docketId: string, provider: PaymentProvider) {
-  const order = await withTenant(staff.tenantId, async (tx) => {
+  const paid = await withTenant(staff.tenantId, async (tx) => {
     const d = await docketForStaff(tx, staff, docketId);
+    const [o] = await tx.select().from(t.orders).where(eq(t.orders.id, d.orderId));
+    if (!o || o.status !== "paid") throw new Forbidden("Order isn't refundable");
+    return o;
+  });
+  if (paid.providerOrderId && paid.amountPaidCents > 0) {
+    await provider.refund({ providerOrderId: paid.providerOrderId, txnRef: paid.providerTxnRef, amountCents: paid.amountPaidCents }, "ID check refused");
+  }
+  await withTenant(staff.tenantId, async (tx) => {
     const [o] = await tx
       .update(t.orders)
-      .set({ status: "refunded", refundedCents: sql`${t.orders.amountPaidCents}` })
-      .where(and(eq(t.orders.id, d.orderId), eq(t.orders.status, "paid")))
+      .set({ status: "refunded", refundedCents: sql`${t.orders.amountPaidCents}`, refundedAt: new Date() })
+      .where(and(eq(t.orders.id, paid.id), eq(t.orders.status, "paid")))
       .returning();
-    if (!o) throw new Forbidden("Order isn't refundable");
+    if (!o) return;
     const entries = await tx.select().from(t.loyaltyLedger).where(eq(t.loyaltyLedger.orderId, o.id));
     await writeLedger(tx, staff.tenantId, o.membershipId, reverseEntries(entries, o.id));
     await tx.update(t.docket).set({ status: "done", doneAt: new Date() }).where(eq(t.docket.orderId, o.id));
     await tx.insert(t.auditLog).values({ tenantId: staff.tenantId, actor: `staff:${staff.id}`, action: "id_refused", entity: `order:${o.id}`, detail: { docketId } });
     await publish(tx, topics.venue(staff.venueId), { kind: "dockets" });
     await publish(tx, topics.order(o.id), { kind: "order" });
-    return o;
   });
-  if (order.providerOrderId && order.amountPaidCents > 0) {
-    await provider.refund(order.providerOrderId, order.amountPaidCents, "ID check refused");
-  }
 }
 
 // ---------------------------------------------------------------- office

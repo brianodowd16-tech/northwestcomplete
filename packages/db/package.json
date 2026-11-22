@@ -5,7 +5,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./schema": "./src/schema.ts",
-    "./services": "./src/services.ts"
+    "./services": "./src/services.ts",
+    "./integrations": "./src/integrations.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",
