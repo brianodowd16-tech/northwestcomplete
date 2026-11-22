@@ -5,3 +5,8 @@ export * from "./billing";
 export * from "./payments";
 export * from "./session";
 export * from "./dockets";
+export * from "./secrets";
+export * from "./mypos";
+export * from "./providers";
+export * from "./reviews";
+export * from "./xero";

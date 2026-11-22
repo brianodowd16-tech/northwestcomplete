@@ -177,7 +177,7 @@ describe("webhook signatures", () => {
   });
   it("mock provider sends webhooks that verify", async () => {
     const p = new MockProvider();
-    const o = await p.createOrder({ amountCents: 100, currency: "EUR", reference: "r", description: "d", lineItems: [] });
+    const o = await p.createOrder({ amountCents: 100, currency: "EUR", reference: "r", description: "d", lineItems: [], discountCents: 0, customer: { email: "a@b.c", firstName: "A", lastName: "B" }, urls: { ok: "o", cancel: "c", notify: "n" } });
     const { rawBody, headers } = p.simulatePayment(o.providerOrderId);
     expect(p.verifyWebhook(rawBody, headers)).toBe(true);
     expect(p.parseWebhook(rawBody)).toEqual({ event: "ORDER_COMPLETED", providerOrderId: o.providerOrderId });

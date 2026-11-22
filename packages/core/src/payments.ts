@@ -11,32 +11,47 @@ export interface LineItem {
 }
 
 export interface CreateOrderInput {
+  /** amount to charge: line totals minus discountCents */
   amountCents: number;
   currency: "EUR";
+  /** our order id */
   reference: string;
   description: string;
+  /** full-price lines */
   lineItems: LineItem[];
-  customerEmail?: string;
+  /** loyalty credit applied to the order */
+  discountCents: number;
+  customer: { email: string; firstName: string; lastName: string };
+  /** where hosted checkouts send the guest and the server notification */
+  urls: { ok: string; cancel: string; notify: string };
 }
 
 export interface CreatedOrder {
   providerOrderId: string;
-  /** public token for the checkout widget */
-  token: string;
+  /** public token for an embedded widget (Revolut, mock) */
+  token: string | null;
+  /** hosted checkout reached by an auto-submitting browser form POST (myPOS) */
+  redirect: { action: string; fields: [string, string][] } | null;
 }
 
 export interface WebhookEvent {
   event: string;
   providerOrderId: string;
+  /** set when the signed notification itself is authoritative (myPOS) */
+  state?: ProviderOrderState;
+  amountCents?: number;
+  /** provider transaction reference, needed for refunds */
+  txnRef?: string;
 }
 
 export interface PaymentProvider {
-  readonly name: "revolut" | "mock";
-  /** public key for the client-side widget; null in mock mode */
+  readonly name: "revolut" | "mypos" | "mock";
+  /** public key for the client-side widget; null where none is used */
   readonly publicKey: string | null;
   createOrder(input: CreateOrderInput): Promise<CreatedOrder>;
-  getOrder(providerOrderId: string): Promise<{ state: ProviderOrderState }>;
-  refund(providerOrderId: string, amountCents: number, reason: string): Promise<void>;
+  /** null when the provider has no status lookup (reconciliation then expires stale orders) */
+  getOrder: ((providerOrderId: string) => Promise<{ state: ProviderOrderState }>) | null;
+  refund(order: { providerOrderId: string; txnRef: string | null; amountCents: number }, reason: string): Promise<void>;
   verifyWebhook(rawBody: string, headers: Headers, now?: number): boolean;
   parseWebhook(rawBody: string): WebhookEvent;
 }
@@ -113,8 +128,9 @@ export class RevolutProvider implements PaymentProvider {
       currency: input.currency,
       description: input.description,
       merchant_order_data: { reference: input.reference },
-      customer: input.customerEmail ? { email: input.customerEmail } : undefined,
-      line_items: input.lineItems.length === 0 ? undefined : input.lineItems.map((l) => ({
+      customer: { email: input.customer.email },
+      // Revolut requires line totals to equal the amount, so lines are left off when credit applies.
+      line_items: input.discountCents > 0 ? undefined : input.lineItems.map((l) => ({
         name: l.name,
         type: "physical",
         quantity: { value: l.quantity },
@@ -123,16 +139,16 @@ export class RevolutProvider implements PaymentProvider {
         external_id: l.externalId ?? undefined,
       })),
     });
-    return { providerOrderId: order.id, token: order.token };
+    return { providerOrderId: order.id, token: order.token, redirect: null };
   }
 
-  async getOrder(id: string) {
+  getOrder = async (id: string) => {
     const order = await this.call<{ state: string }>("GET", `/api/orders/${id}`);
     return { state: order.state.toLowerCase() as ProviderOrderState };
-  }
+  };
 
-  async refund(id: string, amountCents: number, reason: string) {
-    await this.call("POST", `/api/orders/${id}/refund`, { amount: amountCents, currency: "EUR", description: reason });
+  async refund(o: { providerOrderId: string; amountCents: number }, reason: string) {
+    await this.call("POST", `/api/orders/${o.providerOrderId}/refund`, { amount: o.amountCents, currency: "EUR", description: reason });
   }
 
   verifyWebhook(rawBody: string, headers: Headers, now?: number) {
@@ -169,19 +185,19 @@ export class MockProvider implements PaymentProvider {
   async createOrder(input: CreateOrderInput): Promise<CreatedOrder> {
     const id = `mock_${randomUUID()}`;
     mockStore.set(id, { state: "pending", amountCents: input.amountCents, refundedCents: 0 });
-    return { providerOrderId: id, token: `tok_${id}` };
+    return { providerOrderId: id, token: `tok_${id}`, redirect: null };
   }
 
-  async getOrder(id: string) {
+  getOrder = async (id: string) => {
     const o = mockStore.get(id);
     if (!o) throw new Error("Unknown mock order");
     return { state: o.state };
-  }
+  };
 
-  async refund(id: string, amountCents: number) {
-    const o = mockStore.get(id);
+  async refund(order: { providerOrderId: string; amountCents: number }, _reason?: string) {
+    const o = mockStore.get(order.providerOrderId);
     if (!o) throw new Error("Unknown mock order");
-    o.refundedCents += amountCents;
+    o.refundedCents += order.amountCents;
   }
 
   verifyWebhook(rawBody: string, headers: Headers, now?: number) {
@@ -209,15 +225,4 @@ export class MockProvider implements PaymentProvider {
     });
     return { rawBody, headers };
   }
-}
-
-export function providerFromEnv(env: Record<string, string | undefined>): PaymentProvider {
-  if (!env.REVOLUT_SECRET_KEY) return new MockProvider();
-  return new RevolutProvider({
-    secretKey: env.REVOLUT_SECRET_KEY,
-    publicKey: env.REVOLUT_PUBLIC_KEY ?? "",
-    webhookSecret: env.REVOLUT_WEBHOOK_SECRET ?? "",
-    apiBase: env.REVOLUT_API_BASE ?? "https://sandbox-merchant.revolut.com",
-    apiVersion: env.REVOLUT_API_VERSION ?? "2024-09-01",
-  });
 }
