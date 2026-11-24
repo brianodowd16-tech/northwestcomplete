@@ -82,7 +82,7 @@ export function buildDaySummary(input: DaySummaryInput, m: XeroMapping): DaySumm
       Date: input.date,
       DueDate: input.date,
       LineAmountTypes: "Inclusive",
-      Reference: `The Snug Club app sales ${input.date}`,
+      Reference: `Complete app sales ${input.date}`,
       Status: "AUTHORISED",
       LineItems: lines.map(([d, c, a, tt]) => ({ Description: `${input.venueName}: ${d}`, Quantity: 1, UnitAmount: euros(c), AccountCode: a, TaxType: tt })),
     },

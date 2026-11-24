@@ -17,7 +17,7 @@ export function InstallApp({ name }: { name: string }) {
     const standalone = window.matchMedia("(display-mode: standalone)").matches || w.navigator.standalone === true || !!w.Capacitor;
     let dismissed = false;
     try {
-      dismissed = Number(localStorage.getItem("snug-install-dismissed") ?? 0) > Date.now() - 14 * 86_400_000;
+      dismissed = Number(localStorage.getItem("complete-install-dismissed") ?? 0) > Date.now() - 14 * 86_400_000;
     } catch {}
     if (standalone || dismissed) return;
     const onPrompt = (e: Event) => {
@@ -38,7 +38,7 @@ export function InstallApp({ name }: { name: string }) {
   const dismiss = () => {
     setHidden(true);
     try {
-      localStorage.setItem("snug-install-dismissed", String(Date.now()));
+      localStorage.setItem("complete-install-dismissed", String(Date.now()));
     } catch {}
   };
   return (

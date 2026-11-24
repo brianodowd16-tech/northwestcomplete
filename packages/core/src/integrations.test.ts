@@ -135,7 +135,7 @@ describe("Google reviews", () => {
 });
 
 const mapping: XeroMapping = {
-  contactName: "The Snug Club app sales",
+  contactName: "Complete app sales",
   salesAccountCode: "200",
   taxType9: "OUTPUT9",
   taxType23: "OUTPUT23",

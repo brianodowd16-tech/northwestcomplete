@@ -115,7 +115,7 @@ export interface XeroConfig extends XeroMapping {
 }
 
 export const DEFAULT_XERO_MAPPING: XeroMapping = {
-  contactName: "The Snug Club app sales",
+  contactName: "Complete app sales",
   salesAccountCode: "200",
   taxType9: "",
   taxType23: "",
@@ -208,7 +208,7 @@ export async function syncXeroDay(venue: Venue, date: string, app: XeroApp, secr
       // Xero rotates refresh tokens: save the new pair before using it.
       await saveIntegration(venue, "xero", row.config, JSON.stringify(tokens), secretsKey);
     }
-    const invoiceId = await client.postDay(tokens, cfg.tenantId, summary, cfg.paymentAccountCode, `snug:${venue.id}:${date}`);
+    const invoiceId = await client.postDay(tokens, cfg.tenantId, summary, cfg.paymentAccountCode, `complete:${venue.id}:${date}`);
     await record("done", invoiceId, null);
     return "done";
   } catch (e) {

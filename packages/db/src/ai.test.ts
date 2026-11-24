@@ -71,10 +71,10 @@ describe("AI assistant access", () => {
 
   it("needs a valid token and never stores it", async () => {
     token = await ai.createGrant(mj, guest.id, { name: "Claude", scopes: ["profile:read", "benefits:read", "orders:quote", "orders:create"], maxOrderCents: 3000, maxCreditCents: 500, days: 30 });
-    expect(token).toMatch(/^snug_/);
+    expect(token).toMatch(/^cpl_/);
     const [g] = await ai.listGrants(mj, guest.id);
     expect(g.tokenHash).not.toContain(token);
-    await expect(ai.authenticateAgent("snug_nope")).rejects.toThrow(ai.AgentAuthError);
+    await expect(ai.authenticateAgent("cpl_nope")).rejects.toThrow(ai.AgentAuthError);
     await expect(ai.authenticateAgent(null)).rejects.toThrow(ai.AgentAuthError);
   });
 

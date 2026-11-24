@@ -39,7 +39,7 @@ export async function POST(req: Request) {
         return ok(m.id, {
           protocolVersion: typeof m.params?.protocolVersion === "string" ? m.params.protocolVersion : "2025-06-18",
           capabilities: { tools: { listChanged: false } },
-          serverInfo: { name: "the-snug-club", version: "1.0.0" },
+          serverInfo: { name: "complete", version: "1.0.0" },
           instructions: `You're helping ${ctx.customer.name.split(" ")[0]} at ${ctx.venue.name}. Prices are in euro cents, VAT included. Orders you start wait for the guest to approve and pay in the app; share the approve_url with them. Never ask for card details.`,
         });
       case "ping":

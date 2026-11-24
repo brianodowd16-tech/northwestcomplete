@@ -4,9 +4,9 @@ import { RegisterSW } from "@/components/RegisterSW";
 import { Toaster } from "@/components/Toasts";
 
 export const metadata: Metadata = {
-  title: "The Snug Club",
+  title: "Complete",
   description: "Order, pay and earn at your local",
-  appleWebApp: { capable: true, title: "Snug Club" },
+  appleWebApp: { capable: true, title: "Complete" },
   icons: { icon: "/api/icon/platform/192", apple: "/api/icon/platform/180" },
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#2b5a4a" };

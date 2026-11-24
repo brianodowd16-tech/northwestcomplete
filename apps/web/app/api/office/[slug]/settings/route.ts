@@ -74,7 +74,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
         return json({ ok: true });
       case "xero-mapping": {
         const m: XeroMapping = {
-          contactName: str(b.contactName) || "The Snug Club app sales",
+          contactName: str(b.contactName) || "Complete app sales",
           salesAccountCode: str(b.salesAccountCode),
           taxType9: str(b.taxType9),
           taxType23: str(b.taxType23),

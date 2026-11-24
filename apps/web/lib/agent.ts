@@ -19,5 +19,5 @@ export async function agentFromRequest(req: Request) {
 export const unauthorised = () =>
   new Response(JSON.stringify({ error: "Connect this assistant from the venue's app (Rewards → AI assistants) and use the token it shows." }), {
     status: 401,
-    headers: { "Content-Type": "application/json", "WWW-Authenticate": 'Bearer realm="The Snug Club"' },
+    headers: { "Content-Type": "application/json", "WWW-Authenticate": 'Bearer realm="Complete"' },
   });

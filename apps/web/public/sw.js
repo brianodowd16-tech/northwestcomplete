@@ -1,6 +1,6 @@
-// The Snug Club service worker: installable app, fast repeat loads, and an offline page.
+// Complete service worker: installable app, fast repeat loads, and an offline page.
 // Never caches API calls, payments or anything personal: those always go to the network.
-const VERSION = "snug-v1";
+const VERSION = "complete-v1";
 const STATIC = `${VERSION}-static`;
 const OFFLINE_URL = "/offline";
 

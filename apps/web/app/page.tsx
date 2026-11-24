@@ -18,7 +18,7 @@ export default async function Home() {
   return (
     <div className="page stack" style={{ maxWidth: 980, gap: 28 }}>
       <header className="row wrap">
-        <b style={{ fontFamily: "var(--f-display)", fontSize: 20 }}>The Snug Club</b>
+        <b style={{ fontFamily: "var(--f-display)", fontSize: 20 }}>Complete</b>
         <nav className="row">
           <Link className="btn sm ghost" href="/staff/login">
             Venue sign in
@@ -128,7 +128,7 @@ export default async function Home() {
       )}
 
       <footer className="muted small row wrap">
-        <span>© The Snug Club · Hosted in the EU</span>
+        <span>© Complete · Hosted in the EU</span>
         <span className="row">
           <Link href="/start">For venues</Link>
           <Link href="/staff/login">Staff sign in</Link>

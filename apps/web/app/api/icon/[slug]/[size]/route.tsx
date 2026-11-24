@@ -3,12 +3,12 @@ import { ImageResponse } from "next/og";
 
 const SIZES = new Set([180, 192, 512]);
 
-/** App icon: the venue's initials on its brand colour. "platform" is The Snug Club's own icon. */
+/** App icon: the venue's initials on its brand colour. "platform" is Complete's own icon. */
 export async function GET(req: Request, ctx: { params: Promise<{ slug: string; size: string }> }) {
   const { slug, size: s } = await ctx.params;
   const size = Number(s);
   if (!SIZES.has(size)) return new Response("Not found", { status: 404 });
-  let name = "The Snug Club";
+  let name = "Complete";
   let color = "#2b5a4a";
   if (slug !== "platform") {
     const v = await venueBySlug(slug).catch(() => null);

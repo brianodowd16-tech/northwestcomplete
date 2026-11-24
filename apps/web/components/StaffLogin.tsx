@@ -23,7 +23,7 @@ export function StaffLogin({ next }: { next?: string }) {
         router.push(next && next.startsWith(`/staff/${d.slug}/`) || next?.startsWith(`/office/${d.slug}`) ? next : `/staff/${d.slug}/bar`);
       }}
     >
-      <div className="label">The Snug Club</div>
+      <div className="label">Complete</div>
       <h1 style={{ fontSize: 24 }}>Staff sign in</h1>
       <label className="field">Email<input name="email" type="email" autoComplete="username" required /></label>
       <label className="field">Password<input name="password" type="password" autoComplete="current-password" required /></label>

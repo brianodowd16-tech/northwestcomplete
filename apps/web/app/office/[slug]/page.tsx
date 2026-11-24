@@ -183,7 +183,7 @@ export default async function Office({ params, searchParams }: { params: Promise
           </table>
         </section>
         <section className="panel stack">
-          <h3>The Snug Club statement · {month}</h3>
+          <h3>Complete statement · {month}</h3>
           <table>
             <tbody>
               <tr><td>App payments</td><td className="r num">{eur(bill.appGrossCents)}</td></tr>

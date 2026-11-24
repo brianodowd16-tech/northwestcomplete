@@ -59,7 +59,7 @@ export function DocketBoard({ slug, station, initial }: { slug: string; station:
 
   useEffect(() => {
     try {
-      const on = localStorage.getItem("snug-sound") === "1";
+      const on = localStorage.getItem("complete-sound") === "1";
       setSound(on);
       soundRef.current = on;
     } catch {}
@@ -137,7 +137,7 @@ export function DocketBoard({ slug, station, initial }: { slug: string; station:
     setSound(on);
     soundRef.current = on;
     try {
-      localStorage.setItem("snug-sound", on ? "1" : "0");
+      localStorage.setItem("complete-sound", on ? "1" : "0");
     } catch {}
     if (on) chime();
   };

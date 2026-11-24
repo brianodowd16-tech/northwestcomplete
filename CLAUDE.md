@@ -1,6 +1,6 @@
-# CLAUDE.md — The Snug Club
+# CLAUDE.md — Complete
 
-The Snug Club is a white-label ordering, payments and loyalty platform for Irish bars, hotels and restaurants. Guests pay through each venue's own myPOS (or Revolut) account; sales go to the venue's Xero nightly. Counter sales stay on the venue's own till. Pilot venues: MJ O'Connor's and Drumhierny Woodland Hideaway, 20 tables each.
+Complete is a white-label ordering, payments and loyalty platform for Irish bars, hotels and restaurants. Guests pay through each venue's own myPOS (or Revolut) account; sales go to the venue's Xero nightly. Counter sales stay on the venue's own till. Pilot venues: MJ O'Connor's and Drumhierny Woodland Hideaway, 20 tables each.
 
 **`SPEC.md` is the source of truth** for scope, data model, flows and build order. Read it before starting any step. If the prototype artifact ("Round Venue Platform") disagrees with `SPEC.md`, follow `SPEC.md`.
 
@@ -13,10 +13,11 @@ The Snug Club is a white-label ordering, payments and loyalty platform for Irish
 - **Loyalty:** only card-paid app orders earn. Revolut POS counter sales, credit-funded amounts and gift card purchases earn nothing.
 - **Alcohol:** guests must be 18+ by date of birth to create an account. A bar docket with alcohol for an account without a staff ID check cannot be marked collected until staff record **ID checked** or **Refused**. Never store ID images or document numbers.
 - **Routing:** drinks → bar (collected); food → kitchen (run to a table). Food is never collect-at-bar.
+- **Self-serve:** new venues start in test mode (`venue.status = setup`) and go live only through `goLive` once the checklist's required steps pass. Never bill test-payment orders. Only managers (`admin`) reach `/office`.
 - **Inventory:** out of scope. Don't build stock, recipe, stocktake, PO, MarketMan or counter-POS features. Sold-out is a manual staff toggle.
 - **AI assistants:** guests' assistants act only through `agent_grant` tokens (store the SHA-256 only), within their scopes and limits and the venue's redemption rules. They can never pay: `start_order` holds the order until the guest approves. Audit every call in `agent_action`. The venue assistant never receives guest personal data.
 - **Google reviews:** the same prompt for every paid order, no rewards of any kind, no rating question first (Google bans incentives and gating).
-- **Xero:** one invoice + one payment per venue per trading day, idempotency keys `snug:{venue}:{date}:…`, recorded in `xero_sync`. Save rotated refresh tokens before use.
+- **Xero:** one invoice + one payment per venue per trading day, idempotency keys `complete:{venue}:{date}:…`, recorded in `xero_sync`. Save rotated refresh tokens before use.
 - **Billing:** venues pay a monthly subscription plus `app_fee_bps` (default 100 = 1%) of completed app payments net of refunds. Compute it from Round's own order records.
 - **GDPR:** EU hosting, separate marketing consent, data export and deletion.
 
@@ -25,12 +26,13 @@ The Snug Club is a white-label ordering, payments and loyalty platform for Irish
 Turborepo (pnpm) · Next.js 15 + TypeScript · Postgres 16 (EU) · Drizzle · pg-boss · Server-sent events over Postgres LISTEN/NOTIFY · GitHub Actions CI.
 
 ```
-apps/web       one Next.js app: guest PWA (/v/...), staff screens (/staff/...), back office (/office/...)
+apps/web       one Next.js app: landing (/), business sign-up (/start), guest PWA (/v/...), staff screens (/staff/...), back office (/office/...)
+apps/mobile    Capacitor iOS/Android shell around APP_URL (https://complete.pub)
 packages/db    schema, migrations, RLS policies (sql/rls.sql), seed, services, integrations (payments setup, reviews, Xero)
 packages/core  pricing, VAT, loyalty, billing, sessions, secrets, PaymentProvider (myPOS, Revolut, mock), Xero client
 ```
 
-Scheduled jobs live in `apps/web/jobs.ts` (pg-boss). Shortcuts to replace before launch: OTP codes are shown on screen in dev (wire an SMS provider); the app connects as the DB owner and drops to `round_app` per request (use a dedicated login role in production). Split `apps/web` into guest/staff/office apps only if deployment needs it.
+Scheduled jobs live in `apps/web/jobs.ts` (pg-boss). Shortcuts to replace before launch: OTP and business sign-up codes are shown on screen in dev (wire SMS and email providers); rate limits are per instance (move to Postgres when running several); the app connects as the DB owner and drops to `round_app` per request (use a dedicated login role in production). Split `apps/web` into guest/staff/office apps only if deployment needs it.
 
 Commands: `pnpm db:reset` (wipe + migrate + seed), `pnpm dev`, `pnpm test`, `pnpm typecheck`. After changing `packages/db/src/schema.ts`, run `pnpm --filter @round/db generate`.
 

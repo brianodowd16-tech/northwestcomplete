@@ -156,7 +156,7 @@ describe("Xero", () => {
     const total = inv.LineItems.reduce((s, l) => s + Math.round(l.UnitAmount * 100), 0);
     const day = await integ.dayOrders(mj, today);
     expect(total).toBe(day.paid.reduce((s, o) => s + o.amountPaidCents, 0) - day.refunded.reduce((s, o) => s + o.amountPaidCents, 0));
-    expect(posted[0].key).toBe(`snug:${mj.id}:${today}:inv`);
+    expect(posted[0].key).toBe(`complete:${mj.id}:${today}:inv`);
     expect(await integ.syncXeroDay(drum, today, app, KEY, fetchImpl)).toBe("not_connected");
   });
 });

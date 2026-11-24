@@ -48,7 +48,7 @@ export function validateSignup(input: BusinessSignupInput): CleanSignup {
   return { email, ownerName, password: input.password, venueName, kind: input.kind as VenueKind, town, tables, exampleMenu: input.exampleMenu === true, acceptTerms: true };
 }
 
-const COMMON = ["password", "123456789", "qwertyuiop", "letmein", "welcome", "snugclub", "1111111111"];
+const COMMON = ["password", "123456789", "qwertyuiop", "letmein", "welcome", "completepub", "1111111111"];
 export function checkPasswordStrength(pw: string, personal: string[] = []) {
   if (pw.length < MIN_PASSWORD) throw new OnboardingError(`Use at least ${MIN_PASSWORD} characters for your password`);
   if (pw.length > 200) throw new OnboardingError("That password is too long");

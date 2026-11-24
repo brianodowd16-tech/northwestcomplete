@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BusinessSignup } from "@/components/BusinessSignup";
 
-export const metadata: Metadata = { title: "Start your free trial · The Snug Club" };
+export const metadata: Metadata = { title: "Start your free trial · Complete" };
 
 export default function Start() {
   return (
     <div className="page stack" style={{ maxWidth: 560 }}>
       <Link href="/" className="label" style={{ textDecoration: "none" }}>
-        The Snug Club
+        Complete
       </Link>
       <div className="stack" style={{ gap: 6 }}>
         <h1 style={{ fontSize: 32 }}>Table ordering and loyalty for your venue</h1>

@@ -129,7 +129,7 @@ export async function createGrant(venue: Venue, customerId: string, g: GrantInpu
   if (!scopes.length) throw new Forbidden("Choose at least one thing the assistant may do");
   const name = g.name.trim().slice(0, 40) || "My assistant";
   const days = Math.min(Math.max(Math.round(g.days), 1), 365);
-  const token = `snug_${randomBytes(24).toString("base64url")}`;
+  const token = `cpl_${randomBytes(24).toString("base64url")}`;
   await withTenant(venue.tenantId, (tx) =>
     tx.insert(t.agentGrant).values({
       tenantId: venue.tenantId,
@@ -188,7 +188,7 @@ export class AgentAuthError extends Error {}
 
 /** Resolves a bearer token to its grant, venue and guest. Expired or revoked tokens fail. */
 export async function authenticateAgent(token: string | null): Promise<AgentContext> {
-  if (!token || !token.startsWith("snug_")) throw new AgentAuthError("Missing or malformed token");
+  if (!token || !token.startsWith("cpl_")) throw new AgentAuthError("Missing or malformed token");
   const [grant] = await systemDb().select().from(t.agentGrant).where(eq(t.agentGrant.tokenHash, hashToken(token)));
   if (!grant || grant.revokedAt || grant.expiresAt < new Date()) throw new AgentAuthError("This connection has expired or been switched off");
   const [venue, customer] = await Promise.all([venueById(grant.venueId), customerById(grant.customerId)]);

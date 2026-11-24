@@ -35,7 +35,7 @@ const VENUES = {
     tagline: "Pints, trad and proper food",
     town: "Example town",
     brandColor: "#9C6B1C",
-    programme: "The Snug Club",
+    programme: "MJ's Regulars",
     levels: [
       ["Regular", 0, 15, 0, 0],
       ["Local", 400, 25, 1500, 0],

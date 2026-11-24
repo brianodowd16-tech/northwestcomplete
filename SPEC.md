@@ -1,10 +1,10 @@
-# The Snug Club — final design
+# Complete — final design
 
-> Product name: **The Snug Club**. Check trademark (EUIPO and the Irish Patents Office, classes 9, 42 and 43) and the domain before spending on the brand. `CLAUDE.md` holds the working rules for building it. Section 9 records what is built and what is left.
+> Product name: **Complete**. Check trademark (EUIPO and the Irish Patents Office, classes 9, 42 and 43) and the domain before spending on the brand. `CLAUDE.md` holds the working rules for building it. Section 9 records what is built and what is left.
 
 ## 1. Product in one paragraph
 
-The Snug Club is a white-label ordering, payments and loyalty platform for Irish bars, hotels and restaurants (then the EU). Guests with an account scan a QR at their table, or choose **Collect at bar**, order and pay on their phone through the venue's own **myPOS** account (Revolut also supported), and earn points in the venue's own loyalty programme. Drinks go to the bar screen and printer for collection; food goes to the kitchen screen and printer and is run to the table. After paying, every guest is offered a link to leave the venue a Google review. Each night the day's app sales go to the venue's **Xero** as one invoice with the card payment applied. Counter sales stay on the venue's existing till. Venues pay a monthly subscription plus 1% of app payments.
+Complete is a white-label ordering, payments and loyalty platform for Irish bars, hotels and restaurants (then the EU). Guests with an account scan a QR at their table, or choose **Collect at bar**, order and pay on their phone through the venue's own **myPOS** account (Revolut also supported), and earn points in the venue's own loyalty programme. Drinks go to the bar screen and printer for collection; food goes to the kitchen screen and printer and is run to the table. After paying, every guest is offered a link to leave the venue a Google review. Each night the day's app sales go to the venue's **Xero** as one invoice with the card payment applied. Counter sales stay on the venue's existing till. Venues pay a monthly subscription plus 1% of app payments.
 
 ## 2. Decisions
 
@@ -13,7 +13,7 @@ The Snug Club is a white-label ordering, payments and loyalty platform for Irish
 | Model | SaaS for bars, hotels and restaurants. Each venue gets its own loyalty programme; groups can share one. |
 | Market | Ireland first (EUR, Irish VAT), then EU. |
 | Pilot | **MJ O'Connor's** and **Drumhierny Woodland Hideaway**, 20 tables each. Drumhierny is tables only; lodge ordering is a later phase. O'Dowd's / odowdscarrick.com is not part of this project. |
-| App payments | Account required. Pay upfront, per order, no split bills. **myPOS Checkout** (hosted payment page: card, Apple Pay, Google Pay) is the default. Revolut Merchant API is supported for venues that prefer it. Each venue is paid straight into its own merchant account; The Snug Club never holds guest money. |
+| App payments | Account required. Pay upfront, per order, no split bills. **myPOS Checkout** (hosted payment page: card, Apple Pay, Google Pay) is the default. Revolut Merchant API is supported for venues that prefer it. Each venue is paid straight into its own merchant account; Complete never holds guest money. |
 | Venue credentials | Each venue's myPOS / Revolut keys and Xero tokens are stored encrypted (AES-256-GCM, key in `SECRETS_KEY`) and entered by the manager in Back office → Settings. Never shown again after saving. |
 | Counter sales | The venue's existing till (Revolut POS or a myPOS terminal), unchanged. Counter sales earn no loyalty. A white-label counter POS is a later phase. |
 | Routing | Drinks → bar screen + bar printer, collected at the bar. Food → kitchen screen + kitchen printer, run to a table. Food is never "collect at bar". |
@@ -22,7 +22,7 @@ The Snug Club is a white-label ordering, payments and loyalty platform for Irish
 | Accounting | **Xero**, per venue: one invoice per trading day (sales by VAT rate, less loyalty credit and refunds) plus one payment into the venue's card clearing account. Account codes and tax rates are set per venue with their accountant. |
 | Inventory | Out of scope. MarketMan or the venue's own stock system carries on from its till. Staff get a manual sold-out toggle. |
 | Age verification | Date of birth (18+) at sign-up; staff check physical ID on a guest's first alcohol collection (section 6). Digital ID later. |
-| Billing (venues → you) | Monthly subscription per venue plus **1% of completed app payments** net of refunds. myPOS and Revolut can't split a platform fee from each payment, so The Snug Club calculates it and invoices monthly. |
+| Billing (venues → you) | Monthly subscription per venue plus **1% of completed app payments** net of refunds. myPOS and Revolut can't split a platform fee from each payment, so Complete calculates it and invoices monthly. |
 | Bookings | Each venue sets how far ahead guests can book; default 1 month. |
 | Apps | Web app (works on any phone from the QR) first. iOS and Android apps wrap the same app and add push notifications ("drinks ready"), submitted from a company developer account. |
 | myPOS setup | The manager pastes or uploads the **configuration pack** from the myPOS account (Online → Settings → Configuration pack). The server checks it (store ID, client number, key index, keys, a test signature) and stores it encrypted. Test packs only until the sandbox checks in section 9 pass. |
@@ -30,7 +30,11 @@ The Snug Club is a white-label ordering, payments and loyalty platform for Irish
 | Redemption rules | Per programme: minimum order for credit, minimum order for double points, whether credit and double points stack (if not, credit wins), and an optional monthly cap on credit redeemed per venue. Enforced on the server for app orders and assistant requests alike. |
 | Recommendations | "Your usual", "Goes with" and "Popular here", from the venue's own paid orders over the last 90 days. No third-party data, no profiling across venues. |
 | Venue assistant | "Ask your data" in the back office: Claude answers managers' questions from a snapshot of that venue's sales, best sellers and loyalty totals. No guest personal data is sent. Off unless `ANTHROPIC_API_KEY` is set. |
-| Connectivity | Assume online, with backup 4G/eSIM. If The Snug Club is down, the venue keeps trading on its till. |
+| Brand and domain | The product is **Complete**, at **complete.pub** (`APP_URL=https://complete.pub`). Venues' guest apps carry the venue's own name, colour and icon. |
+| Self-serve sign-up | Venues sign up at `/start` with no sales call: email code, venue details, owner password (10+ characters, not common or personal). They get tables, starter menu sections (optional example menu), a loyalty programme, an admin login and a **30-day free trial** (no subscription or app fee for payments in the trial; the first month after is charged pro rata). New venues start in **test mode** (test payments, banner on every guest page, hidden from the venue list) and **go live** themselves once the menu, myPOS (or Revolut) and VAT number are done. The platform can suspend a venue. Test-payment orders are never billed. |
+| Self-serve admin | Managers edit the menu (sections, items, prices, VAT, bar/kitchen, alcohol, collectable), set the number of tables and print QR codes (one per table plus one for collect-at-bar; a code can be replaced), add staff or managers with a one-time password that must be changed at first sign-in, and edit venue details. |
+| Mobile apps | Every venue is an installable web app (PWA) with its own manifest, icon and offline page; no store needed. Native iOS and Android apps are Capacitor shells (`apps/mobile`) loading `APP_URL`: one Complete app, and optionally one white-label app per venue. Push notifications are the first native feature, needed for App Store approval. |
+| Connectivity | Assume online, with backup 4G/eSIM. If Complete is down, the venue keeps trading on its till. |
 
 ## 3. Architecture
 
@@ -96,7 +100,7 @@ The manager pastes the venue's Google Place ID in Settings. Every paid order pag
 2. Every night at 03:15 (Europe/Dublin) a job posts **yesterday** for each connected venue, and retries failed days from the past week:
    - one `ACCREC` invoice, amounts VAT-inclusive: food & hot drinks (9%), drinks (23%), less loyalty credit redeemed, less refunds (by rate), plus credit returned on refunds;
    - one payment for the card money (paid minus refunded) into the clearing account.
-3. Each post carries an idempotency key (`snug:{venue}:{date}:inv|pay`) and the day is recorded in `xero_sync`, so reruns never duplicate. Tokens refresh automatically; Xero's rotated refresh token is saved before use.
+3. Each post carries an idempotency key (`complete:{venue}:{date}:inv|pay`) and the day is recorded in `xero_sync`, so reruns never duplicate. Tokens refresh automatically; Xero's rotated refresh token is saved before use.
 4. A day where refunds exceed sales is flagged for a manual credit note. Managers can also press **Send yesterday now**.
 
 ### 5.6 Loyalty
@@ -140,7 +144,9 @@ Each venue's statement: subscription + 1% of completed app payments net of refun
 
 **Built and tested** (branch `prototype`): guest web app; sign-in; table and collect-at-bar ordering; myPOS hosted checkout and verified notifications; Revolut; test payments; bar and kitchen screens with ID checks and refunds; sold-out toggles; loyalty engine; Google review prompt and tracking; Xero connect, mapping and nightly sync; back office with sales, VAT, review clicks and the monthly statement; Settings for payments (including myPOS configuration pack import), reviews, redemption rules and Xero; encrypted venue credentials; AI features (recommendations, machine-readable benefits, guest-controlled assistant access with limits, held orders the guest approves, audit log, MCP server and REST API, venue "Ask your data"); pg-boss jobs; CI.
 
-**Next to build**: text-message provider for sign-in codes; cloud printing to the bar and kitchen printers; menu editor and QR code printing in the back office; events, tickets, bookings, gift cards, birthday and bonus-credit jobs; iOS and Android wrappers with push notifications; hosting and deploy pipeline; staff accounts management; GDPR export and delete.
+**Next to build**: text-message provider for sign-in codes and an email provider for business sign-up codes (EU region); push notifications in the native apps; platform admin (suspend venues, see sign-ups); collecting subscriptions; cloud printing to the bar and kitchen printers; events, tickets, bookings, gift cards, birthday and bonus-credit jobs; iOS and Android wrappers with push notifications; hosting and deploy pipeline; GDPR export and delete.
+
+**Built for self-serve** (branch `prototype`): business sign-up, get-started checklist and go-live, free trial, menu editor, tables and printable QR codes, team accounts, venue details, landing page, per-venue installable app, Capacitor iOS/Android shell.
 
 **To confirm before going live**
 - **myPOS**: run one sandbox payment and one refund to confirm the signature format, `IPCRefund` fields and certificate format (the docs are inconsistent). Each venue needs a myPOS online store, its RSA 2048 key pair exchanged with myPOS, and the notify URL set.
@@ -148,6 +154,6 @@ Each venue's statement: subscription + 1% of completed app payments net of refun
 - **Google**: each venue's Place ID.
 - **AI assistants**: test the MCP server with Claude and ChatGPT custom connectors (both need a public HTTPS `APP_URL`); add OAuth sign-in for connectors that require it instead of a pasted token; add a privacy-notice line on assistant access.
 - Solicitor sign-off on the ID check; accountant sign-off on VAT rates and Xero mapping.
-- Brand and trademark; MJ O'Connor's loyalty programme is also called "The Snug Club" in the seed data and needs its own name.
+- Trademark search for "Complete" in hospitality software (EUIPO and Irish register).
 - How you collect your monthly statements, and the subscription price.
 - Apple and Google developer accounts (company accounts need a D-U-N-S number; new personal Google Play accounts need a 14-day closed test).

@@ -1,11 +1,11 @@
 import type { MetadataRoute } from "next";
 
-/** The Snug Club app itself: staff screens, back office and finding venues. Each venue also installs as its own app. */
+/** Complete app itself: staff screens, back office and finding venues. Each venue also installs as its own app. */
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "The Snug Club",
-    short_name: "Snug Club",
+    name: "Complete",
+    short_name: "Complete",
     description: "Order, pay and earn rewards at bars, hotels and restaurants. Staff screens and back office for venues.",
     start_url: "/?source=app",
     display: "standalone",

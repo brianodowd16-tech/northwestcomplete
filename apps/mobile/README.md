@@ -1,4 +1,4 @@
-# The Snug Club for iOS and Android
+# Complete for iOS and Android
 
 A native shell (Capacitor 8) around the web app. The app opens `APP_URL` (+ `START_PATH`), so menu changes and fixes need no store update.
 
@@ -9,16 +9,16 @@ Needs a Mac with Xcode for iOS, and Android Studio for Android.
 ```bash
 pnpm install
 cd apps/mobile
-APP_URL=https://app.thesnugclub.ie pnpm add:ios && pnpm add:android   # first time only
-APP_URL=https://app.thesnugclub.ie pnpm sync
+APP_URL=https://complete.pub pnpm add:ios && pnpm add:android   # first time only
+APP_URL=https://complete.pub pnpm sync
 pnpm ios       # opens Xcode: set the team, signing and version, then Archive
 pnpm android   # opens Android Studio: Build > Generate Signed Bundle
 ```
 
 ## One app, or one per venue
 
-- **The Snug Club** (default): guests find venues, staff use the bar/kitchen screens and back office.
-- **A venue's own app**: `APP_ID=ie.thesnugclub.<venue> APP_NAME="<Venue>" START_PATH=/v/<slug>`, plus the venue's icon. Each is a separate store listing under your developer account (or the venue's).
+- **Complete** (default): guests find venues, staff use the bar/kitchen screens and back office.
+- **A venue's own app**: `APP_ID=pub.complete.<venue> APP_NAME="<Venue>" START_PATH=/v/<slug>`, plus the venue's icon. Each is a separate store listing under your developer account (or the venue's).
 
 Every venue also gets an installable web app (PWA) with its own name, colour and icon at `/v/<slug>`, with no store needed.
 
