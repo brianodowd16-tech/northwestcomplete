@@ -28,7 +28,7 @@ export default async function Settings({ params, searchParams }: { params: Promi
       <VenueTheme color={venue.brandColor} />
       <div>
         <div className="label">{venue.name}</div>
-        <StaffNav slug={slug} current="settings" admin={staff.role === "admin"} />
+        <StaffNav setup={venue.status === "setup"} slug={slug} current="settings" admin={staff.role === "admin"} />
         <h1 style={{ fontSize: 28 }}>Settings</h1>
       </div>
       {xeroNotice && <div className={xeroNotice[0]}>{xeroNotice[1]}</div>}
@@ -51,6 +51,7 @@ export default async function Settings({ params, searchParams }: { params: Promi
         }}
         serverReady={!!secretsKey()}
         rules={rules}
+        details={{ name: venue.name, tagline: venue.tagline, town: venue.town, vatNumber: venue.vatNumber, brandColor: venue.brandColor }}
       />
     </div>
   );

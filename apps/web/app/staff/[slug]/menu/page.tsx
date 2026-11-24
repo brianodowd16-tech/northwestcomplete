@@ -14,7 +14,7 @@ export default async function MenuPage({ params }: { params: Promise<{ slug: str
     <div className="page">
       <VenueTheme color={venue.brandColor} />
       <div className="label">{venue.name}</div>
-      <StaffNav slug={slug} current="menu" admin={staff.role === "admin"} />
+      <StaffNav setup={venue.status === "setup"} slug={slug} current="menu" admin={staff.role === "admin"} />
       <SoldOutBoard
         slug={slug}
         categories={categories.map((c) => ({ id: c.id, name: c.name, items: c.items.map((i) => ({ id: i.id, name: i.name, priceCents: i.priceCents, station: i.station, soldOut: i.soldOut })) }))}

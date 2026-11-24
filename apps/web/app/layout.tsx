@@ -1,9 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { RegisterSW } from "@/components/RegisterSW";
 import { Toaster } from "@/components/Toasts";
 
-export const metadata: Metadata = { title: "The Snug Club", description: "Order, pay and earn at your local" };
-export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
+export const metadata: Metadata = {
+  title: "The Snug Club",
+  description: "Order, pay and earn at your local",
+  appleWebApp: { capable: true, title: "Snug Club" },
+  icons: { icon: "/api/icon/platform/192", apple: "/api/icon/platform/180" },
+};
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#2b5a4a" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <Toaster />
+        <RegisterSW />
       </body>
     </html>
   );

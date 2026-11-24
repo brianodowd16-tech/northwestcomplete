@@ -17,6 +17,7 @@ interface Props {
     history: { date: string; status: string; error: string | null }[];
   };
   serverReady: boolean;
+  details: { name: string; tagline: string; town: string; vatNumber: string; brandColor: string };
   rules: { creditMinOrderCents: number; allowCreditWithDouble: boolean; monthlyCreditBudgetCents: number | null; doubleMinOrderCents: number };
 }
 
@@ -47,6 +48,40 @@ export function SettingsForms(p: Props) {
   return (
     <div className="stack">
       {!p.serverReady && <div className="error">SECRETS_KEY isn&apos;t set on the server, so payment keys and Xero can&apos;t be saved yet.</div>}
+      <form
+        id="venue"
+        className="panel stack"
+        onSubmit={(e) => {
+          e.preventDefault();
+          save("venue", e.currentTarget);
+        }}
+      >
+        <h3>Your venue</h3>
+        <div className="two">
+          <label className="field">
+            Name guests see
+            <input name="name" defaultValue={p.details.name} required maxLength={80} />
+          </label>
+          <label className="field">
+            Town
+            <input name="town" defaultValue={p.details.town} maxLength={80} />
+          </label>
+          <label className="field">
+            Short description
+            <input name="tagline" defaultValue={p.details.tagline} maxLength={120} placeholder="Pints, trad and proper food" />
+          </label>
+          <label className="field">
+            VAT number (printed on receipts)
+            <input name="vatNumber" defaultValue={p.details.vatNumber} placeholder="IE1234567T" maxLength={14} />
+          </label>
+          <label className="field">
+            Brand colour
+            <input name="brandColor" type="color" defaultValue={p.details.brandColor} style={{ height: 42, padding: 4 }} />
+          </label>
+        </div>
+        <Msg m={msg} section="venue" />
+        <button className="btn" disabled={busy === "venue"}>Save</button>
+      </form>
 
       <form
         className="panel stack"

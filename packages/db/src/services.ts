@@ -54,6 +54,11 @@ export async function allVenues() {
   return systemDb().select().from(t.venue).orderBy(asc(t.venue.name));
 }
 
+/** Venues guests can find: live ones only. */
+export async function liveVenues() {
+  return systemDb().select().from(t.venue).where(eq(t.venue.status, "live")).orderBy(asc(t.venue.name));
+}
+
 export async function tableByToken(venue: Venue, qrToken: string) {
   return withTenant(venue.tenantId, async (tx) => {
     const [row] = await tx
@@ -289,6 +294,7 @@ export interface CreatedOrderResult {
 }
 
 export async function createOrder(input: CreateOrderInput, provider: PaymentProvider): Promise<CreatedOrderResult> {
+  if (input.venue.status === "suspended") throw new Forbidden(`${input.venue.name} isn't taking orders right now`);
   const { venue, customer } = input;
   if (input.channel === "table" && !input.tableId) throw new Forbidden("Table required");
 

@@ -19,6 +19,7 @@ export function StaffLogin({ next }: { next?: string }) {
         const d = await res.json();
         setBusy(false);
         if (!res.ok) return setError(d.error);
+        if (d.mustChangePassword) return router.push("/staff/password");
         router.push(next && next.startsWith(`/staff/${d.slug}/`) || next?.startsWith(`/office/${d.slug}`) ? next : `/staff/${d.slug}/bar`);
       }}
     >
@@ -28,6 +29,9 @@ export function StaffLogin({ next }: { next?: string }) {
       <label className="field">Password<input name="password" type="password" autoComplete="current-password" required /></label>
       {error && <div className="error">{error}</div>}
       <button className="btn block" disabled={busy}>Sign in</button>
+      <p className="muted small" style={{ margin: 0, textAlign: "center" }}>
+        New venue? <a href="/start">Start your free trial</a>
+      </p>
     </form>
   );
 }

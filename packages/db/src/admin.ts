@@ -171,3 +171,20 @@ export async function changePassword(staff: Staff, current: string, next: string
     tx.update(t.staffUser).set({ passwordHash: hashPassword(next), mustChangePassword: false }).where(eq(t.staffUser.id, staff.id)),
   );
 }
+
+// ---------------------------------------------------------------- venue details
+
+/** Name, tagline, town, VAT number and brand colour shown to guests and on receipts. */
+export async function saveVenueDetails(venue: Venue, input: { name: string; tagline: string; town: string; vatNumber: string; brandColor: string }) {
+  const name = cleanName(input.name, "venue name");
+  const vat = String(input.vatNumber ?? "").replace(/\s/g, "").toUpperCase();
+  if (vat && !/^IE\d[0-9A-Z+*]\d{5}[A-Z]{1,2}$/.test(vat)) throw new OnboardingError("Enter an Irish VAT number like IE1234567T");
+  const color = String(input.brandColor ?? "").trim();
+  if (!/^#[0-9a-fA-F]{6}$/.test(color)) throw new OnboardingError("Pick a brand colour");
+  await withTenant(venue.tenantId, async (tx) => {
+    await tx
+      .update(t.venue)
+      .set({ name, tagline: String(input.tagline ?? "").trim().slice(0, 120), town: String(input.town ?? "").trim().slice(0, 80), vatNumber: vat, brandColor: color })
+      .where(eq(t.venue.id, venue.id));
+  });
+}

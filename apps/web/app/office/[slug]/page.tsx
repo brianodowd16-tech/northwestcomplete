@@ -54,7 +54,7 @@ export default async function Office({ params, searchParams }: { params: Promise
       <LiveOffice slug={slug} />
       <div>
         <div className="label">{venue.name}</div>
-        <StaffNav slug={slug} current="office" admin={staff.role === "admin"} />
+        <StaffNav setup={venue.status === "setup"} slug={slug} current="office" admin={staff.role === "admin"} />
         <div className="row wrap">
           <h1 style={{ fontSize: 28 }}>{P.label}</h1>
           <nav className="seg" aria-label="Period">

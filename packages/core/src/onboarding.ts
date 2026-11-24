@@ -126,7 +126,7 @@ export function setupChecklist(s: SetupState, slug: string): { steps: SetupStep[
     { id: "menu", title: "Add your menu", done: s.activeItems > 0, required: true, href: `${o}/menu` },
     { id: "tables", title: "Set up tables and print QR codes", done: s.tables > 0, required: false, href: `${o}/tables` },
     { id: "payments", title: "Connect myPOS (or Revolut) so guests can pay you", done: s.paymentsReady, required: true, href: `${o}/settings` },
-    { id: "vat", title: "Add your VAT number for receipts", done: /^IE\d[0-9A-Z+*]\d{5}[A-Z]{1,2}$/i.test(s.vatNumber.replace(/\s/g, "")), required: true, href: `${o}/settings` },
+    { id: "vat", title: "Add your VAT number for receipts", done: /^IE\d[0-9A-Z+*]\d{5}[A-Z]{1,2}$/i.test(s.vatNumber.replace(/\s/g, "")), required: true, href: `${o}/settings#venue` },
     { id: "reviews", title: "Add your Google Place ID for reviews", done: s.googlePlace, required: false, href: `${o}/settings` },
     { id: "xero", title: "Connect Xero", done: s.xeroConnected, required: false, href: `${o}/settings` },
     { id: "team", title: "Add your staff", done: s.staffCount > 1, required: false, href: `${o}/team` },

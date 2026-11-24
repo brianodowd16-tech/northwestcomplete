@@ -17,7 +17,7 @@ export default async function StationPage({ params, searchParams }: { params: Pr
     <div className="page">
       <VenueTheme color={venue.brandColor} />
       <div className="label">{venue.name}</div>
-      <StaffNav slug={slug} current={station} admin={staff.role === "admin"} other={(await searchParams).other} />
+      <StaffNav setup={venue.status === "setup"} slug={slug} current={station} admin={staff.role === "admin"} other={(await searchParams).other} />
       <DocketBoard slug={slug} station={station} initial={initial} />
     </div>
   );

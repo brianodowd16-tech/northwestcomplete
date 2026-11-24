@@ -3,6 +3,7 @@ import { localDate, parseConfigPack } from "@round/core";
 import { saveIntegration, saveXeroMapping, setGooglePlaceId, setPaymentProvider, syncXeroDay } from "@round/db/integrations";
 import { saveRedemptionRules } from "@round/db/ai";
 import { normaliseRules } from "@round/core";
+import { saveVenueDetails } from "@round/db/admin";
 import { venueBySlug } from "@round/db/services";
 import { currentStaff, errorJson, json, secretsKey, xeroApp } from "@/lib/server";
 
@@ -17,6 +18,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
     const key = secretsKey();
 
     switch (b.section) {
+      case "venue":
+        await saveVenueDetails(venue, { name: str(b.name), tagline: str(b.tagline), town: str(b.town), vatNumber: str(b.vatNumber), brandColor: str(b.brandColor) });
+        return json({ ok: true });
       case "payments": {
         const provider = b.provider === "mypos" || b.provider === "revolut" ? b.provider : "mock";
         if (provider === "mypos" && str(b.configPack)) {

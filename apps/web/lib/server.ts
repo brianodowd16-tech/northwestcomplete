@@ -73,6 +73,7 @@ export async function currentStaff(): Promise<Staff | null> {
 export async function requireStaffFor(slug: string, opts: { admin?: boolean } = {}): Promise<{ staff: Staff; venue: Venue }> {
   const staff = await currentStaff();
   if (!staff) redirect(`/staff/login?next=${encodeURIComponent(`/staff/${slug}/bar`)}`);
+  if (staff.mustChangePassword) redirect("/staff/password");
   const venue = await loadVenue(slug);
   // Signed in for another venue: send them to their own screens and say why.
   if (staff.venueId !== venue.id) redirect(`/staff/${(await venueById(staff.venueId)).slug}/bar?other=${encodeURIComponent(venue.name)}`);
@@ -95,7 +96,7 @@ export function json(data: unknown, status = 200) {
 
 export function errorJson(e: unknown) {
   const name = e instanceof Error ? e.constructor.name : "";
-  const status = name === "NotFound" ? 404 : name === "Forbidden" ? 403 : ["CartError", "LoyaltyError", "SignupError", "DocketError"].includes(name) ? 400 : 500;
+  const status = name === "NotFound" ? 404 : name === "Forbidden" ? 403 : ["CartError", "LoyaltyError", "SignupError", "DocketError", "OnboardingError"].includes(name) ? 400 : 500;
   if (status === 500) console.error(e);
   return json({ error: status === 500 ? "Something went wrong" : (e as Error).message }, status);
 }
