@@ -20,6 +20,9 @@ export default async function Home() {
       <header className="row wrap">
         <b style={{ fontFamily: "var(--f-display)", fontSize: 20 }}>Complete</b>
         <nav className="row">
+          <Link className="btn sm ghost" href="/me">
+            My venues
+          </Link>
           <Link className="btn sm ghost" href="/staff/login">
             Venue sign in
           </Link>

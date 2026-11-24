@@ -25,7 +25,7 @@ interface Sale {
   paidAt: string | null;
   lines: { name: string; qty: number }[];
 }
-type Pay = null | { kind: "cash" } | { kind: "card"; waiting: boolean };
+type Pay = null | { kind: "cash" } | { kind: "card"; waiting: boolean } | { kind: "room" };
 
 /**
  * Card payments on the venue's myPOS terminal. Inside the Complete app on a myPOS Android terminal
@@ -39,13 +39,14 @@ async function terminalPay(amountCents: number, reference: string): Promise<{ ap
   return { approved: r.approved, ref: r.authCode };
 }
 
-export function Till({ cats, recent, canRefundAll }: { cats: Cat[]; recent: Sale[]; canRefundAll: boolean }) {
+export function Till({ cats, recent, canRefundAll, hotel = false }: { cats: Cat[]; recent: Sale[]; canRefundAll: boolean; hotel?: boolean }) {
   const router = useRouter();
   const [cat, setCat] = useState(cats[0]?.id);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [table, setTable] = useState("");
   const [pay, setPay] = useState<Pay>(null);
   const [tendered, setTendered] = useState("");
+  const [room, setRoom] = useState("");
   const [busy, setBusy] = useState(false);
   const [key, setKey] = useState(() => crypto.randomUUID());
   const items = useMemo(() => new Map(cats.flatMap((c) => c.items).map((i) => [i.id, i])), [cats]);
@@ -58,10 +59,11 @@ export function Till({ cats, recent, canRefundAll }: { cats: Cat[]; recent: Sale
     setTable("");
     setPay(null);
     setTendered("");
+    setRoom("");
     setKey(crypto.randomUUID());
   };
 
-  async function complete(method: "cash" | "card", extra: { tenderedCents?: number; cardRef?: string }) {
+  async function complete(method: "cash" | "card" | "room", extra: { tenderedCents?: number; cardRef?: string; roomNumber?: string }) {
     setBusy(true);
     try {
       const res = await fetch("/api/staff/till", {
@@ -131,7 +133,7 @@ export function Till({ cats, recent, canRefundAll }: { cats: Cat[]; recent: Sale
                   <tr key={s.id}>
                     <td className="num">#{s.number}</td>
                     <td className="small">{s.lines.map((l) => `${l.qty} × ${l.name}`).join(", ")}</td>
-                    <td className="small">{s.provider === "cash" ? "Cash" : "Card"}</td>
+                    <td className="small">{s.provider === "cash" ? "Cash" : s.provider === "room" ? "Room" : "Card"}</td>
                     <td className="r num">{eur(s.amountPaidCents)}</td>
                     <td className="r">
                       {s.status === "refunded" ? (
@@ -200,6 +202,28 @@ export function Till({ cats, recent, canRefundAll }: { cats: Cat[]; recent: Sale
             <button className="btn block" disabled={!lines.length || busy || (food && !table)} onClick={card}>
               Card
             </button>
+            {hotel && (
+              <button className="btn ghost block" style={{ gridColumn: "1 / -1" }} disabled={!lines.length || busy || (food && !table)} onClick={() => setPay({ kind: "room" })}>
+                Charge to room
+              </button>
+            )}
+          </div>
+        )}
+        {pay?.kind === "room" && (
+          <div className="stack" style={{ gap: 8 }}>
+            <label className="field">
+              Room number
+              <input value={room} onChange={(e) => setRoom(e.target.value.replace(/[^A-Za-z0-9-]/g, ""))} autoFocus />
+            </label>
+            <span className="muted small">Check the guest&apos;s name against the room before charging.</span>
+            <div className="row" style={{ justifyContent: "flex-start" }}>
+              <button className="btn" disabled={busy || !room} onClick={() => complete("room", { roomNumber: room })}>
+                Charge {eur(total)} to room {room}
+              </button>
+              <button className="btn ghost" onClick={() => setPay(null)}>
+                Back
+              </button>
+            </div>
           </div>
         )}
         {pay?.kind === "cash" && (

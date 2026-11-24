@@ -65,7 +65,12 @@ export default async function WhatsOn({ params, searchParams }: { params: Promis
                   </div>
                   <div className="row small">
                     <span className="muted">{[o.where, o.coverCents ? `Entry ${eur(o.coverCents)}` : "Free in"].filter(Boolean).join(" · ")}</span>
-                    <a href={`/v/${venue.slug}/events.ics?e=${encodeURIComponent(o.key)}`}>Add to calendar</a>
+                    <span className="row" style={{ gap: 10 }}>
+                      {venue.bookingSeatsPerSlot > 0 && !live && (
+                        <Link href={`/v/${venue.slug}/book?e=${encodeURIComponent(o.key)}&t=${encodeURIComponent(o.title)}&at=${o.start.toISOString()}`}>Book a table</Link>
+                      )}
+                      <a href={`/v/${venue.slug}/events.ics?e=${encodeURIComponent(o.key)}`}>Add to calendar</a>
+                    </span>
                   </div>
                 </article>
               );

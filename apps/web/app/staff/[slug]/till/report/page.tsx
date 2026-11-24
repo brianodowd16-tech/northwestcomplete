@@ -34,6 +34,7 @@ export default async function TillReport({ params, searchParams }: { params: Pro
       <div className="kpis">
         <div className="panel kpi"><b className="num">{eur(r.till.cashCents)}</b><span>Cash: should be in the drawer (plus your float)</span></div>
         <div className="panel kpi"><b className="num">{eur(r.till.cardCents)}</b><span>Card on the myPOS terminal</span></div>
+        {r.till.roomCents > 0 && <div className="panel kpi"><b className="num">{eur(r.till.roomCents)}</b><span>Charged to rooms</span></div>}
         <div className="panel kpi"><b className="num">{eur(r.till.grossCents)}</b><span>Till sales ({r.till.sales})</span></div>
         <div className="panel kpi"><b className="num">{eur(r.app.paidCents)}</b><span>App orders paid by card ({r.app.orders})</span></div>
       </div>

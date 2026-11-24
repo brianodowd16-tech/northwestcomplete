@@ -25,6 +25,7 @@ export default async function TillPage({ params }: { params: Promise<{ slug: str
         cats={cats.map((c) => ({ id: c.id, name: c.name, items: c.items.map((i) => ({ id: i.id, name: i.name, priceCents: i.priceCents, station: i.station, soldOut: i.soldOut })) }))}
         recent={JSON.parse(JSON.stringify(recent))}
         canRefundAll={staff.role === "admin"}
+        hotel={venue.kind === "hotel"}
       />
     </div>
   );

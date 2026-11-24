@@ -21,9 +21,9 @@ import { systemDb, withTenant } from "./index";
 import * as t from "./schema";
 import { Forbidden, NotFound, type Venue } from "./services";
 
-export type IntegrationKind = "revolut" | "mypos" | "xero";
+export type IntegrationKind = "revolut" | "mypos" | "xero" | "delivery" | "pms";
 
-async function loadIntegration(venue: Venue, kind: IntegrationKind) {
+export async function loadIntegration(venue: Venue, kind: IntegrationKind) {
   return withTenant(venue.tenantId, async (tx) => {
     const [row] = await tx.select().from(t.venueIntegration).where(and(eq(t.venueIntegration.venueId, venue.id), eq(t.venueIntegration.kind, kind)));
     return row ?? null;

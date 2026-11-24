@@ -315,3 +315,11 @@ tr.fresh td { animation: fadeIn .6s ease both; background: color-mix(in srgb, va
 .chipbtn { white-space: nowrap; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 13px; font-weight: 600; }
 .chipbtn[aria-current="page"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 @media (max-width: 820px) { .till { grid-template-columns: minmax(0, 1fr); } .tillcart { position: static; } }
+
+.chips2 { display: flex; gap: 6px; overflow-x: auto; }
+.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 6px; }
+.slot { padding: 9px 0; border-radius: 10px; border: 1px solid var(--line); background: var(--sunk); font-weight: 600; font-variant-numeric: tabular-nums; }
+.slot.on { background: var(--vacc); color: #fff; border-color: var(--vacc); }
+
+.bar { height: 8px; background: var(--sunk); border-radius: 6px; overflow: hidden; margin-bottom: 2px; }
+.bar i { display: block; height: 100%; background: var(--vacc); }

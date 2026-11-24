@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { ClockButton } from "./ClockButton";
 
 export function StaffNav({ slug, current, admin, other, setup }: { slug: string; current: string; admin: boolean; other?: string; setup?: boolean }) {
   const tabs: [string, string, string][] = [
     ["till", "Till", `/staff/${slug}/till`],
+    ["bookings", "Bookings", `/staff/${slug}/bookings`],
     ["bar", "Bar", `/staff/${slug}/bar`],
     ["kitchen", "Kitchen", `/staff/${slug}/kitchen`],
     ["menu", "Sold out", `/staff/${slug}/menu`],
@@ -12,11 +14,13 @@ export function StaffNav({ slug, current, admin, other, setup }: { slug: string;
     tabs.push(
       ["office", "Back office", `/office/${slug}`],
       ["menuedit", "Menu", `/office/${slug}/menu`],
+      ["planner", "Planner", `/office/${slug}/planner`],
       ["stock", "Stock", `/office/${slug}/stock`],
       ["events", "What's on", `/office/${slug}/events`],
       ["tables", "Tables", `/office/${slug}/tables`],
       ["team", "Team", `/office/${slug}/team`],
       ["settings", "Settings", `/office/${slug}/settings`],
+      ["integrations", "Integrations", `/office/${slug}/integrations`],
       ...(setup ? ([["setup", "Get started", `/office/${slug}/setup`]] as [string, string, string][]) : []),
     );
   return (
@@ -35,9 +39,12 @@ export function StaffNav({ slug, current, admin, other, setup }: { slug: string;
             </Link>
           ))}
         </nav>
-        <form action="/api/auth/logout?to=/staff/login" method="post" style={{ paddingBottom: 8 }}>
-          <button className="btn ghost sm">Sign out</button>
-        </form>
+        <div className="row" style={{ paddingBottom: 8, gap: 6 }}>
+          <ClockButton />
+          <form action="/api/auth/logout?to=/staff/login" method="post">
+            <button className="btn ghost sm">Sign out</button>
+          </form>
+        </div>
       </div>
     </>
   );
