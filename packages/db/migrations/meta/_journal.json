@@ -57,6 +57,13 @@
       "when": 1795538482767,
       "tag": "0007_fantastic_punisher",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795539266572,
+      "tag": "0008_chilly_boomerang",
+      "breakpoints": true
     }
   ]
 }

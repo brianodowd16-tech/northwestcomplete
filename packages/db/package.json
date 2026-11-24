@@ -12,7 +12,8 @@
     "./admin": "./src/admin.ts",
     "./inventory": "./src/inventory.ts",
     "./push": "./src/push.ts",
-    "./events": "./src/events.ts"
+    "./events": "./src/events.ts",
+    "./till": "./src/till.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",

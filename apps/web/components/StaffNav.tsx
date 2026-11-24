@@ -2,6 +2,7 @@ import Link from "next/link";
 
 export function StaffNav({ slug, current, admin, other, setup }: { slug: string; current: string; admin: boolean; other?: string; setup?: boolean }) {
   const tabs: [string, string, string][] = [
+    ["till", "Till", `/staff/${slug}/till`],
     ["bar", "Bar", `/staff/${slug}/bar`],
     ["kitchen", "Kitchen", `/staff/${slug}/kitchen`],
     ["menu", "Sold out", `/staff/${slug}/menu`],

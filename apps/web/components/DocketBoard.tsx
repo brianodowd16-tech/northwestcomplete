@@ -11,7 +11,7 @@ export interface DocketView {
   channel: "table" | "collect";
   tableNumber: number | null;
   guestFirstName: string;
-  guestAge: number;
+  guestAge: number | null;
   idCheckRequired: boolean;
   idCheckedAt: string | null;
   lines: { name: string; qty: number; containsAlcohol: boolean }[];

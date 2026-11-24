@@ -28,7 +28,7 @@ export async function docketNotice(staff: Staff, docketId: string) {
     const [v] = await tx.select().from(t.venue).where(eq(t.venue.id, d.venueId));
     return { station: d.station, idCheck: d.idCheckRequired && !d.idCheckedAt, orderId: o.id, orderNumber: o.number, customerId: o.customerId, venueName: v.name, slug: v.slug, status: d.status };
   });
-  if (!row) return null;
+  if (!row || !row.customerId) return null; // till sales have no guest to notify
   const subs = await systemDb().select().from(t.pushSubscription).where(eq(t.pushSubscription.customerId, row.customerId));
   return { ...row, subs };
 }

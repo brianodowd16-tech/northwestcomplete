@@ -80,7 +80,7 @@ export async function venueTables(venue: Venue) {
 
 // ---------------------------------------------------------------- menu
 
-function toPriced(m: typeof t.menuItem.$inferSelect): PricedMenuItem {
+export function toPriced(m: typeof t.menuItem.$inferSelect): PricedMenuItem {
   return {
     id: m.id,
     name: m.name,
@@ -459,7 +459,9 @@ export async function completeOrder(tenantId: string, orderId: string, txnRef?: 
     if (!order) return false;
 
     const lines = await tx.select().from(t.orderLine).where(eq(t.orderLine.orderId, order.id));
-    const [cust] = await tx.select().from(t.customer).where(eq(t.customer.id, order.customerId));
+    if (!order.customerId || !order.membershipId) throw new Error("completeOrder is for app orders"); // till sales are paid when rung up
+    const customerId = order.customerId, membershipId = order.membershipId;
+    const [cust] = await tx.select().from(t.customer).where(eq(t.customer.id, customerId));
     const byStation = new Map<Station, typeof lines>();
     for (const l of lines) byStation.set(l.station, [...(byStation.get(l.station) ?? []), l]);
     for (const [station, ls] of byStation) {
@@ -473,7 +475,7 @@ export async function completeOrder(tenantId: string, orderId: string, txnRef?: 
     }
 
     await tx.execute(sql`select 1 from membership where id = ${order.membershipId} for update`);
-    const [m] = await tx.select().from(t.membership).where(eq(t.membership.id, order.membershipId));
+    const [m] = await tx.select().from(t.membership).where(eq(t.membership.id, membershipId));
     const { programme, levels } = await programmeFor(tx, m.programmeId);
     const entries = settleOrder({
       orderId: order.id,
@@ -669,19 +671,19 @@ export async function stationDockets(staff: Staff, station: Station) {
     const os = await tx.select().from(t.orders).where(inArray(t.orders.id, orderIds));
     const ls = await tx.select().from(t.orderLine).where(and(inArray(t.orderLine.orderId, orderIds), eq(t.orderLine.station, station)));
     const tables = await tx.select().from(t.venueTable).where(eq(t.venueTable.venueId, staff.venueId));
-    const custs = await tx.select().from(t.customer).where(inArray(t.customer.id, os.map((o) => o.customerId)));
+    const custs = await tx.select().from(t.customer).where(inArray(t.customer.id, os.flatMap((o) => (o.customerId ? [o.customerId] : []))));
     const now = new Date();
     return ds.map((d) => {
       const o = os.find((x) => x.id === d.orderId)!;
-      const c = custs.find((x) => x.id === o.customerId)!;
+      const c = custs.find((x) => x.id === o.customerId);
       return {
         ...d,
         orderNumber: o.number,
         channel: o.channel,
         orderStatus: o.status,
-        tableNumber: tables.find((x) => x.id === o.tableId)?.number ?? null,
-        guestFirstName: c.name.split(" ")[0],
-        guestAge: ageOn(c.dateOfBirth, now),
+        tableNumber: tables.find((x) => x.id === o.tableId)?.number ?? o.tableNumber ?? null,
+        guestFirstName: c ? c.name.split(" ")[0] : "Till",
+        guestAge: c ? ageOn(c.dateOfBirth, now) : null,
         lines: ls.filter((l) => l.orderId === d.orderId).map((l) => ({ name: l.name, qty: l.qty, containsAlcohol: l.containsAlcohol })),
       };
     });
@@ -725,10 +727,11 @@ export async function recordIdCheck(staff: Staff, docketId: string, documentType
     const d = await docketForStaff(tx, staff, docketId);
     const [o] = await tx.select().from(t.orders).where(eq(t.orders.id, d.orderId));
     const now = new Date();
-    await tx
-      .update(t.customer)
-      .set({ ageVerifiedAt: now, ageVerifiedByStaffId: staff.id, ageVerificationMethod: "staff_id_check", ageDocumentType: documentType })
-      .where(eq(t.customer.id, o.customerId));
+    if (o.customerId)
+      await tx
+        .update(t.customer)
+        .set({ ageVerifiedAt: now, ageVerifiedByStaffId: staff.id, ageVerificationMethod: "staff_id_check", ageDocumentType: documentType })
+        .where(eq(t.customer.id, o.customerId));
     await tx.update(t.docket).set({ idCheckedAt: now, idCheckedByStaffId: staff.id }).where(eq(t.docket.id, d.id));
     await tx.insert(t.auditLog).values({ tenantId: staff.tenantId, actor: `staff:${staff.id}`, action: "id_checked", entity: `customer:${o.customerId}`, detail: { documentType, docketId } });
     await publish(tx, topics.venue(staff.venueId), { kind: "dockets" });
@@ -757,7 +760,7 @@ export async function refuseId(staff: Staff, docketId: string, provider: Payment
       .returning();
     if (!o) return;
     const entries = await tx.select().from(t.loyaltyLedger).where(eq(t.loyaltyLedger.orderId, o.id));
-    await writeLedger(tx, staff.tenantId, o.membershipId, reverseEntries(entries, o.id));
+    if (o.membershipId) await writeLedger(tx, staff.tenantId, o.membershipId, reverseEntries(entries, o.id));
     await restockForOrder(tx, staff.tenantId, o.venueId, o.id); // refused at the bar: nothing was served
     await tx.update(t.docket).set({ status: "done", doneAt: new Date() }).where(eq(t.docket.orderId, o.id));
     await tx.insert(t.auditLog).values({ tenantId: staff.tenantId, actor: `staff:${staff.id}`, action: "id_refused", entity: `order:${o.id}`, detail: { docketId } });
@@ -826,7 +829,7 @@ export async function dashboard(venue: Venue, from: Date, to: Date) {
     const [rDockets, rCust, tables] = recentIds.length
       ? await Promise.all([
           tx.select().from(t.docket).where(inArray(t.docket.orderId, recentIds)),
-          tx.select({ id: t.customer.id, name: t.customer.name }).from(t.customer).where(inArray(t.customer.id, recent.map((o) => o.customerId))),
+          tx.select({ id: t.customer.id, name: t.customer.name }).from(t.customer).where(inArray(t.customer.id, recent.flatMap((o) => (o.customerId ? [o.customerId] : ["00000000-0000-0000-0000-000000000000"])))),
           tx.select().from(t.venueTable).where(eq(t.venueTable.venueId, venue.id)),
         ])
       : [[], [], []];
@@ -863,7 +866,7 @@ export async function billingStatement(venue: Venue, year: number, month: number
         refunds: sql<number>`coalesce(sum(${t.orders.refundedCents}), 0)::int`,
       })
       .from(t.orders)
-      .where(and(eq(t.orders.venueId, venue.id), inArray(t.orders.status, ["paid", "refunded"]), ne(t.orders.provider, "mock"), gte(t.orders.paidAt, trial.chargeFrom), lt(t.orders.paidAt, to)));
+      .where(and(eq(t.orders.venueId, venue.id), inArray(t.orders.status, ["paid", "refunded"]), ne(t.orders.provider, "mock"), ne(t.orders.channel, "counter"), gte(t.orders.paidAt, trial.chargeFrom), lt(t.orders.paidAt, to)));
     return buildStatement({
       appGrossCents: row.gross,
       appRefundsCents: row.refunds,

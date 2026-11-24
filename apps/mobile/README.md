@@ -28,3 +28,16 @@ Every venue also gets an installable web app (PWA) with its own name, colour and
 - **Apple Pay inside the iOS app:** WebKit turns Apple Pay off in web views that inject scripts, which Capacitor does. Card payments on the myPOS page still work; test Apple Pay in the iOS build before launch. Google Pay works in the Android web view only if myPOS's page supports it there.
 - **Accounts:** Apple Developer Program (company account needs a D-U-N-S number) and Google Play Console (new personal accounts need a 14-day closed test with 12 testers).
 - **Privacy:** App Store privacy labels and the Play data safety form: phone number, name, email, date of birth, purchase history. No tracking.
+
+## Card payments on a myPOS terminal
+
+The Till screen takes card payments two ways:
+
+1. **Separate myPOS terminal** (works today): staff key the amount into the terminal, then tap Approved on the till.
+2. **Integrated**: run the Complete Android app on a myPOS smart terminal (Android) and add a Capacitor plugin named `MyposTerminal` with one method:
+
+   ```ts
+   purchase({ amountCents: number, currency: "EUR", reference: string }): Promise<{ approved: boolean; authCode?: string }>
+   ```
+
+   Implement it in Kotlin with the myPOS Smart SDK (from myPOS's developer portal; confirm the current SDK and terminal models with myPOS). The till detects the plugin and uses it automatically. Card money settles straight into the venue's own myPOS account.

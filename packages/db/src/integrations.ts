@@ -167,7 +167,8 @@ export async function dayOrders(venue: Venue, date: string): Promise<{ paid: Day
     const toDay = (o: (typeof os)[number]): DayOrder => ({
       lines: lines.filter((l) => l.orderId === o.id).map((l) => ({ grossCents: l.grossCents, vatRate: l.vatRate })),
       creditUsedCents: o.creditUsedCents,
-      amountPaidCents: o.amountPaidCents,
+      // Cash isn't in the card clearing account: it stays on the invoice until it's banked.
+      amountPaidCents: o.provider === "cash" ? 0 : o.amountPaidCents,
     });
     return { paid: paid.map(toDay), refunded: refunded.map(toDay) };
   });

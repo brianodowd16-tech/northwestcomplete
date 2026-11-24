@@ -203,10 +203,15 @@ export const orders = pgTable(
     tenantId: tenantId(),
     venueId: uuid("venue_id").notNull().references(() => venue.id),
     number: serial("number").notNull(),
-    channel: text("channel", { enum: ["table", "collect"] }).notNull(),
+    /** counter = rung up on the till by staff (no guest account, earns no loyalty). */
+    channel: text("channel", { enum: ["table", "collect", "counter"] }).notNull(),
     tableId: uuid("table_id").references(() => venueTable.id),
-    customerId: uuid("customer_id").notNull().references(() => customer.id),
-    membershipId: uuid("membership_id").notNull().references(() => membership.id),
+    customerId: uuid("customer_id").references(() => customer.id),
+    membershipId: uuid("membership_id").references(() => membership.id),
+    /** Who rang up a till sale. */
+    staffId: uuid("staff_id"),
+    /** Table number food from the till goes to. */
+    tableNumber: integer("table_number"),
     status: text("status", { enum: ["pending_payment", "paid", "cancelled", "refunded"] }).notNull(),
     grossCents: integer("gross_cents").notNull(),
     vat9Cents: integer("vat9_cents").notNull(),

@@ -70,7 +70,7 @@ describe("myPOS through the order flow", () => {
     await expect(svc.handleWebhook(provider, good, new Headers(), drum)).rejects.toThrow(/another venue/);
     const r = await svc.handleWebhook(provider, good, new Headers(), mj);
     expect(r).toEqual({ status: 200, body: "OK" });
-    const after = await svc.orderForCustomer(mj, order.id, order.customerId);
+    const after = await svc.orderForCustomer(mj, order.id, order.customerId!);
     expect(after.order.status).toBe("paid");
     expect(after.order.providerTxnRef).toBe("TRN1");
     expect(after.dockets).toHaveLength(1);
@@ -82,7 +82,7 @@ describe("myPOS through the order flow", () => {
     expect((await svc.handleWebhook(provider, forged, new Headers(), mj)).status).toBe(401);
     const cheap = notify([["IPCmethod", "IPCPurchaseNotify"], ["SID", SID], ["Amount", "1.00"], ["Currency", "EUR"], ["OrderID", order.id]]);
     await expect(svc.handleWebhook(provider, cheap, new Headers(), mj)).rejects.toThrow(/Amount mismatch/);
-    expect((await svc.orderForCustomer(mj, order.id, order.customerId)).order.status).toBe("pending_payment");
+    expect((await svc.orderForCustomer(mj, order.id, order.customerId!)).order.status).toBe("pending_payment");
   });
 
   it("rebuilds the same checkout for a retried request", async () => {
@@ -102,11 +102,11 @@ describe("myPOS through the order flow", () => {
     const d = (await svc.stationDockets(staff, "bar")).find((x) => x.orderId === order.id)!;
     const failing = { ...provider, refund: vi.fn(async () => { throw new Error("myPOS down"); }) };
     await expect(svc.refuseId(staff, d.id, failing)).rejects.toThrow(/myPOS down/);
-    expect((await svc.orderForCustomer(mj, order.id, order.customerId)).order.status).toBe("paid");
+    expect((await svc.orderForCustomer(mj, order.id, order.customerId!)).order.status).toBe("paid");
     const ok = { ...provider, refund: vi.fn(async () => {}) };
     await svc.refuseId(staff, d.id, ok);
     expect(ok.refund).toHaveBeenCalledWith({ providerOrderId: order.id, txnRef: "TRN4", amountCents: 1240 }, "ID check refused");
-    const after = (await svc.orderForCustomer(mj, order.id, order.customerId)).order;
+    const after = (await svc.orderForCustomer(mj, order.id, order.customerId!)).order;
     expect(after.status).toBe("refunded");
     expect(after.refundedAt).not.toBeNull();
   });
@@ -115,18 +115,18 @@ describe("myPOS through the order flow", () => {
     const { order } = await placeMyPos("+353870001005", "mp5");
     await withTenant(mj.tenantId, (tx) => tx.update(t.orders).set({ createdAt: new Date(Date.now() - 31 * 60_000) }).where(eq(t.orders.id, order.id)));
     await svc.reconcilePending((venueId) => integ.providerForVenue(venueId === mj.id ? mj : drum, KEY));
-    expect((await svc.orderForCustomer(mj, order.id, order.customerId)).order.status).toBe("cancelled");
+    expect((await svc.orderForCustomer(mj, order.id, order.customerId!)).order.status).toBe("cancelled");
   });
 });
 
 describe("Google reviews", () => {
   it("records the click and sends the guest to Google", async () => {
     const { order } = await placeMyPos("+353870001006", "rv1");
-    await expect(integ.reviewRedirect(mj, order.id, order.customerId)).rejects.toThrow(/aren't set up/);
+    await expect(integ.reviewRedirect(mj, order.id, order.customerId!)).rejects.toThrow(/aren't set up/);
     await expect(integ.setGooglePlaceId(mj, "not a place id!")).rejects.toThrow();
     await integ.setGooglePlaceId(mj, "ChIJN1t_tDeuEmsRUsoyG83frY4");
     mj = await svc.venueBySlug("mj-oconnors");
-    expect(await integ.reviewRedirect(mj, order.id, order.customerId)).toBe("https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4");
+    expect(await integ.reviewRedirect(mj, order.id, order.customerId!)).toBe("https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4");
     await expect(integ.reviewRedirect(mj, order.id, "00000000-0000-0000-0000-000000000000")).rejects.toThrow(/not found/);
   });
 });
