@@ -197,6 +197,15 @@ describe("ID check at the bar", () => {
   });
 });
 
+describe("first visit", () => {
+  it("creates one membership and one sign-up credit when two requests arrive together", async () => {
+    const c = await svc.createCustomer({ phone: "+353870009999", name: "Race Test", email: "r@example.com", dateOfBirth: "1990-01-01", marketingConsent: false });
+    const [a, b] = await Promise.all([svc.ensureMembership(mj, c.id), svc.ensureMembership(mj, c.id)]);
+    expect(a.id).toBe(b.id);
+    expect((await svc.memberSummary(mj, c.id)).balances.creditCents).toBe(1000);
+  });
+});
+
 describe("billing", () => {
   it("builds the month's statement from app payments", async () => {
     const now = new Date();

@@ -32,3 +32,8 @@ export async function sendSignupCode(to: string, code: string) {
     html: `<div style="font-family:system-ui,sans-serif;font-size:15px;color:#17201D"><p>Your code to set up your venue on Complete is</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p style="color:#5B6863">It works for 15 minutes. If you didn't ask for it, you can ignore this email.</p><p style="color:#5B6863">Complete · complete.pub</p></div>`,
   });
 }
+
+/** Any plain email from the Complete mailbox (supplier orders and similar). */
+export async function sendEmail(to: string, subject: string, text: string, replyTo?: string) {
+  await smtp().sendMail({ from: from(), to, subject, text, ...(replyTo ? { replyTo } : {}) });
+}

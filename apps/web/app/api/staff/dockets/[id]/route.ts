@@ -1,5 +1,7 @@
 import type { DocketStatus } from "@round/core";
 import { advanceDocket, recordIdCheck, refuseId, revertDocket, venueById, type AgeDocument } from "@round/db/services";
+import { after } from "next/server";
+import { notifyDocketReady } from "@/lib/push";
 import { currentStaff, errorJson, json, providerFor } from "@/lib/server";
 
 const DOCS: AgeDocument[] = ["age_card", "passport", "driving_licence"];
@@ -11,7 +13,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     if (!staff) return json({ error: "Sign in" }, 401);
     const { id } = await ctx.params;
     const b = (await req.json()) as { action: string; to?: DocketStatus; documentType?: AgeDocument };
-    if (b.action === "advance" && b.to && STATUSES.includes(b.to)) await advanceDocket(staff, id, b.to);
+    if (b.action === "advance" && b.to && STATUSES.includes(b.to)) {
+      await advanceDocket(staff, id, b.to);
+      if (b.to === "ready") after(() => notifyDocketReady(staff, id).catch((e) => console.error("push", e)));
+    }
     else if (b.action === "id_check" && b.documentType && DOCS.includes(b.documentType)) await recordIdCheck(staff, id, b.documentType);
     else if (b.action === "undo") await revertDocket(staff, id);
     else if (b.action === "refuse") await refuseId(staff, id, await providerFor(await venueById(staff.venueId)));

@@ -39,3 +39,33 @@ self.addEventListener("fetch", (e) => {
     e.respondWith(fetch(req).catch(() => caches.match(OFFLINE_URL)));
   }
 });
+
+// "Your drinks are ready": shown even when the app is closed.
+self.addEventListener("push", (e) => {
+  let d = {};
+  try {
+    d = e.data ? e.data.json() : {};
+  } catch {}
+  e.waitUntil(
+    self.registration.showNotification(d.title || "Complete", {
+      body: d.body || "",
+      tag: d.tag,
+      renotify: true,
+      icon: "/api/icon/platform/192",
+      badge: "/api/icon/platform/192",
+      vibrate: [200, 100, 200],
+      data: { url: d.url || "/" },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || "/";
+  e.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const c of list) if (c.url === url && "focus" in c) return c.focus();
+      return self.clients.openWindow(url);
+    }),
+  );
+});

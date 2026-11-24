@@ -185,10 +185,16 @@ async function ensureMembershipTx(tx: Tx, venue: Venue, customerId: string) {
     .where(and(eq(t.membership.programmeId, venue.programmeId), eq(t.membership.customerId, customerId)));
   if (existing) return existing;
   const { programme } = await programmeFor(tx, venue.programmeId);
+  // Two requests can arrive together on first visit: only the one that creates the membership grants the sign-up credit.
   const [m] = await tx
     .insert(t.membership)
     .values({ tenantId: venue.tenantId, programmeId: venue.programmeId, customerId, referralCode: randomBytes(4).toString("hex").toUpperCase() })
+    .onConflictDoNothing({ target: [t.membership.programmeId, t.membership.customerId] })
     .returning();
+  if (!m) {
+    const [other] = await tx.select().from(t.membership).where(and(eq(t.membership.programmeId, venue.programmeId), eq(t.membership.customerId, customerId)));
+    return other;
+  }
   await writeLedger(tx, venue.tenantId, m.id, signupEntries(programme));
   return m;
 }

@@ -4,6 +4,8 @@ import { eur } from "@/components/format";
 import { IconBell, IconCheck, IconFlame, IconGlass } from "@/components/Icons";
 import { ApproveOrder } from "@/components/ApproveOrder";
 import { OrderAlerts } from "@/components/OrderStatus";
+import { PushOptIn } from "@/components/PushOptIn";
+import { pushPublicKey } from "@/lib/push";
 import { currentGuest, loadVenue } from "@/lib/server";
 
 export const dynamic = "force-dynamic";
@@ -44,6 +46,7 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
   return (
     <div className="stack">
       <OrderAlerts slug={slug} paid={order.status === "paid"} dockets={dockets.map((d) => ({ station: d.station, status: d.status }))} />
+      {order.status === "paid" && dockets.some((d) => d.status === "new" || d.status === "in_progress") && <PushOptIn publicKey={pushPublicKey()} />}
       <div className="row">
         <h1 style={{ fontSize: 26 }}>Order #{order.number}</h1>
         <span className="modechip">

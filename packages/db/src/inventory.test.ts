@@ -14,7 +14,7 @@ let keg: string, gin: string, tonic: string;
 const onHand = async (id: string) => (await inv.stockLevels(mj)).items.find((i) => i.id === id)!.onHand;
 
 beforeAll(async () => {
-  await seed(await resetDatabase());
+  await seed(await resetDatabase(), { stock: false });
   mj = await svc.venueBySlug("mj-oconnors");
   staff = (await svc.staffByEmail("staff@mjoconnors.example"))!;
   guest = await svc.createCustomer({ phone: "+353870003001", name: "Ciara Walsh", email: "c@example.com", dateOfBirth: "1990-01-01", marketingConsent: false });
