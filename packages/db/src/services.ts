@@ -16,6 +16,7 @@ import {
   settleOrder,
   signupEntries,
   splitByStation,
+  trialAdjust,
   type Channel,
   type DocketStatus,
   type LedgerEntry,
@@ -64,9 +65,10 @@ export async function tableByToken(venue: Venue, qrToken: string) {
   });
 }
 
+/** Tables in use (switched-off tables keep their row so old QR codes say "not found"). */
 export async function venueTables(venue: Venue) {
   return withTenant(venue.tenantId, (tx) =>
-    tx.select().from(t.venueTable).where(eq(t.venueTable.venueId, venue.id)).orderBy(asc(t.venueTable.number)),
+    tx.select().from(t.venueTable).where(and(eq(t.venueTable.venueId, venue.id), eq(t.venueTable.active, true))).orderBy(asc(t.venueTable.number)),
   );
 }
 
@@ -838,18 +840,20 @@ export async function billingStatement(venue: Venue, year: number, month: number
   const to = new Date(Date.UTC(year, month, 1));
   return withTenant(venue.tenantId, async (tx) => {
     const [sub] = await tx.select().from(t.subscription).where(eq(t.subscription.venueId, venue.id));
+    // Free trial: no app fee on payments before it ends, subscription only for the rest of the month.
+    const trial = trialAdjust(sub?.trialEndsAt ?? null, from, to, sub?.monthlyFeeCents ?? 0);
     const [row] = await tx
       .select({
         gross: sql<number>`coalesce(sum(${t.orders.amountPaidCents}), 0)::int`,
         refunds: sql<number>`coalesce(sum(${t.orders.refundedCents}), 0)::int`,
       })
       .from(t.orders)
-      .where(and(eq(t.orders.venueId, venue.id), inArray(t.orders.status, ["paid", "refunded"]), gte(t.orders.paidAt, from), lt(t.orders.paidAt, to)));
+      .where(and(eq(t.orders.venueId, venue.id), inArray(t.orders.status, ["paid", "refunded"]), ne(t.orders.provider, "mock"), gte(t.orders.paidAt, trial.chargeFrom), lt(t.orders.paidAt, to)));
     return buildStatement({
       appGrossCents: row.gross,
       appRefundsCents: row.refunds,
       appFeeBps: sub?.appFeeBps ?? 100,
-      subscriptionCents: sub?.monthlyFeeCents ?? 0,
+      subscriptionCents: trial.subscriptionCents,
     });
   });
 }

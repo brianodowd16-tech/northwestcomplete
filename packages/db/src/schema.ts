@@ -64,6 +64,10 @@ export const venue = pgTable("venue", {
   bookingMaxAdvanceDays: integer("booking_max_advance_days").notNull().default(31),
   paymentProvider: text("payment_provider", { enum: ["mock", "revolut", "mypos"] }).notNull().default("mock"),
   googlePlaceId: text("google_place_id"),
+  /** setup: test mode while the venue gets ready; live: taking real orders; suspended: closed by the platform. */
+  status: text("status", { enum: ["setup", "live", "suspended"] }).notNull().default("live"),
+  kind: text("kind", { enum: ["bar", "restaurant", "hotel", "cafe"] }).notNull().default("bar"),
+  liveAt: timestamp("live_at", { withTimezone: true }),
   createdAt: createdAt(),
 });
 
@@ -103,6 +107,8 @@ export const staffUser = pgTable("staff_user", {
   name: text("name").notNull(),
   role: text("role", { enum: ["admin", "staff"] }).notNull(),
   passwordHash: text("password_hash").notNull(),
+  /** Set for invited staff with a temporary password: they choose their own on first sign-in. */
+  mustChangePassword: boolean("must_change_password").notNull().default(false),
 });
 
 export const menuCategory = pgTable("menu_category", {
@@ -327,6 +333,17 @@ export const subscription = pgTable("subscription", {
   venueId: uuid("venue_id").notNull().references(() => venue.id).unique(),
   monthlyFeeCents: integer("monthly_fee_cents").notNull(),
   appFeeBps: integer("app_fee_bps").notNull().default(100),
+  /** No subscription or app fee for months that end before this. Null: no trial. */
+  trialEndsAt: timestamp("trial_ends_at", { withTimezone: true }),
+});
+
+/** Platform-level: email codes for business sign-up. No tenant yet. */
+export const signupCode = pgTable("signup_code", {
+  email: text("email").primaryKey(),
+  codeHash: text("code_hash").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  attempts: integer("attempts").notNull().default(0),
+  sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const auditLog = pgTable("audit_log", {

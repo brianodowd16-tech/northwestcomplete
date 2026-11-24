@@ -7,7 +7,9 @@
     "./schema": "./src/schema.ts",
     "./services": "./src/services.ts",
     "./integrations": "./src/integrations.ts",
-    "./ai": "./src/ai.ts"
+    "./ai": "./src/ai.ts",
+    "./onboarding": "./src/onboarding.ts",
+    "./admin": "./src/admin.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",

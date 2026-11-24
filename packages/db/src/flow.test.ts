@@ -200,7 +200,10 @@ describe("ID check at the bar", () => {
 describe("billing", () => {
   it("builds the month's statement from app payments", async () => {
     const now = new Date();
-    const s = await svc.billingStatement(mj, now.getUTCFullYear(), now.getUTCMonth() + 1);
+    const month = [mj, now.getUTCFullYear(), now.getUTCMonth() + 1] as const;
+    expect((await svc.billingStatement(...month)).appGrossCents).toBe(0); // test payments are never billed
+    await pool().query("update orders set provider = 'mypos' where venue_id = $1", [mj.id]); // as if paid through myPOS
+    const s = await svc.billingStatement(...month);
     expect(s.subscriptionCents).toBe(9900);
     expect(s.appGrossCents).toBeGreaterThan(0);
     expect(s.appFeeCents).toBe(Math.floor((s.netAppCents * 100 + 5000) / 10000));
