@@ -14,6 +14,7 @@
     "@round/core": "workspace:*",
     "@round/db": "workspace:*",
     "next": "15.5.28",
+    "nodemailer": "10.4.0",
     "pg": "8.23.1",
     "pg-boss": "10.4.2",
     "qrcode": "1.5.4",

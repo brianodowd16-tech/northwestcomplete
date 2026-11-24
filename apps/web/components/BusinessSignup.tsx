@@ -102,7 +102,7 @@ export function BusinessSignup() {
       </label>
       {devCode && (
         <div className="notice">
-          Test mode: your code is <b>{devCode}</b>. In the live app it arrives by email.
+          Development: your code is <b>{devCode}</b>. It's also emailed if email is set up.
         </div>
       )}
       <div className="two">

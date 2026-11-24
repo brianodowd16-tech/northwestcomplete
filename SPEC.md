@@ -138,13 +138,13 @@ Each venue's statement: subscription + 1% of completed app payments net of refun
 
 ## 8. Environment
 
-`DATABASE_URL`, `APP_URL`, `SESSION_SECRET`, `SECRETS_KEY` (32 random bytes, base64), `XERO_CLIENT_ID`, `XERO_CLIENT_SECRET`, optional `XERO_SCOPES`, `REVOLUT_MODE`, optional `ANTHROPIC_API_KEY` (venue assistant). Venue keys are not environment variables: managers enter them in Settings.
+`DATABASE_URL`, `APP_URL`, `SESSION_SECRET`, `SECRETS_KEY` (32 random bytes, base64), `XERO_CLIENT_ID`, `XERO_CLIENT_SECRET`, optional `XERO_SCOPES`, `REVOLUT_MODE`, optional `ANTHROPIC_API_KEY` (venue assistant), `SMTP_HOST` (smtp.hostinger.com), `SMTP_PORT` (465), `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` for sign-up emails from the Complete mailbox. Without SMTP in production, business sign-up refuses rather than failing silently. Venue keys are not environment variables: managers enter them in Settings.
 
 ## 9. Status
 
 **Built and tested** (branch `prototype`): guest web app; sign-in; table and collect-at-bar ordering; myPOS hosted checkout and verified notifications; Revolut; test payments; bar and kitchen screens with ID checks and refunds; sold-out toggles; loyalty engine; Google review prompt and tracking; Xero connect, mapping and nightly sync; back office with sales, VAT, review clicks and the monthly statement; Settings for payments (including myPOS configuration pack import), reviews, redemption rules and Xero; encrypted venue credentials; AI features (recommendations, machine-readable benefits, guest-controlled assistant access with limits, held orders the guest approves, audit log, MCP server and REST API, venue "Ask your data"); pg-boss jobs; CI.
 
-**Next to build**: text-message provider for sign-in codes and an email provider for business sign-up codes (EU region); push notifications in the native apps; platform admin (suspend venues, see sign-ups); collecting subscriptions; cloud printing to the bar and kitchen printers; events, tickets, bookings, gift cards, birthday and bonus-credit jobs; iOS and Android wrappers with push notifications; hosting and deploy pipeline; GDPR export and delete.
+**Next to build**: text-message provider for guest sign-in codes; push notifications in the native apps; platform admin (suspend venues, see sign-ups); collecting subscriptions; cloud printing to the bar and kitchen printers; events, tickets, bookings, gift cards, birthday and bonus-credit jobs; iOS and Android wrappers with push notifications; hosting and deploy pipeline; GDPR export and delete.
 
 **Built for self-serve** (branch `prototype`): business sign-up, get-started checklist and go-live, free trial, menu editor, tables and printable QR codes, team accounts, venue details, landing page, per-venue installable app, Capacitor iOS/Android shell.
 
