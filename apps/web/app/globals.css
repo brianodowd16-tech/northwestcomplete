@@ -297,3 +297,7 @@ tr.fresh td { animation: fadeIn .6s ease both; background: color-mix(in srgb, va
 .event { border-left: 4px solid var(--vacc); }
 .event.sport { border-left-color: #2f6fb0; }
 .event.quiz, .event.comedy { border-left-color: #8a4fb3; }
+
+.fpl { text-decoration: none; color: inherit; background: linear-gradient(135deg, #37003c, #5a1063); color: #fff; border: 0; }
+.fpl .muted { color: rgba(255,255,255,.8); }
+.qr.fplqr svg, .qr svg { max-width: 100%; }

@@ -24,6 +24,12 @@ export default async function WhatsOn({ params, searchParams }: { params: Promis
         <h1 style={{ fontSize: 26 }}>What&apos;s on</h1>
         <a className="btn sm ghost" href={`/v/${venue.slug}/events.ics`}>📅 Add all to my calendar</a>
       </div>
+      {venue.fplCode && (
+        <a className="card fpl" href={`/v/${venue.slug}/fpl`} target="_blank" rel="noopener">
+          <b>⚽ Join our Fantasy Premier League</b>
+          <span className="muted small">Play against the regulars all season. Opens the official Fantasy Premier League site.</span>
+        </a>
+      )}
       {kinds.length > 1 && (
         <nav className="subtabs" aria-label="Filter">
           <Link href={`/v/${venue.slug}/events`} aria-current={!kind ? "page" : undefined}>All</Link>
@@ -48,7 +54,7 @@ export default async function WhatsOn({ params, searchParams }: { params: Promis
                 <article key={o.key} className={`card event ${o.kind}`}>
                   <div className="row" style={{ alignItems: "flex-start" }}>
                     <div style={{ minWidth: 0 }}>
-                      <span className="label">{EVENT_KINDS[o.kind].icon} {EVENT_KINDS[o.kind].label}{o.repeatWeekly ? " · every week" : ""}</span>
+                      <span className="label">{EVENT_KINDS[o.kind].icon} {o.auto ? "Top game today" : EVENT_KINDS[o.kind].label}{o.repeatWeekly ? " · every week" : ""}</span>
                       <b style={{ display: "block", fontSize: 17 }}>{o.title}</b>
                       {o.details && <span className="muted small">{o.details}</span>}
                     </div>

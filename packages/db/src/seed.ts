@@ -136,6 +136,25 @@ async function seedEvents(db: Db, tenantId: string, venueId: string, key: string
   await db.insert(t.venueEvent).values(rows.map((r) => ({ ...r, tenantId, venueId })));
 }
 
+/** Sample top games for the coming days (the daily feed job replaces these with real fixtures). */
+async function seedTopGames(db: Db) {
+  const at = (days: number, hhmm: string) => zonedToUtc(`${new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10)}T${hhmm}`, "Europe/Dublin");
+  const g: [number, string, string, string, string, string][] = [
+    [0, "20:00", "UEFA Champions League", "soccer", "Liverpool", "Real Madrid"],
+    [0, "20:00", "UEFA Champions League", "soccer", "Arsenal", "Bayern Munich"],
+    [1, "19:35", "United Rugby Championship", "rugby", "Ulster", "Glasgow Warriors"],
+    [1, "20:00", "English Premier League", "soccer", "Chelsea", "Tottenham"],
+    [2, "12:30", "English Premier League", "soccer", "Manchester United", "Liverpool"],
+    [2, "15:00", "English Premier League", "soccer", "Manchester City", "Newcastle"],
+    [2, "17:30", "United Rugby Championship", "rugby", "Leinster", "Munster"],
+    [2, "17:30", "English Premier League", "soccer", "Arsenal", "Everton"],
+    [3, "14:00", "English Premier League", "soccer", "Tottenham", "Chelsea"],
+    [3, "15:00", "European Rugby Champions Cup", "rugby", "Connacht", "Toulouse"],
+    [3, "16:30", "English Premier League", "soccer", "Aston Villa", "Liverpool"],
+  ];
+  await db.insert(t.sportFixture).values(g.map(([d, hm, league, sport, home, away], i) => ({ externalId: `sample-${i}`, sport, league, home, away, startsAt: at(d, hm), durationMins: 120, score: 60 }))).onConflictDoNothing();
+}
+
 export async function seed(db: Db, opts: { stock?: boolean } = {}) {
   const out: Record<string, { slug: string; tables: string[] }> = {};
   for (const [key, v] of Object.entries(VENUES) as [keyof typeof VENUES, (typeof VENUES)[keyof typeof VENUES]][]) {
@@ -158,7 +177,7 @@ export async function seed(db: Db, opts: { stock?: boolean } = {}) {
     );
     const [ven] = await db
       .insert(t.venue)
-      .values({ tenantId, programmeId: prog.id, slug: v.slug, name: v.name, tagline: v.tagline, town: v.town, brandColor: v.brandColor, vatNumber: "IE0000000X" })
+      .values({ tenantId, programmeId: prog.id, slug: v.slug, name: v.name, tagline: v.tagline, town: v.town, brandColor: v.brandColor, vatNumber: "IE0000000X", fplCode: key === "mjo" ? "mjo2627" : null })
       .returning();
     await db.insert(t.subscription).values({ tenantId, venueId: ven.id, monthlyFeeCents: 9900, appFeeBps: 100 });
     const tables = await db
@@ -196,5 +215,6 @@ export async function seed(db: Db, opts: { stock?: boolean } = {}) {
     });
     out[v.slug] = { slug: v.slug, tables: tables.sort((a, b) => a.number - b.number).map((x) => x.qrToken) };
   }
+  await seedTopGames(db);
   return out;
 }

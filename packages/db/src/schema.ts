@@ -64,6 +64,11 @@ export const venue = pgTable("venue", {
   bookingMaxAdvanceDays: integer("booking_max_advance_days").notNull().default(31),
   /** Mark menu items sold out when an ingredient runs out. */
   autoSoldOut: boolean("auto_sold_out").notNull().default(false),
+  /** List Ireland's top televised games each day in What's on. */
+  autoSports: boolean("auto_sports").notNull().default(true),
+  /** The venue's Fantasy Premier League mini-league invite code; guests join via /v/{slug}/fpl. */
+  fplCode: text("fpl_code"),
+  fplClicks: integer("fpl_clicks").notNull().default(0),
   paymentProvider: text("payment_provider", { enum: ["mock", "revolut", "mypos"] }).notNull().default("mock"),
   googlePlaceId: text("google_place_id"),
   /** setup: test mode while the venue gets ready; live: taking real orders; suspended: closed by the platform. */
@@ -514,6 +519,24 @@ export const venueEvent = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("venue_event_venue").on(t.venueId, t.startsAt)],
+);
+
+/** Platform-level: the day's top televised games for Irish pubs (from the fixtures feed, ranked). */
+export const sportFixture = pgTable(
+  "sport_fixture",
+  {
+    id: id(),
+    externalId: text("external_id").notNull().unique(),
+    sport: text("sport").notNull(),
+    league: text("league").notNull(),
+    home: text("home").notNull(),
+    away: text("away").notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    durationMins: integer("duration_mins").notNull().default(120),
+    score: integer("score").notNull(),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("sport_fixture_time").on(t.startsAt)],
 );
 
 export const TENANT_TABLES = [
