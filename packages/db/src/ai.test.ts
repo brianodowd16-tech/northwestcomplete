@@ -109,9 +109,14 @@ describe("AI assistant access", () => {
     expect(held.order.providerOrderId).toBeNull();
     expect(held.dockets).toHaveLength(0);
 
+    // Approving late still gives the guest the full payment window.
+    await pool().query("update orders set created_at = now() - interval '29 minutes' where id = $1", [orderId]);
     // The guest approves in the app: checkout starts with the venue's own provider.
     const approved = await svc.approveHeldOrder(mj, guest, orderId, provider, APP);
     expect(approved.checkout?.token).toBeTruthy();
+    await svc.reconcilePending(async () => ({ ...provider, getOrder: null }) as never, 0);
+    expect((await svc.orderForCustomer(mj, orderId, guest.id)).order.status).toBe("pending_payment");
+    await expect(svc.approveHeldOrder(mj, guest, orderId, provider, APP)).rejects.toThrow(/already being paid/);
     const { rawBody, headers } = provider.simulatePayment(approved.order.providerOrderId!);
     await svc.handleWebhook(provider, rawBody, headers, mj);
     expect((await svc.orderForCustomer(mj, orderId, guest.id)).dockets).toHaveLength(1);

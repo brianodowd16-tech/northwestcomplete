@@ -399,6 +399,9 @@ export async function approveHeldOrder(venue: Venue, customer: Customer, orderId
   const o = await getOrderRow(venue, orderId);
   if (!o || o.customerId !== customer.id) throw new NotFound("Order not found");
   if (o.status !== "pending_payment") throw new Forbidden("This order isn't waiting for approval");
+  if (o.providerOrderId) throw new Forbidden("This order is already being paid");
+  // The payment clock starts when the guest approves, not when the assistant prepared it.
+  await withTenant(venue.tenantId, (tx) => tx.update(t.orders).set({ createdAt: new Date() }).where(and(eq(t.orders.id, o.id), eq(t.orders.status, "pending_payment"))));
   if (o.amountPaidCents === 0) {
     await completeOrder(venue.tenantId, o.id);
     return { order: (await getOrderRow(venue, o.id))!, checkout: null };

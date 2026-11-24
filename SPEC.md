@@ -25,6 +25,11 @@ The Snug Club is a white-label ordering, payments and loyalty platform for Irish
 | Billing (venues → you) | Monthly subscription per venue plus **1% of completed app payments** net of refunds. myPOS and Revolut can't split a platform fee from each payment, so The Snug Club calculates it and invoices monthly. |
 | Bookings | Each venue sets how far ahead guests can book; default 1 month. |
 | Apps | Web app (works on any phone from the QR) first. iOS and Android apps wrap the same app and add push notifications ("drinks ready"), submitted from a company developer account. |
+| myPOS setup | The manager pastes or uploads the **configuration pack** from the myPOS account (Online → Settings → Configuration pack). The server checks it (store ID, client number, key index, keys, a test signature) and stores it encrypted. Test packs only until the sandbox checks in section 9 pass. |
+| AI and agents | Loyalty is machine-readable for guests' own AI assistants (Claude, ChatGPT and others): profile, benefits, live eligibility, quotes and prepared orders. A guest connects an assistant from Rewards, choosing what it may do, the largest order, the most credit per order, and how long access lasts (1–90 days). The token is shown once and only its SHA-256 is stored. Assistants can never pay: orders they prepare wait until the guest approves and pays in the app. Every request, allowed or refused, is logged for the guest and the venue. The guest can switch it off at any time. Assistants connect through an MCP server at `/api/mcp` (same tools as REST at `/api/agent/v1/tools`). |
+| Redemption rules | Per programme: minimum order for credit, minimum order for double points, whether credit and double points stack (if not, credit wins), and an optional monthly cap on credit redeemed per venue. Enforced on the server for app orders and assistant requests alike. |
+| Recommendations | "Your usual", "Goes with" and "Popular here", from the venue's own paid orders over the last 90 days. No third-party data, no profiling across venues. |
+| Venue assistant | "Ask your data" in the back office: Claude answers managers' questions from a snapshot of that venue's sales, best sellers and loyalty totals. No guest personal data is sent. Off unless `ANTHROPIC_API_KEY` is set. |
 | Connectivity | Assume online, with backup 4G/eSIM. If The Snug Club is down, the venue keeps trading on its till. |
 
 ## 3. Architecture
@@ -58,6 +63,8 @@ Tenancy: every tenant-scoped row has `tenant_id`; Postgres row-level security li
 **Guests and loyalty**: `customer` (phone, email, name, date of birth, marketing consent, ID-check record without images or numbers); `otp_code`; `programme`; `programme_level`; `membership`; `loyalty_ledger` (points, credit, double-points tokens; all balances are sums).
 
 **Orders**: `orders` (channel table | collect, status pending_payment | paid | cancelled | refunded, gross, VAT 9/23, credit used, amount paid, provider order id, `provider_txn_ref` for refunds, `refunded_at`, `review_clicked_at`, idempotency key); `order_line`; `docket` (station, status, ID-check flag and record); `webhook_event` (every notification stored raw with its signature result).
+
+**AI assistants**: `programme.redemption_rules` (jsonb); `agent_grant` (customer × venue, name, `token_hash` unique, `token_hint`, scopes, `max_order_cents`, `max_credit_cents`, `expires_at`, `revoked_at`, `last_used_at`); `agent_action` (grant, tool, input, allowed, reasons, outcome) as the audit log.
 
 **Accounting**: `xero_sync` (venue × trading day: done | nothing | error, invoice id, attempts) so no day is posted twice.
 
@@ -95,6 +102,12 @@ The manager pastes the venue's Google Place ID in Settings. Every paid order pag
 ### 5.6 Loyalty
 Points = floor(card amount × points per €). Credit and gift-card amounts earn nothing. Double-points tokens, level-ups (every level crossed is awarded), birthday credit, referral (both sides on the first paid order), points → credit, and refunds reversing the order's ledger lines.
 
+### 5.6a AI assistants
+1. Guest: Rewards → AI assistants → Connect one. Pick scopes (`profile:read`, `benefits:read`, `orders:quote`, `points:convert`, `orders:create`) and limits; copy the server address and token into the assistant's custom connector.
+2. Assistant calls tools: `get_profile`, `list_benefits`, `get_menu`, `recommend_items`, `check_eligibility`, `quote_order`, `start_order`, `convert_points`. Each call is checked against the grant's scopes, limits and expiry, and the venue's redemption rules, then audited.
+3. `start_order` prices the order on the server and saves it as held (no payment provider contacted, no dockets) and returns an approval link.
+4. Guest opens the link, checks the order and taps Approve and pay: normal checkout with the venue's own provider. Dockets release only on the verified payment notification, as for any order.
+
 ### 5.7 Billing
 Each venue's statement: subscription + 1% of completed app payments net of refunds + 23% VAT on fees, shown live in the back office. Collect it by Stripe Billing, SEPA direct debit or your own Xero (open item).
 
@@ -115,16 +128,17 @@ Each venue's statement: subscription + 1% of completed app payments net of refun
 | Missed or abandoned payments | `reconcile-payments` job every minute (pg-boss). |
 | Accounting | `xero-nightly` job at 03:15, retries failures for 7 days. |
 | Live screens | Postgres NOTIFY → server-sent events to guest, bar and kitchen. |
+| Abandoned assistant orders | Held orders not approved within 30 minutes are cancelled by `reconcile-payments`. |
 | Quality gate | GitHub Actions on every push: typecheck, 52 unit + Postgres integration tests, production build. |
 | Schedules survive restarts | pg-boss keeps schedules in Postgres; several app instances never double-run a job. |
 
 ## 8. Environment
 
-`DATABASE_URL`, `APP_URL`, `SESSION_SECRET`, `SECRETS_KEY` (32 random bytes, base64), `XERO_CLIENT_ID`, `XERO_CLIENT_SECRET`, optional `XERO_SCOPES`, `REVOLUT_MODE`. Venue keys are not environment variables: managers enter them in Settings.
+`DATABASE_URL`, `APP_URL`, `SESSION_SECRET`, `SECRETS_KEY` (32 random bytes, base64), `XERO_CLIENT_ID`, `XERO_CLIENT_SECRET`, optional `XERO_SCOPES`, `REVOLUT_MODE`, optional `ANTHROPIC_API_KEY` (venue assistant). Venue keys are not environment variables: managers enter them in Settings.
 
 ## 9. Status
 
-**Built and tested** (branch `prototype`): guest web app; sign-in; table and collect-at-bar ordering; myPOS hosted checkout and verified notifications; Revolut; test payments; bar and kitchen screens with ID checks and refunds; sold-out toggles; loyalty engine; Google review prompt and tracking; Xero connect, mapping and nightly sync; back office with sales, VAT, review clicks and the monthly statement; Settings for payments, reviews and Xero; encrypted venue credentials; pg-boss jobs; CI.
+**Built and tested** (branch `prototype`): guest web app; sign-in; table and collect-at-bar ordering; myPOS hosted checkout and verified notifications; Revolut; test payments; bar and kitchen screens with ID checks and refunds; sold-out toggles; loyalty engine; Google review prompt and tracking; Xero connect, mapping and nightly sync; back office with sales, VAT, review clicks and the monthly statement; Settings for payments (including myPOS configuration pack import), reviews, redemption rules and Xero; encrypted venue credentials; AI features (recommendations, machine-readable benefits, guest-controlled assistant access with limits, held orders the guest approves, audit log, MCP server and REST API, venue "Ask your data"); pg-boss jobs; CI.
 
 **Next to build**: text-message provider for sign-in codes; cloud printing to the bar and kitchen printers; menu editor and QR code printing in the back office; events, tickets, bookings, gift cards, birthday and bonus-credit jobs; iOS and Android wrappers with push notifications; hosting and deploy pipeline; staff accounts management; GDPR export and delete.
 
@@ -132,6 +146,7 @@ Each venue's statement: subscription + 1% of completed app payments net of refun
 - **myPOS**: run one sandbox payment and one refund to confirm the signature format, `IPCRefund` fields and certificate format (the docs are inconsistent). Each venue needs a myPOS online store, its RSA 2048 key pair exchanged with myPOS, and the notify URL set.
 - **Xero**: register the app; check whether new apps must use Xero's granular scopes (override with `XERO_SCOPES`); the Core tier covers up to 50 connected organisations, above that Plus requires certification. Each venue's accountant fills in the mapping.
 - **Google**: each venue's Place ID.
+- **AI assistants**: test the MCP server with Claude and ChatGPT custom connectors (both need a public HTTPS `APP_URL`); add OAuth sign-in for connectors that require it instead of a pasted token; add a privacy-notice line on assistant access.
 - Solicitor sign-off on the ID check; accountant sign-off on VAT rates and Xero mapping.
 - Brand and trademark; MJ O'Connor's loyalty programme is also called "The Snug Club" in the seed data and needs its own name.
 - How you collect your monthly statements, and the subscription price.

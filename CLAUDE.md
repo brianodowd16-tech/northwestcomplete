@@ -14,6 +14,7 @@ The Snug Club is a white-label ordering, payments and loyalty platform for Irish
 - **Alcohol:** guests must be 18+ by date of birth to create an account. A bar docket with alcohol for an account without a staff ID check cannot be marked collected until staff record **ID checked** or **Refused**. Never store ID images or document numbers.
 - **Routing:** drinks → bar (collected); food → kitchen (run to a table). Food is never collect-at-bar.
 - **Inventory:** out of scope. Don't build stock, recipe, stocktake, PO, MarketMan or counter-POS features. Sold-out is a manual staff toggle.
+- **AI assistants:** guests' assistants act only through `agent_grant` tokens (store the SHA-256 only), within their scopes and limits and the venue's redemption rules. They can never pay: `start_order` holds the order until the guest approves. Audit every call in `agent_action`. The venue assistant never receives guest personal data.
 - **Google reviews:** the same prompt for every paid order, no rewards of any kind, no rating question first (Google bans incentives and gating).
 - **Xero:** one invoice + one payment per venue per trading day, idempotency keys `snug:{venue}:{date}:…`, recorded in `xero_sync`. Save rotated refresh tokens before use.
 - **Billing:** venues pay a monthly subscription plus `app_fee_bps` (default 100 = 1%) of completed app payments net of refunds. Compute it from Round's own order records.

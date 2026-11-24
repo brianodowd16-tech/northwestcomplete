@@ -92,7 +92,7 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
       <details className="card">
         <summary className="sumrow" style={{ cursor: "pointer", listStyle: "none" }}>
           <b>Receipt</b>
-          <span className="num">{eur(order.amountPaidCents)} paid</span>
+          <span className="num">{eur(order.amountPaidCents)} {order.status === "pending_payment" ? "to pay" : order.status === "cancelled" ? "not charged" : "paid"}</span>
         </summary>
         <div className="stack" style={{ gap: 6, marginTop: 8 }}>
           {lines.map((l) => (
