@@ -16,6 +16,7 @@ import {
   settleOrder,
   signupEntries,
   splitByStation,
+  alcoholSplit,
   stationOpen,
   checkTip,
   CartError,
@@ -219,7 +220,7 @@ async function ledgerBalances(tx: Tx, membershipId: string) {
 async function spend12m(tx: Tx, membershipId: string, excludeOrderId?: string) {
   const since = new Date(Date.now() - 365 * 86_400_000);
   const [row] = await tx
-    .select({ total: sql<number>`coalesce(sum(${t.orders.amountPaidCents} - ${t.orders.refundedCents}), 0)::int` })
+    .select({ total: sql<number>`coalesce(sum(${t.orders.rewardableCents}), 0)::int` })
     .from(t.orders)
     .where(
       and(
@@ -343,7 +344,12 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
       rules,
       await creditBudgetLeftTx(tx, venue, rules.monthlyCreditBudgetCents),
     );
-    const credit = Math.min(resolved.creditCents, input.creditRequestedCents);
+    // No loyalty credit on alcohol: credit can only pay for the non-alcohol part of the bill.
+    const split = alcoholSplit(
+      cart.lines.map((l) => ({ grossCents: l.grossCents, containsAlcohol: l.menuItem.containsAlcohol })),
+      Math.min(resolved.creditCents, input.creditRequestedCents),
+    );
+    const credit = split.creditCents;
     const tip = venue.tipsEnabled ? Math.max(0, Math.round(input.tipCents ?? 0)) : 0;
     checkTip(tip, cart.grossCents - credit);
 
@@ -363,7 +369,8 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
         creditUsedCents: credit,
         amountPaidCents: cart.grossCents - credit + tip,
         tipCents: tip,
-        useDouble: resolved.useDouble,
+        rewardableCents: split.rewardableCents,
+        useDouble: resolved.useDouble && split.rewardableCents > 0,
         provider: provider.name,
         idempotencyKey: input.idempotencyKey,
       })
@@ -504,7 +511,7 @@ export async function completeOrder(tenantId: string, orderId: string, txnRef?: 
       rules: programme,
       levels: levels.map(toLevel),
       spend12mBeforeCents: await spend12m(tx, m.id, order.id),
-      amountPaidCents: order.amountPaidCents - order.tipCents, // tips earn nothing
+      amountPaidCents: order.rewardableCents, // tips and alcohol earn nothing (Irish law bars loyalty rewards on alcohol)
       creditUsedCents: order.creditUsedCents,
       useDouble: order.useDouble,
       balancesBefore: await ledgerBalances(tx, m.id),

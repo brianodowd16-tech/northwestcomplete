@@ -43,7 +43,7 @@ describe("redemption rules at checkout", () => {
     );
     expect(small.order.creditUsedCents).toBe(0);
     const big = await svc.createOrder(
-      { venue: mj, customer: guest, channel: "collect", tableId: null, lines: [{ menuItemId: ids["Gin & tonic"], qty: 2 }], creditRequestedCents: 99_999, useDouble: false, idempotencyKey: "r2", appUrl: APP },
+      { venue: mj, customer: guest, channel: "table", tableId: (await svc.venueTables(mj))[0].id, lines: [{ menuItemId: ids["Fish & chips"], qty: 1 }], creditRequestedCents: 99_999, useDouble: false, idempotencyKey: "r2", appUrl: APP },
       provider,
     );
     expect(big.order.creditUsedCents).toBe(300); // capped by the venue's budget
@@ -98,8 +98,10 @@ describe("AI assistant access", () => {
 
   it("quotes within limits and prepares an order that waits for the guest", async () => {
     const ctx = await ai.authenticateAgent(token);
-    const q = await ai.runAgentTool(ctx, "quote_order", { lines: [{ item_id: ids["Pint of stout"], qty: 2 }] }, APP);
-    expect(q.data).toMatchObject({ total_cents: 1240, credit_cents: 500, to_pay_cents: 740 }); // credit capped at the assistant's €5 limit
+    const q = await ai.runAgentTool(ctx, "quote_order", { lines: [{ item_id: ids["Soft drink"], qty: 4 }] }, APP);
+    expect(q.data).toMatchObject({ total_cents: 1400, credit_cents: 500, to_pay_cents: 900 }); // credit capped at the assistant's €5 limit
+    const beer = await ai.runAgentTool(ctx, "quote_order", { lines: [{ item_id: ids["Pint of stout"], qty: 2 }] }, APP);
+    expect(beer.data).toMatchObject({ total_cents: 1240, credit_cents: 0 }); // never credit on alcohol
     const s = await ai.runAgentTool(ctx, "start_order", { lines: [{ item_id: ids["Pint of stout"], qty: 2 }] }, APP);
     expect(s.data).toMatchObject({ status: "waiting_for_guest_approval" });
     const url = (s.data as { approve_url: string }).approve_url;

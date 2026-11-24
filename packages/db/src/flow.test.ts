@@ -106,11 +106,11 @@ describe("order → payment → dockets → loyalty", () => {
     expect(view.order.status).toBe("paid");
     expect(view.dockets.map((d) => d.station).sort()).toEqual(["bar", "kitchen"]);
     expect(view.dockets.find((d) => d.station === "bar")!.idCheckRequired).toBe(true);
-    expect(view.pointsEarned).toBe(Math.floor((2940 * 10) / 100));
+    expect(view.pointsEarned).toBe(Math.floor((1700 * 10) / 100)); // the food only: no points on the two pints (Irish law)
 
     const sum = await svc.memberSummary(mj, c.id);
     expect(sum.balances.creditCents).toBe(1000); // sign-up credit
-    expect(sum.spend12mCents).toBe(2940);
+    expect(sum.spend12mCents).toBe(1700); // alcohol doesn't count towards levels either
   });
 
   it("uses credit, earns only on the card amount, and settles a fully-credited order without Revolut", async () => {

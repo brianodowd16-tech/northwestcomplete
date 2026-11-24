@@ -39,7 +39,13 @@ export async function ringUpSale(
       if (!String(input.discountReason ?? "").trim()) throw new CartError("Give a reason for the discount");
       if (staff.role !== "admin" && discount > priced.grossCents * 0.2) throw new Forbidden("Discounts over 20% need a manager");
     }
-    const lines = discount ? discountLines(priced.lines, discount) : priced.lines;
+    // No discounts on alcohol (Irish law bars below-price alcohol promotions): only non-alcohol lines can be discounted.
+    // A replaced drink (bad pint) is logged as waste instead.
+    const discountable = priced.lines.filter((l) => !l.menuItem.containsAlcohol);
+    if (discount > discountable.reduce((s, l) => s + l.grossCents, 0))
+      throw new CartError(discountable.length ? "Discounts can only cover the food and soft drinks on this bill, not alcohol" : "Alcohol can't be discounted or comped. Log a replaced drink as waste instead.");
+    const discounted = discount ? discountLines(discountable, discount) : discountable;
+    const lines = priced.lines.map((l) => discounted.find((d) => d.menuItem.id === l.menuItem.id) ?? l);
     const cart = {
       lines,
       grossCents: lines.reduce((s, l) => s + l.grossCents, 0),

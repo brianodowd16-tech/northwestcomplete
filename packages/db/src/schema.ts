@@ -235,6 +235,8 @@ export const orders = pgTable(
     status: text("status", { enum: ["pending_payment", "open", "paid", "cancelled", "refunded"] }).notNull(),
     /** Tip for the staff (in amount_paid, outside VAT, loyalty and the app fee). */
     tipCents: integer("tip_cents").notNull().default(0),
+    /** The non-alcohol part paid by card: the only part that earns points or counts towards levels (Irish law). */
+    rewardableCents: integer("rewardable_cents").notNull().default(0),
     /** Discount or comp given at the till, with the reason. */
     discountCents: integer("discount_cents").notNull().default(0),
     discountReason: text("discount_reason"),

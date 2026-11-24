@@ -10,6 +10,7 @@ import {
   priceCart,
   recommendItems,
   resolveRedemption,
+  alcoholSplit,
   type AgentLimits,
   type AgentScope,
   type MemberState,
@@ -336,7 +337,8 @@ export async function runAgentTool(ctx: AgentContext, name: string, args: Args, 
         const lines = lineArgs(args);
         const cart = await priced(venue, lines, "collect");
         const r = resolveRedemption({ wantCredit: args.use_credit !== false, wantDouble: args.use_double_points === true }, cart.grossCents, m, rules, left);
-        const credit = Math.min(r.creditCents, limits.maxCreditCents);
+        // No loyalty credit on alcohol (Irish law).
+        const credit = alcoholSplit(cart.lines.map((l) => ({ grossCents: l.grossCents, containsAlcohol: l.menuItem.containsAlcohol })), Math.min(r.creditCents, limits.maxCreditCents)).creditCents;
         const check = checkEligibility(name === "quote_order" ? { type: "quote_order", orderGrossCents: cart.grossCents } : { type: "create_order", orderGrossCents: cart.grossCents, creditCents: credit }, m, rules, left, limits);
         if (!check.allowed) return deny(check.reasons);
         const toPay = cart.grossCents - credit;

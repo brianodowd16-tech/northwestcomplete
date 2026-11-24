@@ -138,10 +138,12 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member,
 
   const gross = lines.reduce((s, l) => s + l.item.priceCents * l.qty, 0);
   const vat = (rate: 9 | 23) => lines.filter((l) => l.item.vatRate === rate).reduce((s, l) => s + vatFromGross(l.item.priceCents * l.qty, rate), 0);
-  const credit = member && useCredit ? Math.min(member.creditCents, gross) : 0;
+  // Irish law: no loyalty credit or points on alcohol.
+  const nonAlcohol = lines.filter((l) => !l.item.containsAlcohol).reduce((s, l) => s + l.item.priceCents * l.qty, 0);
+  const credit = member && useCredit ? Math.min(member.creditCents, nonAlcohol) : 0;
   const tipCents = service.tips ? Math.floor(((gross - credit) * tipPct * 2) / 100 + 1) >> 1 : 0;
   const toPay = gross - credit + tipCents;
-  const points = member ? Math.floor(((toPay - tipCents) * member.pointsPerEuro) / 100) * (useDouble && member.doubles > 0 ? 2 : 1) : 0;
+  const points = member ? Math.floor(((nonAlcohol - credit) * member.pointsPerEuro) / 100) * (useDouble && member.doubles > 0 ? 2 : 1) : 0;
   const count = lines.reduce((s, l) => s + l.qty, 0);
   const hasAlcohol = lines.some((l) => l.item.containsAlcohol);
 
@@ -434,6 +436,7 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member,
                 <span className="num">{eur(toPay)}</span>
               </div>
             </div>
+            {member && hasAlcohol && <div className="muted small">Points and credit don&apos;t apply to alcohol: Irish law doesn&apos;t allow loyalty rewards on it.</div>}
             {member ? <div className="chip ok" style={{ alignSelf: "flex-start" }}>You&apos;ll earn {points} points</div> : <div className="muted small">Sign in to order and earn points. Your basket is kept.</div>}
             {error && <div className="error">{error}</div>}
             <button className="btn block" onClick={placeOrder} disabled={busy || count === 0} style={{ padding: 15 }}>

@@ -127,3 +127,15 @@ export function convertPoints(rules: ProgrammeRules, pointsBalance: number, poin
     { kind: "credit", delta: creditCents, reason: "convert" },
   ];
 }
+
+/**
+ * Irish law (Public Health (Alcohol) Act 2018) bars loyalty rewards for buying alcohol. Only the
+ * non-alcohol part of a bill can be paid with loyalty credit, and only the non-alcohol part paid by
+ * card earns points or counts towards levels.
+ */
+export function alcoholSplit(lines: { grossCents: number; containsAlcohol: boolean }[], creditRequestedCents = 0) {
+  const nonAlcoholCents = lines.filter((l) => !l.containsAlcohol).reduce((s, l) => s + l.grossCents, 0);
+  const alcoholCents = lines.filter((l) => l.containsAlcohol).reduce((s, l) => s + l.grossCents, 0);
+  const creditCents = Math.max(0, Math.min(creditRequestedCents, nonAlcoholCents));
+  return { nonAlcoholCents, alcoholCents, creditCents, rewardableCents: nonAlcoholCents - creditCents };
+}
