@@ -1,0 +1,16 @@
+# Run Complete with its own Postgres: `docker compose up`. Set secrets in a .env file next to this one.
+services:
+  db:
+    image: postgres:16
+    environment: { POSTGRES_USER: round, POSTGRES_PASSWORD: "${DB_PASSWORD:-round}", POSTGRES_DB: round }
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U round"], interval: 5s, retries: 10 }
+  app:
+    build: .
+    depends_on: { db: { condition: service_healthy } }
+    ports: ["3000:3000"]
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgres://round:${DB_PASSWORD:-round}@db:5432/round
+volumes:
+  pgdata:

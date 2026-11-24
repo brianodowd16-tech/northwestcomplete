@@ -19,6 +19,7 @@
   "scripts": {
     "generate": "drizzle-kit generate",
     "reset": "tsx src/setup.ts",
+    "migrate": "tsx src/migrate.ts",
     "test": "vitest run --no-file-parallelism",
     "typecheck": "tsc -p ."
   },

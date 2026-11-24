@@ -1,0 +1,7 @@
+node_modules
+**/node_modules
+**/.next
+.env
+.git
+apps/mobile/ios
+apps/mobile/android
