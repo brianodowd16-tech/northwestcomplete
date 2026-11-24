@@ -22,6 +22,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
         containsAlcohol: b.containsAlcohol === true,
         availableForCollect: b.availableForCollect === true,
         active: b.active !== false,
+        allergens: Array.isArray(b.allergens) ? (b.allergens as unknown[]).map(String) : [],
       });
       return json({ item });
     }

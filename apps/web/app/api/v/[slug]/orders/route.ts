@@ -4,8 +4,9 @@ import { appUrl, currentGuest, errorJson, json, providerFor } from "@/lib/server
 interface Body {
   channel: "table" | "collect";
   qrToken?: string;
-  lines: { menuItemId: string; qty: number }[];
+  lines: { menuItemId: string; qty: number; note?: string }[];
   useCredit: boolean;
+  tipCents?: number;
   useDouble: boolean;
   idempotencyKey: string;
 }
@@ -27,7 +28,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
         customer: guest,
         channel,
         tableId: table?.id ?? null,
-        lines: b.lines.map((l) => ({ menuItemId: String(l.menuItemId), qty: Number(l.qty) })),
+        lines: b.lines.map((l) => ({ menuItemId: String(l.menuItemId), qty: Number(l.qty), note: typeof l.note === "string" ? l.note : null })),
+        tipCents: Number(b.tipCents ?? 0) || 0,
         creditRequestedCents: b.useCredit ? Number.MAX_SAFE_INTEGER : 0,
         useDouble: b.useDouble === true,
         idempotencyKey: `${guest.id}:${b.idempotencyKey}`,

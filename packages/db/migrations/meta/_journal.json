@@ -71,6 +71,13 @@
       "when": 1795541380855,
       "tag": "0009_public_morlocks",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795542262630,
+      "tag": "0010_stale_tenebrous",
+      "breakpoints": true
     }
   ]
 }

@@ -52,6 +52,7 @@ export default async function Settings({ params, searchParams }: { params: Promi
         serverReady={!!secretsKey()}
         rules={rules}
         details={{ name: venue.name, tagline: venue.tagline, town: venue.town, vatNumber: venue.vatNumber, brandColor: venue.brandColor }}
+        service={{ hours: venue.hours ?? null, tips: venue.tipsEnabled }}
       />
     </div>
   );

@@ -323,3 +323,13 @@ tr.fresh td { animation: fadeIn .6s ease both; background: color-mix(in srgb, va
 
 .bar { height: 8px; background: var(--sunk); border-radius: 6px; overflow: hidden; margin-bottom: 2px; }
 .bar i { display: block; height: 100%; background: var(--vacc); }
+
+/* service details */
+.allergens { display: block; font-size: 12px; color: var(--warn); margin-top: 2px; }
+.note-in { width: 100%; margin-top: 4px; border: 1px dashed var(--line); background: transparent; border-radius: 6px; padding: 4px 6px; font: inherit; font-size: 12px; color: inherit; }
+.tipchips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.tipchips button { padding: 8px 0; border-radius: 10px; border: 1px solid var(--line); background: var(--sunk); font-weight: 600; color: inherit; }
+.tipchips button.on { background: var(--vacc); border-color: var(--vacc); color: #fff; }
+.docket .note { font-style: italic; color: var(--crit); }
+
+.allergen-pick { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 4px 10px; }

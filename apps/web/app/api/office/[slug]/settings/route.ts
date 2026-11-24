@@ -3,7 +3,7 @@ import { localDate, parseConfigPack } from "@round/core";
 import { saveIntegration, saveXeroMapping, setGooglePlaceId, setPaymentProvider, syncXeroDay } from "@round/db/integrations";
 import { saveRedemptionRules } from "@round/db/ai";
 import { normaliseRules } from "@round/core";
-import { saveVenueDetails } from "@round/db/admin";
+import { saveHours, saveVenueDetails, setTips } from "@round/db/admin";
 import { venueBySlug } from "@round/db/services";
 import { currentStaff, errorJson, json, secretsKey, xeroApp } from "@/lib/server";
 
@@ -18,6 +18,17 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
     const key = secretsKey();
 
     switch (b.section) {
+      case "service": {
+        const day = (st: string, d: number): [string, string] | null => {
+          const o = str(b[`${st}-${d}-open`]), c = str(b[`${st}-${d}-close`]);
+          return o && c ? [o, c] : null;
+        };
+        const week = (st: string) => Array.from({ length: 7 }, (_, d) => day(st, d));
+        const always = b.alwaysOpen === "on";
+        await saveHours(venue, always ? null : { bar: week("bar"), kitchen: week("kitchen") });
+        await setTips(venue, b.tips === "on");
+        return json({ ok: true });
+      }
       case "venue":
         await saveVenueDetails(venue, { name: str(b.name), tagline: str(b.tagline), town: str(b.town), vatNumber: str(b.vatNumber), brandColor: str(b.brandColor) });
         return json({ ok: true });

@@ -14,7 +14,8 @@
     "./push": "./src/push.ts",
     "./events": "./src/events.ts",
     "./till": "./src/till.ts",
-    "./growth": "./src/growth.ts"
+    "./growth": "./src/growth.ts",
+    "./privacy": "./src/privacy.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",

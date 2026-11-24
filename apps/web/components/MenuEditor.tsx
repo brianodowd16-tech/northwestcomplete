@@ -15,7 +15,9 @@ interface Item {
   containsAlcohol: boolean;
   availableForCollect: boolean;
   active: boolean;
+  allergens: string[];
 }
+const ALLERGENS: [string, string][] = [["gluten", "Gluten"], ["crustaceans", "Crustaceans"], ["eggs", "Eggs"], ["fish", "Fish"], ["peanuts", "Peanuts"], ["soya", "Soya"], ["milk", "Milk"], ["nuts", "Tree nuts"], ["celery", "Celery"], ["mustard", "Mustard"], ["sesame", "Sesame"], ["sulphites", "Sulphites"], ["lupin", "Lupin"], ["molluscs", "Molluscs"]];
 interface Cat {
   id: string;
   name: string;
@@ -62,6 +64,7 @@ export function MenuEditor({ slug, cats }: { slug: string; cats: Cat[] }) {
           containsAlcohol: f.get("containsAlcohol") === "on",
           availableForCollect: f.get("availableForCollect") === "on",
           active: f.get("active") === "on",
+          allergens: f.getAll("allergen"),
         });
         if (ok) {
           toast(it ? "Saved" : "Added to the menu", { kind: "ok" });
@@ -118,6 +121,14 @@ export function MenuEditor({ slug, cats }: { slug: string; cats: Cat[] }) {
           <input type="checkbox" name="active" defaultChecked={it ? it.active : true} /> On the menu
         </label>
       </div>
+      <fieldset className="allergen-pick">
+        <legend className="small">Contains (EU allergens: the law requires you to declare these)</legend>
+        {ALLERGENS.map(([k, l]) => (
+          <label key={k} className="toggle small">
+            <input type="checkbox" name="allergen" value={k} defaultChecked={it?.allergens?.includes(k)} /> {l}
+          </label>
+        ))}
+      </fieldset>
       <div className="row" style={{ justifyContent: "flex-start" }}>
         <button className="btn sm" disabled={busy}>
           {it ? "Save" : "Add item"}
@@ -182,6 +193,7 @@ export function MenuEditor({ slug, cats }: { slug: string; cats: Cat[] }) {
                     · {it.station === "bar" ? "Bar" : "Kitchen"} · VAT {it.vatRate}%{it.containsAlcohol ? " · alcohol" : ""}
                     {it.availableForCollect ? " · collect" : ""}
                     {!it.active ? " · hidden" : ""}
+                    {it.allergens?.length ? ` · ${it.allergens.length} allergen${it.allergens.length > 1 ? "s" : ""}` : it.station === "kitchen" ? " · allergens not set" : ""}
                   </span>
                 </span>
                 <span className="num">{eur(it.priceCents)}</span>

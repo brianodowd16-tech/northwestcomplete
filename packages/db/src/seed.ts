@@ -23,6 +23,20 @@ const MENU: Item[] = [
   ["Campfire s'mores kit", "Food", 600, 9, "kitchen", false, ["drum"]],
 ];
 
+// Example allergen declarations (the venue confirms its own recipes).
+const ALLERGENS_BY_ITEM: Record<string, string[]> = {
+  "Pint of stout": ["gluten"],
+  "Pint of lager": ["gluten"],
+  "Pint of craft cider": ["sulphites"],
+  "Flat white": ["milk"],
+  "Beef & stout stew": ["gluten", "celery"],
+  "Fish & chips": ["fish", "gluten"],
+  "Seafood chowder": ["fish", "crustaceans", "molluscs", "milk", "gluten", "celery"],
+  "Toasted special": ["gluten", "milk", "mustard"],
+  "Wood-fired margherita": ["gluten", "milk"],
+  "Campfire s'mores kit": ["gluten", "milk", "eggs", "soya"],
+};
+
 const CATEGORIES = ["Pints", "Spirits", "Soft & hot", "Food"];
 
 type LevelSeed = [name: string, minEuro: number, birthdayEuro: number, levelupPoints: number, doubles: number];
@@ -200,6 +214,7 @@ export async function seed(db: Db, opts: { stock?: boolean } = {}) {
         station,
         containsAlcohol,
         availableForCollect: station === "bar",
+        allergens: ALLERGENS_BY_ITEM[name] ?? [],
         sort,
       })),
     ).returning();

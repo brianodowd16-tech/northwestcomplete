@@ -1,4 +1,4 @@
-import { recentTillSales } from "@round/db/till";
+import { openTabs, recentTillSales } from "@round/db/till";
 import { menu } from "@round/db/services";
 import Link from "next/link";
 import { StaffNav } from "@/components/StaffNav";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function TillPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const { staff, venue } = await requireStaffFor(slug);
-  const [cats, recent] = await Promise.all([menu(venue), recentTillSales(venue)]);
+  const [cats, recent, tabs] = await Promise.all([menu(venue), recentTillSales(venue), openTabs(venue)]);
   return (
     <div className="page">
       <VenueTheme color={venue.brandColor} />
@@ -26,6 +26,7 @@ export default async function TillPage({ params }: { params: Promise<{ slug: str
         recent={JSON.parse(JSON.stringify(recent))}
         canRefundAll={staff.role === "admin"}
         hotel={venue.kind === "hotel"}
+        tabs={JSON.parse(JSON.stringify(tabs))}
       />
     </div>
   );

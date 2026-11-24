@@ -14,7 +14,7 @@ export interface DocketView {
   guestAge: number | null;
   idCheckRequired: boolean;
   idCheckedAt: string | null;
-  lines: { name: string; qty: number; containsAlcohol: boolean }[];
+  lines: { name: string; qty: number; containsAlcohol: boolean; note?: string | null }[];
 }
 
 const ACTION: Record<"bar" | "kitchen", Record<string, string>> = {
@@ -196,6 +196,7 @@ export function DocketBoard({ slug, station, initial }: { slug: string; station:
                     {d.lines.map((l, i) => (
                       <div key={i} className="big">
                         <b>{l.qty} ×</b> {l.name}
+                        {l.note && <div className="note">“{l.note}”</div>}
                       </div>
                     ))}
                     <div className="muted" style={{ fontSize: 12 }}>

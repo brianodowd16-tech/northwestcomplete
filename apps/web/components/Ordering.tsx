@@ -17,7 +17,11 @@ export interface MenuItemView {
   containsAlcohol: boolean;
   availableForCollect: boolean;
   soldOut: boolean;
+  allergens: string[];
 }
+
+/** EU allergen names (labels for the codes stored on items). */
+const ALLERGEN_LABEL: Record<string, string> = { gluten: "Gluten", crustaceans: "Crustaceans", eggs: "Eggs", fish: "Fish", peanuts: "Peanuts", soya: "Soya", milk: "Milk", nuts: "Tree nuts", celery: "Celery", mustard: "Mustard", sesame: "Sesame", sulphites: "Sulphites", lupin: "Lupin", molluscs: "Molluscs" };
 
 interface Props {
   slug: string;
@@ -26,7 +30,10 @@ interface Props {
   tableNumber?: number;
   categories: { id: string; name: string; items: MenuItemView[] }[];
   member: { creditCents: number; doubles: number; pointsPerEuro: number; idChecked: boolean } | null;
+  /** Whether the bar and kitchen take orders right now (opening hours, staff pause), and if tips are offered. */
+  service: { bar: { open: boolean; reason?: string }; kitchen: { open: boolean; reason?: string }; tips: boolean };
 }
+const TIP_OPTIONS = [0, 10, 12.5, 15];
 
 type Cart = Record<string, number>;
 
@@ -55,7 +62,7 @@ function submitHostedCheckout(r: { action: string; fields: [string, string][] })
   form.submit();
 }
 
-export function Ordering({ slug, mode, qrToken, tableNumber, categories, member }: Props) {
+export function Ordering({ slug, mode, qrToken, tableNumber, categories, member, service }: Props) {
   const router = useRouter();
   const path = usePathname();
   const storageKey = `round-cart:${slug}:${mode}`;
@@ -63,6 +70,8 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member 
   const [sheet, setSheet] = useState<"review" | "pay" | null>(null);
   const [useCredit, setUseCredit] = useState(true);
   const [useDouble, setUseDouble] = useState(false);
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [tipPct, setTipPct] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<{ orderId: string; amountCents: number; checkout: CheckoutInfo } | null>(null);
@@ -130,12 +139,15 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member 
   const gross = lines.reduce((s, l) => s + l.item.priceCents * l.qty, 0);
   const vat = (rate: 9 | 23) => lines.filter((l) => l.item.vatRate === rate).reduce((s, l) => s + vatFromGross(l.item.priceCents * l.qty, rate), 0);
   const credit = member && useCredit ? Math.min(member.creditCents, gross) : 0;
-  const toPay = gross - credit;
-  const points = member ? Math.floor((toPay * member.pointsPerEuro) / 100) * (useDouble && member.doubles > 0 ? 2 : 1) : 0;
+  const tipCents = service.tips ? Math.floor(((gross - credit) * tipPct * 2) / 100 + 1) >> 1 : 0;
+  const toPay = gross - credit + tipCents;
+  const points = member ? Math.floor(((toPay - tipCents) * member.pointsPerEuro) / 100) * (useDouble && member.doubles > 0 ? 2 : 1) : 0;
   const count = lines.reduce((s, l) => s + l.qty, 0);
   const hasAlcohol = lines.some((l) => l.item.containsAlcohol);
 
   const add = (id: string, d: number) => {
+    const it = categories.flatMap((c) => c.items).find((x) => x.id === id);
+    if (d > 0 && it && !service[it.station].open) return toast(service[it.station].reason ?? "Not taking orders right now", { kind: "err" });
     const q = Math.max(0, Math.min(20, (cart[id] ?? 0) + d));
     const next = { ...cart, [id]: q };
     if (!q) delete next[id];
@@ -188,7 +200,7 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member 
       const res = await fetch(`/api/v/${slug}/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channel: mode, qrToken, lines: lines.map((l) => ({ menuItemId: l.item.id, qty: l.qty })), useCredit, useDouble, idempotencyKey: key }),
+        body: JSON.stringify({ channel: mode, qrToken, lines: lines.map((l) => ({ menuItemId: l.item.id, qty: l.qty, note: notes[l.item.id] || undefined })), useCredit, useDouble, tipCents, idempotencyKey: key }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Couldn't place the order");
@@ -278,6 +290,8 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member 
           </section>
         )}
 
+        {!service.kitchen.open && mode === "table" && <div className="notice">{service.kitchen.reason}</div>}
+        {!service.bar.open && <div className="notice">{service.bar.reason}</div>}
         {shown.length === 0 && <div className="empty">Nothing matches &quot;{query}&quot;.</div>}
         {shown.map((c) => (
           <section key={c.id} id={`c-${c.id}`} style={{ scrollMarginTop: 120 }}>
@@ -289,9 +303,10 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member 
                   <div className="meta">
                     <b>{i.name}</b>
                     {i.description && <small className="muted">{i.description}</small>}
+                    {i.allergens.length > 0 && <small className="allergens">Contains: {i.allergens.map((a) => ALLERGEN_LABEL[a] ?? a).join(", ")}</small>}
                     <div className="row" style={{ justifyContent: "flex-start", marginTop: 4 }}>
                       <span className="num" style={{ fontWeight: 600 }}>{eur(i.priceCents)}</span>
-                      {i.soldOut ? <span className="chip crit">Sold out</span> : <span className="stag">{i.station === "bar" ? "Collect at bar" : "To your table"}</span>}
+                      {i.soldOut ? <span className="chip crit">Sold out</span> : !service[i.station].open ? <span className="chip plain">Not now</span> : <span className="stag">{i.station === "bar" ? "Collect at bar" : "To your table"}</span>}
                     </div>
                   </div>
                   <div className="qty">
@@ -344,6 +359,13 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member 
                   <div className="meta">
                     <b>{l.item.name}</b>
                     <small className="muted">{l.item.station === "bar" ? "Collect at bar" : "Served to table"}</small>
+                    <input
+                      className="note-in"
+                      value={notes[l.item.id] ?? ""}
+                      onChange={(e) => setNotes((n) => ({ ...n, [l.item.id]: e.target.value.slice(0, 140) }))}
+                      placeholder={l.item.station === "kitchen" ? "Add a note (allergy, no onions…)" : "Add a note (no ice…)"}
+                      aria-label={`Note for ${l.item.name}`}
+                    />
                   </div>
                   <div className="qty">
                     <button onClick={() => add(l.item.id, -1)} aria-label={`Remove one ${l.item.name}`}>
@@ -376,6 +398,19 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member 
                 <input type="checkbox" checked={useDouble} onChange={(e) => setUseDouble(e.target.checked)} />
               </label>
             )}
+            {service.tips && gross - credit > 0 && (
+              <div className="stack" style={{ gap: 6 }}>
+                <span className="small">Add a tip? <span className="muted">All of it goes to the staff.</span></span>
+                <div className="tipchips">
+                  {TIP_OPTIONS.map((p) => (
+                    <button key={p} className={tipPct === p ? "on" : ""} onClick={() => setTipPct(p)} type="button">
+                      {p === 0 ? "No tip" : `${p}%`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {lines.some((l) => l.item.allergens.length) && <div className="muted small">Allergy? Tell us in a note and ask staff before you eat. Allergens are listed on each item.</div>}
             {hasAlcohol && member && !member.idChecked && <div className="notice">First drinks order: show ID when you collect (age card, passport or licence). Only once.</div>}
             <div className="stack" style={{ gap: 4 }}>
               <div className="sumrow muted small">
@@ -386,6 +421,12 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member 
                 <div className="sumrow small">
                   <span>Credit</span>
                   <span className="num">−{eur(credit)}</span>
+                </div>
+              )}
+              {tipCents > 0 && (
+                <div className="sumrow small">
+                  <span>Tip for the staff</span>
+                  <span className="num">{eur(tipCents)}</span>
                 </div>
               )}
               <div className="sumrow total">

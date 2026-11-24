@@ -16,3 +16,4 @@ export * from "./inventory";
 export * from "./events";
 export * from "./sports";
 export * from "./ops";
+export * from "./service";

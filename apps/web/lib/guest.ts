@@ -1,4 +1,5 @@
 import "server-only";
+import { stationOpen } from "@round/core";
 import { memberSummary, menu, type Customer, type Venue } from "@round/db/services";
 import type { MenuItemView } from "@/components/Ordering";
 
@@ -21,6 +22,7 @@ export async function orderingProps(venue: Venue, guest: Customer | null, mode: 
             containsAlcohol: i.containsAlcohol,
             availableForCollect: i.availableForCollect,
             soldOut: i.soldOut,
+            allergens: i.allergens ?? [],
           }),
         ),
     }))
@@ -30,5 +32,11 @@ export async function orderingProps(venue: Venue, guest: Customer | null, mode: 
     const s = await memberSummary(venue, guest.id);
     member = { creditCents: s.balances.creditCents, doubles: s.balances.doubles, pointsPerEuro: s.programme.pointsPerEuro, idChecked: !!guest.ageVerifiedAt };
   }
-  return { categories, member };
+  const now = new Date();
+  const service = {
+    bar: stationOpen(venue.hours, venue.pausedUntil, "bar", now, venue.timezone),
+    kitchen: stationOpen(venue.hours, venue.pausedUntil, "kitchen", now, venue.timezone),
+    tips: venue.tipsEnabled,
+  };
+  return { categories, member, service };
 }

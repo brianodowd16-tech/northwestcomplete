@@ -25,7 +25,15 @@ interface Sale {
   paidAt: string | null;
   lines: { name: string; qty: number }[];
 }
-type Pay = null | { kind: "cash" } | { kind: "card"; waiting: boolean } | { kind: "room" };
+type Pay = null | { kind: "cash" } | { kind: "card"; waiting: boolean } | { kind: "room" } | { kind: "tab" };
+interface TabView {
+  id: string;
+  name: string;
+  tableNumber: number | null;
+  totalCents: number;
+  rounds: number;
+}
+const DISCOUNT_REASONS = ["Staff discount", "Manager comp", "Complaint", "Promotion", "Regular", "Other"];
 
 /**
  * Card payments on the venue's myPOS terminal. Inside the Complete app on a myPOS Android terminal
@@ -39,7 +47,7 @@ async function terminalPay(amountCents: number, reference: string): Promise<{ ap
   return { approved: r.approved, ref: r.authCode };
 }
 
-export function Till({ cats, recent, canRefundAll, hotel = false }: { cats: Cat[]; recent: Sale[]; canRefundAll: boolean; hotel?: boolean }) {
+export function Till({ cats, recent, canRefundAll, hotel = false, tabs = [] }: { cats: Cat[]; recent: Sale[]; canRefundAll: boolean; hotel?: boolean; tabs?: TabView[] }) {
   const router = useRouter();
   const [cat, setCat] = useState(cats[0]?.id);
   const [cart, setCart] = useState<Record<string, number>>({});
@@ -47,11 +55,16 @@ export function Till({ cats, recent, canRefundAll, hotel = false }: { cats: Cat[
   const [pay, setPay] = useState<Pay>(null);
   const [tendered, setTendered] = useState("");
   const [room, setRoom] = useState("");
+  const [discount, setDiscount] = useState<{ pct: number; reason: string } | null>(null);
+  const [tabName, setTabName] = useState("");
+  const [closing, setClosing] = useState<TabView | null>(null);
   const [busy, setBusy] = useState(false);
   const [key, setKey] = useState(() => crypto.randomUUID());
   const items = useMemo(() => new Map(cats.flatMap((c) => c.items).map((i) => [i.id, i])), [cats]);
   const lines = Object.entries(cart).filter(([, q]) => q > 0).map(([id, qty]) => ({ item: items.get(id)!, qty }));
-  const total = lines.reduce((s, l) => s + l.item.priceCents * l.qty, 0);
+  const subtotal = lines.reduce((s, l) => s + l.item.priceCents * l.qty, 0);
+  const discountCents = discount ? Math.round((subtotal * discount.pct) / 100) : 0;
+  const total = subtotal - discountCents;
   const food = lines.some((l) => l.item.station === "kitchen");
   const add = (id: string, d: number) => setCart((c) => ({ ...c, [id]: Math.max(0, (c[id] ?? 0) + d) }));
   const reset = () => {
@@ -60,20 +73,22 @@ export function Till({ cats, recent, canRefundAll, hotel = false }: { cats: Cat[
     setPay(null);
     setTendered("");
     setRoom("");
+    setDiscount(null);
+    setTabName("");
     setKey(crypto.randomUUID());
   };
 
-  async function complete(method: "cash" | "card" | "room", extra: { tenderedCents?: number; cardRef?: string; roomNumber?: string }) {
+  async function complete(method: "cash" | "card" | "room" | "tab", extra: { tenderedCents?: number; cardRef?: string; roomNumber?: string; tabId?: string; tabName?: string }) {
     setBusy(true);
     try {
       const res = await fetch("/api/staff/till", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key, method, lines: lines.map((l) => ({ menuItemId: l.item.id, qty: l.qty })), tableNumber: food ? Number(table) : null, ...extra }),
+        body: JSON.stringify({ key, method, lines: lines.map((l) => ({ menuItemId: l.item.id, qty: l.qty })), tableNumber: food ? Number(table) : null, discountCents, discountReason: discount?.reason, ...extra }),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error);
-      toast(`Sale #${d.number}: ${eur(d.totalCents)}${method === "cash" && d.changeCents ? ` · change ${eur(d.changeCents)}` : ""}${food ? ` · food to table ${table}` : ""}`, { kind: "ok" });
+      toast(method === "tab" ? `Added ${eur(d.totalCents)} to the tab` : `Sale #${d.number}: ${eur(d.totalCents)}${method === "cash" && d.changeCents ? ` · change ${eur(d.changeCents)}` : ""}${food ? ` · food to table ${table}` : ""}`, { kind: "ok" });
       reset();
       router.refresh();
     } catch (e) {
@@ -121,6 +136,51 @@ export function Till({ cats, recent, canRefundAll, hotel = false }: { cats: Cat[
               </button>
             ))}
         </div>
+        {tabs.length > 0 && (
+          <section className="panel stack">
+            <h3>Open tabs</h3>
+            {tabs.map((t) => (
+              <div key={t.id} className="row">
+                <span><b>{t.name}</b> <span className="muted small">· {t.rounds} {t.rounds === 1 ? "round" : "rounds"}</span></span>
+                <span className="row" style={{ gap: 6 }}>
+                  <b className="num">{eur(t.totalCents)}</b>
+                  <button className="btn sm" onClick={() => setClosing(t)}>Close tab</button>
+                </span>
+              </div>
+            ))}
+            {closing && (
+              <div className="card stack" style={{ gap: 8 }}>
+                <b>Close {closing.name}: {eur(closing.totalCents)}</b>
+                <div className="row wrap" style={{ justifyContent: "flex-start" }}>
+                  {(["cash", "card", ...(hotel ? ["room"] : [])] as const).map((m) => (
+                    <button
+                      key={m}
+                      className="btn sm"
+                      disabled={busy}
+                      onClick={async () => {
+                        let roomNumber: string | null = null;
+                        if (m === "room") roomNumber = prompt("Room number")?.trim() || null;
+                        if (m === "room" && !roomNumber) return;
+                        if (m === "card" && !confirm(`Take ${eur(closing.totalCents)} on the myPOS terminal. Approved?`)) return;
+                        setBusy(true);
+                        const res = await fetch("/api/staff/till", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "closeTab", tabId: closing.id, method: m, roomNumber }) });
+                        const d = await res.json();
+                        setBusy(false);
+                        if (!res.ok) return toast(d.error, { kind: "err" });
+                        toast(`${closing.name}'s tab paid: ${eur(d.totalCents)}`, { kind: "ok" });
+                        setClosing(null);
+                        router.refresh();
+                      }}
+                    >
+                      {m === "cash" ? "Cash" : m === "card" ? "Card" : "Room"}
+                    </button>
+                  ))}
+                  <button className="btn sm ghost" onClick={() => setClosing(null)}>Cancel</button>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
         <details className="panel">
           <summary style={{ cursor: "pointer" }}>
             <b>Recent sales</b>
@@ -133,11 +193,11 @@ export function Till({ cats, recent, canRefundAll, hotel = false }: { cats: Cat[
                   <tr key={s.id}>
                     <td className="num">#{s.number}</td>
                     <td className="small">{s.lines.map((l) => `${l.qty} × ${l.name}`).join(", ")}</td>
-                    <td className="small">{s.provider === "cash" ? "Cash" : s.provider === "room" ? "Room" : "Card"}</td>
+                    <td className="small">{s.status === "open" ? "On tab" : s.provider === "cash" ? "Cash" : s.provider === "room" ? "Room" : "Card"}</td>
                     <td className="r num">{eur(s.amountPaidCents)}</td>
                     <td className="r">
-                      {s.status === "refunded" ? (
-                        <span className="chip crit">Refunded</span>
+                      {s.status === "refunded" || s.status === "cancelled" ? (
+                        <span className="chip crit">{s.status === "cancelled" ? "Voided" : "Refunded"}</span>
                       ) : (canRefundAll || recentEnough) ? (
                         <button
                           className="btn sm ghost"
@@ -190,6 +250,37 @@ export function Till({ cats, recent, canRefundAll, hotel = false }: { cats: Cat[
             <input inputMode="numeric" value={table} onChange={(e) => setTable(e.target.value.replace(/\D/g, ""))} placeholder="e.g. 7" />
           </label>
         )}
+        {lines.length > 0 && !pay && (
+          discount ? (
+            <div className="row small">
+              <span>{discount.reason} ({discount.pct}%)</span>
+              <span className="row" style={{ gap: 6 }}>
+                <span className="num">−{eur(discountCents)}</span>
+                <button className="btn sm ghost" onClick={() => setDiscount(null)} aria-label="Remove discount">×</button>
+              </span>
+            </div>
+          ) : (
+            <details>
+              <summary className="small" style={{ cursor: "pointer" }}>Discount or comp</summary>
+              <div className="stack" style={{ gap: 6, marginTop: 6 }}>
+                <div className="qchips">
+                  {[10, 20, 50, 100].map((p) => (
+                    <button key={p} onClick={() => setDiscount({ pct: p, reason: p === 100 ? "Manager comp" : "Staff discount" })}>{p === 100 ? "Comp (free)" : `${p}%`}</button>
+                  ))}
+                </div>
+                <span className="muted small">Over 20% and comps need a manager. Every discount needs a reason.</span>
+              </div>
+            </details>
+          )
+        )}
+        {discount && !pay && (
+          <label className="field">
+            Reason
+            <select value={discount.reason} onChange={(e) => setDiscount({ ...discount, reason: e.target.value })}>
+              {DISCOUNT_REASONS.map((r) => <option key={r}>{r}</option>)}
+            </select>
+          </label>
+        )}
         <div className="row total">
           <span>Total</span>
           <b className="num">{eur(total)}</b>
@@ -202,11 +293,37 @@ export function Till({ cats, recent, canRefundAll, hotel = false }: { cats: Cat[
             <button className="btn block" disabled={!lines.length || busy || (food && !table)} onClick={card}>
               Card
             </button>
+            <button className="btn ghost block" style={{ gridColumn: "1 / -1" }} disabled={!lines.length || busy || (food && !table)} onClick={() => setPay({ kind: "tab" })}>
+              Put on a tab
+            </button>
             {hotel && (
               <button className="btn ghost block" style={{ gridColumn: "1 / -1" }} disabled={!lines.length || busy || (food && !table)} onClick={() => setPay({ kind: "room" })}>
                 Charge to room
               </button>
             )}
+          </div>
+        )}
+        {pay?.kind === "tab" && (
+          <div className="stack" style={{ gap: 8 }}>
+            {tabs.length > 0 && (
+              <div className="qchips">
+                {tabs.map((t) => (
+                  <button key={t.id} disabled={busy} onClick={() => complete("tab", { tabId: t.id })}>
+                    {t.name} · {eur(t.totalCents)}
+                  </button>
+                ))}
+              </div>
+            )}
+            <label className="field">
+              Or open a new tab
+              <input value={tabName} onChange={(e) => setTabName(e.target.value.slice(0, 40))} placeholder="Name or table, e.g. Seán, Table 7" />
+            </label>
+            <div className="row" style={{ justifyContent: "flex-start" }}>
+              <button className="btn" disabled={busy || !tabName.trim()} onClick={() => complete("tab", { tabName })}>
+                Open tab with {eur(total)}
+              </button>
+              <button className="btn ghost" onClick={() => setPay(null)}>Back</button>
+            </div>
           </div>
         )}
         {pay?.kind === "room" && (

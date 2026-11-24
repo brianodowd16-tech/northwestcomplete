@@ -70,6 +70,12 @@ export const venue = pgTable("venue", {
   shareBrandInsights: boolean("share_brand_insights").notNull().default(false),
   /** Table bookings: seats bookable per 30-minute slot (0 = bookings off). */
   bookingSeatsPerSlot: integer("booking_seats_per_slot").notNull().default(0),
+  /** Opening hours per station and weekday (0 = Sunday): [["12:00","23:30"], ...]. Null = always open. */
+  hours: jsonb("hours").$type<{ bar?: ([string, string] | null)[]; kitchen?: ([string, string] | null)[] } | null>(),
+  /** Staff paused new app orders for a station until this time (ISO). */
+  pausedUntil: jsonb("paused_until").notNull().default({}).$type<{ bar?: string; kitchen?: string }>(),
+  /** Offer a tip at app checkout (all of it goes to the staff). */
+  tipsEnabled: boolean("tips_enabled").notNull().default(true),
   /** The venue's Fantasy Premier League mini-league invite code; guests join via /v/{slug}/fpl. */
   fplCode: text("fpl_code"),
   fplClicks: integer("fpl_clicks").notNull().default(0),
@@ -143,6 +149,8 @@ export const menuItem = pgTable("menu_item", {
   vatRate: smallint("vat_rate").notNull().$type<9 | 23>(),
   station: text("station", { enum: ["bar", "kitchen"] }).notNull(),
   containsAlcohol: boolean("contains_alcohol").notNull().default(false),
+  /** EU allergens (FIC 1169/2011) this item contains. */
+  allergens: jsonb("allergens").notNull().default([]).$type<string[]>(),
   availableForCollect: boolean("available_for_collect").notNull().default(false),
   active: boolean("active").notNull().default(true),
   soldOut: boolean("sold_out").notNull().default(false),
@@ -163,6 +171,8 @@ export const customer = pgTable("customer", {
   ageVerifiedByStaffId: uuid("age_verified_by_staff_id"),
   ageVerificationMethod: text("age_verification_method", { enum: ["staff_id_check", "digital_id"] }),
   ageDocumentType: text("age_document_type", { enum: ["age_card", "passport", "driving_licence"] }),
+  /** Set when the guest deleted their account: personal details are wiped, orders kept for VAT records. */
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: createdAt(),
 });
 
@@ -221,7 +231,14 @@ export const orders = pgTable(
     staffId: uuid("staff_id"),
     /** Table number food from the till goes to. */
     tableNumber: integer("table_number"),
-    status: text("status", { enum: ["pending_payment", "paid", "cancelled", "refunded"] }).notNull(),
+    /** open = rung up on a till tab, not paid yet. */
+    status: text("status", { enum: ["pending_payment", "open", "paid", "cancelled", "refunded"] }).notNull(),
+    /** Tip for the staff (in amount_paid, outside VAT, loyalty and the app fee). */
+    tipCents: integer("tip_cents").notNull().default(0),
+    /** Discount or comp given at the till, with the reason. */
+    discountCents: integer("discount_cents").notNull().default(0),
+    discountReason: text("discount_reason"),
+    tabId: uuid("tab_id"),
     grossCents: integer("gross_cents").notNull(),
     vat9Cents: integer("vat9_cents").notNull(),
     vat23Cents: integer("vat23_cents").notNull(),
@@ -255,6 +272,8 @@ export const orderLine = pgTable("order_line", {
   vatCents: integer("vat_cents").notNull(),
   station: text("station", { enum: ["bar", "kitchen"] }).notNull(),
   containsAlcohol: boolean("contains_alcohol").notNull(),
+  /** The guest's note for the kitchen or bar ("no onions"). */
+  note: text("note"),
 });
 
 export const docket = pgTable(
@@ -589,7 +608,41 @@ export const staffShift = pgTable(
   (t) => [index("staff_shift_venue").on(t.venueId, t.clockIn)],
 );
 
+// ---------------------------------------------------------------- till tabs and cash-up
+
+export const tab = pgTable(
+  "tab",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    name: text("name").notNull(),
+    tableNumber: integer("table_number"),
+    openedBy: uuid("opened_by"),
+    openedAt: timestamp("opened_at", { withTimezone: true }).notNull().defaultNow(),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    method: text("method"),
+  },
+  (t) => [index("tab_venue_open").on(t.venueId, t.closedAt)],
+);
+
+export const cashUp = pgTable("cash_up", {
+  id: id(),
+  tenantId: tenantId(),
+  venueId: uuid("venue_id").notNull().references(() => venue.id),
+  businessDate: date("business_date").notNull(),
+  staffId: uuid("staff_id"),
+  floatCents: integer("float_cents").notNull(),
+  expectedCents: integer("expected_cents").notNull(),
+  countedCents: integer("counted_cents").notNull(),
+  varianceCents: integer("variance_cents").notNull(),
+  note: text("note").notNull().default(""),
+  createdAt: createdAt(),
+});
+
 export const TENANT_TABLES = [
+  "tab",
+  "cash_up",
   "booking",
   "staff_shift",
   "venue_event",

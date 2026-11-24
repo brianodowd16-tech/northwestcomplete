@@ -1,6 +1,7 @@
 import { stationDockets } from "@round/db/services";
 import { notFound } from "next/navigation";
 import { DocketBoard, type DocketView } from "@/components/DocketBoard";
+import { PauseControl } from "@/components/PauseControl";
 import { StaffNav } from "@/components/StaffNav";
 import { VenueTheme } from "@/components/VenueTheme";
 import { requireStaffFor } from "@/lib/server";
@@ -18,6 +19,7 @@ export default async function StationPage({ params, searchParams }: { params: Pr
       <VenueTheme color={venue.brandColor} />
       <div className="label">{venue.name}</div>
       <StaffNav setup={venue.status === "setup"} slug={slug} current={station} admin={staff.role === "admin"} other={(await searchParams).other} />
+      <PauseControl station={station} until={venue.pausedUntil?.[station] ?? null} />
       <DocketBoard slug={slug} station={station} initial={initial} />
     </div>
   );

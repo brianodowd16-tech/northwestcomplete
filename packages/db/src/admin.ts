@@ -1,4 +1,4 @@
-import { OnboardingError, checkPassword, checkPasswordStrength, hashPassword, normaliseEmail } from "@round/core";
+import { OnboardingError, checkPassword, checkPasswordStrength, cleanAllergens, hashPassword, normaliseEmail } from "@round/core";
 import { and, asc, count, eq, max } from "drizzle-orm";
 import { randomBytes } from "node:crypto";
 import { publish, topics, withTenant } from "./index";
@@ -56,6 +56,7 @@ export interface ItemInput {
   containsAlcohol: boolean;
   availableForCollect: boolean;
   active: boolean;
+  allergens?: string[];
 }
 
 /** Adds or edits an item. Food goes to the kitchen and is never collect-at-bar. */
@@ -76,6 +77,7 @@ export async function saveItem(venue: Venue, input: ItemInput) {
     availableForCollect: station === "bar" && !!input.availableForCollect,
     active: input.active !== false,
     categoryId: input.categoryId,
+    allergens: cleanAllergens(input.allergens),
   };
   const saved = await withTenant(venue.tenantId, async (tx) => {
     const [cat] = await tx.select().from(t.menuCategory).where(and(eq(t.menuCategory.id, input.categoryId), eq(t.menuCategory.venueId, venue.id)));
@@ -187,4 +189,39 @@ export async function saveVenueDetails(venue: Venue, input: { name: string; tagl
       .set({ name, tagline: String(input.tagline ?? "").trim().slice(0, 120), town: String(input.town ?? "").trim().slice(0, 80), vatNumber: vat, brandColor: color })
       .where(eq(t.venue.id, venue.id));
   });
+}
+
+// ---------------------------------------------------------------- service settings
+
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/** Opening hours per station and weekday (Sunday first). A day with no hours is closed; no hours at all = always open. */
+export async function saveHours(venue: Venue, hours: { bar?: ([string, string] | null)[]; kitchen?: ([string, string] | null)[] } | null) {
+  if (hours) {
+    for (const st of ["bar", "kitchen"] as const) {
+      const w = hours[st];
+      if (!w) continue;
+      if (w.length !== 7) throw new OnboardingError("Give hours for each day of the week");
+      for (const d of w) if (d && (!HHMM.test(d[0]) || !HHMM.test(d[1]) || d[0] === d[1])) throw new OnboardingError("Use times like 12:00 and 23:30");
+    }
+  }
+  await withTenant(venue.tenantId, (tx) => tx.update(t.venue).set({ hours }).where(eq(t.venue.id, venue.id)));
+}
+
+/** Staff pause a station's app orders (kitchen slammed) for some minutes; 0 resumes. */
+export async function pauseStation(staff: Staff, station: "bar" | "kitchen", minutes: number) {
+  if (!["bar", "kitchen"].includes(station) || !Number.isInteger(minutes) || minutes < 0 || minutes > 240) throw new OnboardingError("Pause for 0 to 240 minutes");
+  await withTenant(staff.tenantId, async (tx) => {
+    const [v] = await tx.select().from(t.venue).where(eq(t.venue.id, staff.venueId));
+    const p = { ...(v.pausedUntil ?? {}) };
+    if (minutes) p[station] = new Date(Date.now() + minutes * 60_000).toISOString();
+    else delete p[station];
+    await tx.update(t.venue).set({ pausedUntil: p }).where(eq(t.venue.id, staff.venueId));
+    await tx.insert(t.auditLog).values({ tenantId: staff.tenantId, actor: `staff:${staff.id}`, action: minutes ? "station_paused" : "station_resumed", entity: `venue:${staff.venueId}`, detail: { station, minutes } });
+    await publish(tx, topics.venue(staff.venueId), { kind: "menu" });
+  });
+}
+
+export async function setTips(venue: Venue, on: boolean) {
+  await withTenant(venue.tenantId, (tx) => tx.update(t.venue).set({ tipsEnabled: on }).where(eq(t.venue.id, venue.id)));
 }

@@ -18,6 +18,7 @@ interface Props {
   };
   serverReady: boolean;
   details: { name: string; tagline: string; town: string; vatNumber: string; brandColor: string };
+  service: { hours: { bar?: ([string, string] | null)[]; kitchen?: ([string, string] | null)[] } | null; tips: boolean };
   rules: { creditMinOrderCents: number; allowCreditWithDouble: boolean; monthlyCreditBudgetCents: number | null; doubleMinOrderCents: number };
 }
 
@@ -48,6 +49,36 @@ export function SettingsForms(p: Props) {
   return (
     <div className="stack">
       {!p.serverReady && <div className="error">SECRETS_KEY isn&apos;t set on the server, so payment keys and Xero can&apos;t be saved yet.</div>}
+      <form
+        id="service"
+        className="panel stack"
+        onSubmit={(e) => {
+          e.preventDefault();
+          save("service", e.currentTarget);
+        }}
+      >
+        <h3>Opening hours and tips</h3>
+        <p className="muted small" style={{ margin: 0 }}>Guests can only order when the bar or kitchen is open. Leave a day blank to close that station all day. Hours can run past midnight (12:00 to 01:30).</p>
+        <label className="toggle small"><input type="checkbox" name="alwaysOpen" defaultChecked={!p.service.hours} /> Always open (ignore the hours below)</label>
+        <div style={{ overflowX: "auto" }}>
+          <table>
+            <thead><tr><th>Day</th><th>Bar opens</th><th>Bar closes</th><th>Kitchen opens</th><th>Kitchen closes</th></tr></thead>
+            <tbody>
+              {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((d, i) => (
+                <tr key={d}>
+                  <td>{d}</td>
+                  {(["bar", "kitchen"] as const).flatMap((st) => [0, 1].map((k) => (
+                    <td key={`${st}${k}`}><input type="time" name={`${st}-${i}-${k ? "close" : "open"}`} defaultValue={p.service.hours?.[st]?.[i]?.[k] ?? (p.service.hours ? "" : st === "bar" ? (k ? "23:30" : "12:00") : (k ? "21:00" : "12:00"))} /></td>
+                  )))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <label className="toggle small"><input type="checkbox" name="tips" defaultChecked={p.service.tips} /> Offer a tip at checkout (all tips go to staff, as Irish law requires; they&apos;re shown on the end-of-day report)</label>
+        <Msg m={msg} section="service" />
+        <button className="btn" disabled={busy === "service"}>Save</button>
+      </form>
       <form
         id="venue"
         className="panel stack"

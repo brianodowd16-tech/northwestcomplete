@@ -16,6 +16,9 @@ import {
   settleOrder,
   signupEntries,
   splitByStation,
+  stationOpen,
+  checkTip,
+  CartError,
   trialAdjust,
   type Channel,
   type DocketStatus,
@@ -275,8 +278,10 @@ export interface CreateOrderInput {
   customer: Customer;
   channel: Channel;
   tableId: string | null;
-  lines: { menuItemId: string; qty: number }[];
+  lines: { menuItemId: string; qty: number; note?: string | null }[];
   creditRequestedCents: number;
+  /** Tip for the staff, on top of the bill (only if the venue offers tips). */
+  tipCents?: number;
   useDouble: boolean;
   idempotencyKey: string;
   /** public base URL of the app, for the payment provider's return and notify URLs */
@@ -317,6 +322,16 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
     await tx.execute(sql`select 1 from membership where id = ${m.id} for update`);
     const items = await tx.select().from(t.menuItem).where(eq(t.menuItem.venueId, venue.id));
     const cart = priceCart(new Map(items.map((i) => [i.id, toPriced(i)])), input.lines, input.channel);
+    // Opening hours and staff pauses: never take an order the bar or kitchen can't make.
+    for (const st of [...new Set(cart.lines.map((l) => l.menuItem.station))]) {
+      const o = stationOpen(venue.hours, venue.pausedUntil, st, new Date(), venue.timezone);
+      if (!o.open) throw new CartError(o.reason ?? "Not taking orders right now");
+    }
+    const notes = new Map<string, string>();
+    for (const l of input.lines) {
+      const n = String(l.note ?? "").trim().replace(/\s+/g, " ").slice(0, 140);
+      if (n) notes.set(l.menuItemId, [notes.get(l.menuItemId), n].filter(Boolean).join("; ").slice(0, 280));
+    }
     const b = await ledgerBalances(tx, m.id);
     // The venue's redemption rules decide what actually applies; the request is only a wish.
     const [prog] = await tx.select().from(t.programme).where(eq(t.programme.id, venue.programmeId));
@@ -329,6 +344,8 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
       await creditBudgetLeftTx(tx, venue, rules.monthlyCreditBudgetCents),
     );
     const credit = Math.min(resolved.creditCents, input.creditRequestedCents);
+    const tip = venue.tipsEnabled ? Math.max(0, Math.round(input.tipCents ?? 0)) : 0;
+    checkTip(tip, cart.grossCents - credit);
 
     const [order] = await tx
       .insert(t.orders)
@@ -344,7 +361,8 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
         vat9Cents: cart.vat9Cents,
         vat23Cents: cart.vat23Cents,
         creditUsedCents: credit,
-        amountPaidCents: cart.grossCents - credit,
+        amountPaidCents: cart.grossCents - credit + tip,
+        tipCents: tip,
         useDouble: resolved.useDouble,
         provider: provider.name,
         idempotencyKey: input.idempotencyKey,
@@ -363,6 +381,7 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
         vatCents: l.vatCents,
         station: l.menuItem.station,
         containsAlcohol: l.menuItem.containsAlcohol,
+        note: notes.get(l.menuItem.id) ?? null,
       })),
     );
     return { order, isNew: true, cart };
@@ -390,7 +409,10 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
     currency: "EUR",
     reference: order.id,
     description: `${venue.name} order #${order.number}`,
-    lineItems: lines.map((l) => ({ name: l.name, quantity: l.qty, unitPriceCents: l.unitPriceCents, totalCents: l.grossCents, externalId: null })),
+    lineItems: [
+      ...lines.map((l) => ({ name: l.name, quantity: l.qty, unitPriceCents: l.unitPriceCents, totalCents: l.grossCents, externalId: null })),
+      ...(order.tipCents ? [{ name: "Tip for the staff", quantity: 1, unitPriceCents: order.tipCents, totalCents: order.tipCents, externalId: null }] : []),
+    ],
     discountCents: order.creditUsedCents,
     customer: { email: customer.email, firstName: names[0] || "Guest", lastName: names.slice(1).join(" ") || names[0] || "Guest" },
     urls: { ok: orderUrl, cancel: `${orderUrl}?cancelled=1`, notify: `${input.appUrl}/api/webhooks/${provider.name}/${venue.slug}` },
@@ -482,7 +504,7 @@ export async function completeOrder(tenantId: string, orderId: string, txnRef?: 
       rules: programme,
       levels: levels.map(toLevel),
       spend12mBeforeCents: await spend12m(tx, m.id, order.id),
-      amountPaidCents: order.amountPaidCents,
+      amountPaidCents: order.amountPaidCents - order.tipCents, // tips earn nothing
       creditUsedCents: order.creditUsedCents,
       useDouble: order.useDouble,
       balancesBefore: await ledgerBalances(tx, m.id),
@@ -684,7 +706,7 @@ export async function stationDockets(staff: Staff, station: Station) {
         tableNumber: tables.find((x) => x.id === o.tableId)?.number ?? o.tableNumber ?? null,
         guestFirstName: c ? c.name.split(" ")[0] : "Till",
         guestAge: c ? ageOn(c.dateOfBirth, now) : null,
-        lines: ls.filter((l) => l.orderId === d.orderId).map((l) => ({ name: l.name, qty: l.qty, containsAlcohol: l.containsAlcohol })),
+        lines: ls.filter((l) => l.orderId === d.orderId && l.station === d.station).map((l) => ({ name: l.name, qty: l.qty, containsAlcohol: l.containsAlcohol, note: l.note })),
       };
     });
   });
@@ -862,7 +884,7 @@ export async function billingStatement(venue: Venue, year: number, month: number
     const trial = trialAdjust(sub?.trialEndsAt ?? null, from, to, sub?.monthlyFeeCents ?? 0);
     const [row] = await tx
       .select({
-        gross: sql<number>`coalesce(sum(${t.orders.amountPaidCents}), 0)::int`,
+        gross: sql<number>`coalesce(sum(${t.orders.amountPaidCents} - ${t.orders.tipCents}), 0)::int`,
         refunds: sql<number>`coalesce(sum(${t.orders.refundedCents}), 0)::int`,
       })
       .from(t.orders)
