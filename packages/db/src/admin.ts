@@ -225,3 +225,71 @@ export async function pauseStation(staff: Staff, station: "bar" | "kitchen", min
 export async function setTips(venue: Venue, on: boolean) {
   await withTenant(venue.tenantId, (tx) => tx.update(t.venue).set({ tipsEnabled: on }).where(eq(t.venue.id, venue.id)));
 }
+
+/**
+ * Bulk menu import from a spreadsheet (CSV): section, name, price, vat, station, alcohol, allergens, description.
+ * Sections are created as needed; an item with the same name in the same section is updated, not duplicated.
+ */
+export async function importMenu(venue: Venue, csv: string) {
+  const rows = String(csv ?? "").replace(/^﻿/, "").split(/\r?\n/).filter((l) => l.trim());
+  if (rows.length < 2) throw new OnboardingError("The file has no menu rows");
+  const sep = [",", ";", "\t"].sort((a, b) => rows[0].split(b).length - rows[0].split(a).length)[0];
+  const cells = (l: string) => {
+    const out: string[] = [];
+    let cur = "", q = false;
+    for (let i = 0; i < l.length; i++) {
+      const ch = l[i];
+      if (q) { if (ch === '"' && l[i + 1] === '"') { cur += '"'; i++; } else if (ch === '"') q = false; else cur += ch; }
+      else if (ch === '"') q = true;
+      else if (ch === sep) { out.push(cur.trim()); cur = ""; }
+      else cur += ch;
+    }
+    out.push(cur.trim());
+    return out;
+  };
+  const head = cells(rows[0]).map((h) => h.toLowerCase());
+  const col = (...names: string[]) => head.findIndex((h) => names.some((n) => h === n || h.startsWith(n)));
+  const ci = { section: col("section", "category"), name: col("name", "item"), price: col("price"), vat: col("vat"), station: col("station", "goes to"), alcohol: col("alcohol"), allergens: col("allergen"), description: col("description") };
+  if (ci.name < 0 || ci.price < 0) throw new OnboardingError("The file needs at least 'name' and 'price' columns");
+  const errors: string[] = [];
+  const parsed: { section: string; input: Omit<ItemInput, "categoryId"> }[] = [];
+  rows.slice(1).forEach((r, i) => {
+    const c = cells(r);
+    const name = c[ci.name] ?? "";
+    if (!name) return;
+    const price = String(c[ci.price] ?? "").replace("€", "").replace(",", ".").trim();
+    if (!/^\d{1,5}(\.\d{1,2})?$/.test(price)) return errors.push(`Row ${i + 2}: price "${c[ci.price] ?? ""}"`);
+    const station = /kitchen|food/i.test(c[ci.station] ?? "") ? "kitchen" : "bar";
+    const vat = Number(String(c[ci.vat] ?? "").replace("%", "")) === 9 ? 9 : Number(String(c[ci.vat] ?? "").replace("%", "")) === 23 ? 23 : station === "kitchen" ? 9 : 23;
+    parsed.push({
+      section: (c[ci.section] ?? "").trim() || (station === "kitchen" ? "Food" : "Drinks"),
+      input: {
+        name,
+        description: ci.description >= 0 ? c[ci.description] ?? "" : "",
+        priceCents: Math.round(Number(price) * 100),
+        vatRate: vat,
+        station,
+        containsAlcohol: /^(y|yes|true|1)$/i.test(c[ci.alcohol] ?? ""),
+        availableForCollect: station === "bar",
+        active: true,
+        allergens: (c[ci.allergens] ?? "").toLowerCase().split(/[|/;, ]+/).map((a) => (a === "tree nuts" ? "nuts" : a)).filter(Boolean),
+      },
+    });
+  });
+  if (errors.length) throw new OnboardingError(`Fix these and import again: ${errors.slice(0, 5).join("; ")}`);
+  const existing = await menuAdmin(venue);
+  const catId = new Map(existing.map((c) => [c.name.toLowerCase(), c.id]));
+  let added = 0, updated = 0;
+  for (const p of parsed) {
+    let id = catId.get(p.section.toLowerCase());
+    if (!id) {
+      id = (await saveCategory(venue, { name: p.section })).id;
+      catId.set(p.section.toLowerCase(), id);
+    }
+    const same = existing.find((c) => c.id === id)?.items.find((x) => x.name.toLowerCase() === p.input.name.toLowerCase());
+    await saveItem(venue, { ...p.input, categoryId: id, id: same?.id });
+    if (same) updated++;
+    else added++;
+  }
+  return { added, updated };
+}

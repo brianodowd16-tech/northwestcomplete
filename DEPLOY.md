@@ -20,6 +20,7 @@ Any host that runs a Dockerfile, with Postgres 16 in the EU. For example:
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | Hostinger mailbox: `smtp.hostinger.com`, `465`, `hello@complete.pub`, its password |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | `npx web-push generate-vapid-keys`; subject `mailto:hello@complete.pub` |
 | `XERO_CLIENT_ID`, `XERO_CLIENT_SECRET` | From developer.xero.com (redirect `https://complete.pub/api/xero/callback`) |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_MESSAGING_SERVICE_SID` or `TWILIO_FROM` | Guest sign-in texts. In Twilio, allow only Ireland (and other countries you serve) under Geo permissions |
 | `ANTHROPIC_API_KEY` | Optional: "Ask your data" |
 | `SPORTSDB_KEY` | Optional: full fixture lists |
 | `FUNDING_PARTNER_URL`, `BRAND_API_TOKENS` | Optional: partners |

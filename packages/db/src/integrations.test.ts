@@ -69,7 +69,7 @@ describe("myPOS through the order flow", () => {
     const good = notify([["IPCmethod", "IPCPurchaseNotify"], ["SID", SID], ["Amount", "12.40"], ["Currency", "EUR"], ["OrderID", order.id], ["IPC_Trnref", "TRN1"]]);
     await expect(svc.handleWebhook(provider, good, new Headers(), drum)).rejects.toThrow(/another venue/);
     const r = await svc.handleWebhook(provider, good, new Headers(), mj);
-    expect(r).toEqual({ status: 200, body: "OK" });
+    expect(r).toMatchObject({ status: 200, body: "OK" });
     const after = await svc.orderForCustomer(mj, order.id, order.customerId!);
     expect(after.order.status).toBe("paid");
     expect(after.order.providerTxnRef).toBe("TRN1");

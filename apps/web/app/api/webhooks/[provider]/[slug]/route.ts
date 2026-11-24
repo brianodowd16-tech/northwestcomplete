@@ -1,3 +1,5 @@
+import { after } from "next/server";
+import { sendReceipt } from "@/lib/receipt";
 import { handleWebhook, venueBySlug } from "@round/db/services";
 import { providerFor } from "@/lib/server";
 
@@ -11,6 +13,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ provider: stri
     const provider = await providerFor(venue);
     if (provider.name !== name) return new Response("wrong provider", { status: 404 });
     const r = await handleWebhook(provider, raw, req.headers, venue);
+    if (r.completedOrderId) after(() => sendReceipt(r.completedOrderId!).catch((e) => console.error("receipt", e)));
     return new Response(r.body, { status: r.status, headers: { "Content-Type": "text/plain" } });
   } catch (e) {
     console.error("webhook failed", name, slug, e);

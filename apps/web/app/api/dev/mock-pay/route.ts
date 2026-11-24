@@ -1,3 +1,5 @@
+import { after } from "next/server";
+import { sendReceipt } from "@/lib/receipt";
 import type { MockProvider } from "@round/core";
 import { handleWebhook, orderForCustomer, venueBySlug } from "@round/db/services";
 import { currentGuest, errorJson, json, providerFor } from "@/lib/server";
@@ -15,6 +17,7 @@ export async function POST(req: Request) {
     if (!order.providerOrderId) return json({ error: "Nothing to pay" }, 400);
     const { rawBody, headers } = (provider as MockProvider).simulatePayment(order.providerOrderId);
     const r = await handleWebhook(provider, rawBody, headers, venue);
+    if (r.completedOrderId) after(() => sendReceipt(r.completedOrderId!).catch((e) => console.error("receipt", e)));
     return json({ ok: r.status === 200 });
   } catch (e) {
     return errorJson(e);

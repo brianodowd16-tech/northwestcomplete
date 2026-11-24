@@ -532,13 +532,14 @@ async function maybeAwardReferral(tx: Tx, tenantId: string, m: typeof t.membersh
 
 // ---------------------------------------------------------------- webhooks
 
-export type WebhookResult = { status: 200 | 401 | 400; body: string };
+export type WebhookResult = { status: 200 | 401 | 400; body: string; completedOrderId?: string };
 
 /**
  * Handles a payment notification. `venue` is the venue named in the notify URL:
  * hosted checkouts (myPOS) are verified with that venue's own certificate.
  */
 export async function handleWebhook(provider: PaymentProvider, rawBody: string, headers: Headers, venue?: Venue): Promise<WebhookResult> {
+  let completedOrderId: string | undefined;
   const db = systemDb();
   const valid = provider.verifyWebhook(rawBody, headers);
   let parsed: WebhookEvent | null = null;
@@ -565,11 +566,11 @@ export async function handleWebhook(provider: PaymentProvider, rawBody: string, 
         // A signed hosted-checkout notification is authoritative; otherwise don't trust event
         // order and ask the provider for the order's current state.
         const state = parsed.state ?? (provider.getOrder ? (await provider.getOrder(parsed.providerOrderId)).state : null);
-        if (state === "completed") await completeOrder(order.tenantId, order.id, parsed.txnRef);
+        if (state === "completed" && (await completeOrder(order.tenantId, order.id, parsed.txnRef))) completedOrderId = order.id;
       }
     }
     await db.update(t.webhookEvent).set({ processedAt: new Date() }).where(eq(t.webhookEvent.id, stored.id));
-    return { status: 200, body: "OK" };
+    return { status: 200, body: "OK", completedOrderId };
   } catch (e) {
     await db.update(t.webhookEvent).set({ error: String(e) }).where(eq(t.webhookEvent.id, stored.id));
     throw e;
@@ -902,4 +903,15 @@ export async function menuForOffice(venue: Venue) {
   return withTenant(venue.tenantId, (tx) =>
     tx.select().from(t.menuItem).where(eq(t.menuItem.venueId, venue.id)).orderBy(asc(t.menuItem.station), asc(t.menuItem.sort)),
   );
+}
+
+/** Everything a receipt email needs (system read: called after a verified payment). */
+export async function receiptData(orderId: string) {
+  const db = systemDb();
+  const [o] = await db.select().from(t.orders).where(eq(t.orders.id, orderId));
+  if (!o?.customerId) return null;
+  const [c] = await db.select().from(t.customer).where(eq(t.customer.id, o.customerId));
+  const [v] = await db.select().from(t.venue).where(eq(t.venue.id, o.venueId));
+  const lines = await db.select().from(t.orderLine).where(eq(t.orderLine.orderId, o.id));
+  return { order: o, customer: c, venue: v, lines };
 }

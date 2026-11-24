@@ -97,6 +97,17 @@ describe("till: discounts, tabs, cash-up", () => {
   });
 });
 
+describe("menu import", () => {
+  it("adds and updates items from a spreadsheet, creating sections", async () => {
+    const csv = 'section,name,price,vat,station,alcohol,allergens\nCocktails,Espresso martini,"12,50",23,bar,yes,milk\nFood,Fish & chips,18.00,9,kitchen,no,fish|gluten\n';
+    expect(await admin.importMenu(mj, csv)).toEqual({ added: 1, updated: 1 });
+    const items = (await svc.menu(mj)).flatMap((c) => c.items);
+    expect(items.find((i) => i.name === "Espresso martini")).toMatchObject({ priceCents: 1250, containsAlcohol: true, allergens: ["milk"] });
+    expect(items.find((i) => i.name === "Fish & chips")!.priceCents).toBe(1800);
+    await expect(admin.importMenu(mj, "name,price\nBad,lots")).rejects.toThrow(/price/);
+  });
+});
+
 describe("GDPR", () => {
   it("exports the guest's data and deletes the account but keeps anonymous sales", async () => {
     const data = await privacy.exportGuestData(guest.id);
