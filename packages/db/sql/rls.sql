@@ -22,7 +22,8 @@ BEGIN
   FOREACH t IN ARRAY ARRAY[
     'programme','programme_level','venue','venue_table','staff_user','menu_category','menu_item',
     'membership','loyalty_ledger','orders','order_line','docket','subscription','audit_log',
-    'venue_integration','xero_sync','agent_grant','agent_action'
+    'venue_integration','xero_sync','agent_grant','agent_action',
+    'supplier','stock_item','recipe_line','stock_movement','delivery','stock_count','purchase_order','till_import'
   ] LOOP
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
     EXECUTE format('DROP POLICY IF EXISTS tenant_isolation ON %I', t);

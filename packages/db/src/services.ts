@@ -29,6 +29,7 @@ import { and, asc, desc, eq, gte, inArray, isNull, lt, ne, sql } from "drizzle-o
 import { randomBytes } from "node:crypto";
 import { publish, systemDb, topics, withTenant, type Tx } from "./index";
 import * as t from "./schema";
+import { depleteForOrder, restockForOrder } from "./inventory";
 
 export class NotFound extends Error {}
 export class Forbidden extends Error {}
@@ -480,6 +481,7 @@ export async function completeOrder(tenantId: string, orderId: string, txnRef?: 
     });
     await writeLedger(tx, tenantId, m.id, entries);
     await maybeAwardReferral(tx, tenantId, m, programme.referralPoints, order.id);
+    await depleteForOrder(tx, tenantId, order.venueId, order.id);
 
     await publish(tx, topics.venue(order.venueId), { kind: "dockets" });
     await publish(tx, topics.order(order.id), { kind: "order" });
@@ -750,6 +752,7 @@ export async function refuseId(staff: Staff, docketId: string, provider: Payment
     if (!o) return;
     const entries = await tx.select().from(t.loyaltyLedger).where(eq(t.loyaltyLedger.orderId, o.id));
     await writeLedger(tx, staff.tenantId, o.membershipId, reverseEntries(entries, o.id));
+    await restockForOrder(tx, staff.tenantId, o.venueId, o.id); // refused at the bar: nothing was served
     await tx.update(t.docket).set({ status: "done", doneAt: new Date() }).where(eq(t.docket.orderId, o.id));
     await tx.insert(t.auditLog).values({ tenantId: staff.tenantId, actor: `staff:${staff.id}`, action: "id_refused", entity: `order:${o.id}`, detail: { docketId } });
     await publish(tx, topics.venue(staff.venueId), { kind: "dockets" });

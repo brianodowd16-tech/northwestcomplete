@@ -62,6 +62,8 @@ export const venue = pgTable("venue", {
   vatNumber: text("vat_number").notNull().default(""),
   timezone: text("timezone").notNull().default("Europe/Dublin"),
   bookingMaxAdvanceDays: integer("booking_max_advance_days").notNull().default(31),
+  /** Mark menu items sold out when an ingredient runs out. */
+  autoSoldOut: boolean("auto_sold_out").notNull().default(false),
   paymentProvider: text("payment_provider", { enum: ["mock", "revolut", "mypos"] }).notNull().default("mock"),
   googlePlaceId: text("google_place_id"),
   /** setup: test mode while the venue gets ready; live: taking real orders; suspended: closed by the platform. */
@@ -133,6 +135,8 @@ export const menuItem = pgTable("menu_item", {
   availableForCollect: boolean("available_for_collect").notNull().default(false),
   active: boolean("active").notNull().default(true),
   soldOut: boolean("sold_out").notNull().default(false),
+  /** Sold out because stock ran out (not by staff): comes back automatically after a delivery or count. */
+  soldOutByStock: boolean("sold_out_by_stock").notNull().default(false),
   externalItemId: text("external_item_id"),
   sort: integer("sort").notNull().default(0),
 });
@@ -356,7 +360,149 @@ export const auditLog = pgTable("audit_log", {
   createdAt: createdAt(),
 });
 
+// ---------------------------------------------------------------- push notifications (platform-level, like customer)
+
+export const pushSubscription = pgTable("push_subscription", {
+  id: id(),
+  customerId: uuid("customer_id").notNull().references(() => customer.id),
+  endpoint: text("endpoint").notNull().unique(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  createdAt: createdAt(),
+});
+
+// ---------------------------------------------------------------- inventory
+// Stock on hand is the sum of stock_movement, like loyalty balances. Quantities are integers in
+// base units (ml, g or each); money is integer cents excluding VAT.
+
+export const supplier = pgTable("supplier", {
+  id: id(),
+  tenantId: tenantId(),
+  venueId: uuid("venue_id").notNull().references(() => venue.id),
+  name: text("name").notNull(),
+  email: text("email").notNull().default(""),
+  phone: text("phone").notNull().default(""),
+  createdAt: createdAt(),
+});
+
+export const stockItem = pgTable(
+  "stock_item",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    name: text("name").notNull(),
+    category: text("category").notNull().default(""),
+    unit: text("unit", { enum: ["ml", "g", "each"] }).notNull(),
+    supplierId: uuid("supplier_id").references(() => supplier.id),
+    /** What one pack holds, in base units (a 50 L keg = 50000 ml). */
+    packSize: integer("pack_size").notNull(),
+    packName: text("pack_name").notNull().default("pack"),
+    /** Latest price paid per pack, excluding VAT. */
+    packCostCents: integer("pack_cost_cents").notNull().default(0),
+    /** Reorder when stock falls below this (base units). */
+    parLevel: integer("par_level").notNull().default(0),
+    active: boolean("active").notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("stock_item_venue_name").on(t.venueId, t.name)],
+);
+
+export const recipeLine = pgTable(
+  "recipe_line",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    menuItemId: uuid("menu_item_id").notNull().references(() => menuItem.id),
+    stockItemId: uuid("stock_item_id").notNull().references(() => stockItem.id),
+    qty: integer("qty").notNull(),
+  },
+  (t) => [uniqueIndex("recipe_line_item_stock").on(t.menuItemId, t.stockItemId)],
+);
+
+export const stockMovement = pgTable(
+  "stock_movement",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    stockItemId: uuid("stock_item_id").notNull().references(() => stockItem.id),
+    kind: text("kind", { enum: ["delivery", "sale", "till_sale", "refund", "waste", "count"] }).notNull(),
+    /** Signed base units: deliveries add, sales and waste take away, counts correct. */
+    qty: integer("qty").notNull(),
+    /** Signed value at cost when it happened (excl. VAT). */
+    costCents: integer("cost_cents").notNull(),
+    reason: text("reason"),
+    orderId: uuid("order_id"),
+    menuItemId: uuid("menu_item_id"),
+    /** Delivery, count or till import this belongs to. */
+    refId: uuid("ref_id"),
+    staffId: uuid("staff_id"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("stock_movement_venue_time").on(t.venueId, t.createdAt), index("stock_movement_item").on(t.stockItemId), index("stock_movement_ref").on(t.refId)],
+);
+
+export const delivery = pgTable("delivery", {
+  id: id(),
+  tenantId: tenantId(),
+  venueId: uuid("venue_id").notNull().references(() => venue.id),
+  supplierId: uuid("supplier_id").references(() => supplier.id),
+  purchaseOrderId: uuid("purchase_order_id"),
+  reference: text("reference").notNull().default(""),
+  totalCents: integer("total_cents").notNull(),
+  staffId: uuid("staff_id"),
+  receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const stockCount = pgTable("stock_count", {
+  id: id(),
+  tenantId: tenantId(),
+  venueId: uuid("venue_id").notNull().references(() => venue.id),
+  staffId: uuid("staff_id"),
+  /** Per item: expected (from the ledger), counted, difference at cost. */
+  lines: jsonb("lines").notNull().$type<{ stockItemId: string; name: string; unit: string; expected: number; counted: number; diffCents: number }[]>(),
+  valueCents: integer("value_cents").notNull(),
+  varianceCents: integer("variance_cents").notNull(),
+  countedAt: timestamp("counted_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const purchaseOrder = pgTable("purchase_order", {
+  id: id(),
+  tenantId: tenantId(),
+  venueId: uuid("venue_id").notNull().references(() => venue.id),
+  supplierId: uuid("supplier_id").notNull().references(() => supplier.id),
+  status: text("status", { enum: ["draft", "sent", "received", "cancelled"] }).notNull().default("draft"),
+  lines: jsonb("lines").notNull().$type<{ stockItemId: string; name: string; packs: number; packName: string; packCostCents: number }[]>(),
+  totalCents: integer("total_cents").notNull(),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  createdAt: createdAt(),
+});
+
+export const tillImport = pgTable(
+  "till_import",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    businessDate: date("business_date").notNull(),
+    lines: jsonb("lines").notNull().$type<{ name: string; qty: number; menuItemId: string | null }[]>(),
+    staffId: uuid("staff_id"),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("till_import_venue_date").on(t.venueId, t.businessDate)],
+);
+
 export const TENANT_TABLES = [
+  "supplier",
+  "stock_item",
+  "recipe_line",
+  "stock_movement",
+  "delivery",
+  "stock_count",
+  "purchase_order",
+  "till_import",
   "programme",
   "programme_level",
   "venue",

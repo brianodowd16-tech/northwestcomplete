@@ -9,7 +9,9 @@
     "./integrations": "./src/integrations.ts",
     "./ai": "./src/ai.ts",
     "./onboarding": "./src/onboarding.ts",
-    "./admin": "./src/admin.ts"
+    "./admin": "./src/admin.ts",
+    "./inventory": "./src/inventory.ts",
+    "./push": "./src/push.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",
