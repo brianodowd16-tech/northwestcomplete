@@ -3,6 +3,8 @@ import Link from "next/link";
 import { eur } from "@/components/format";
 import { IconGlass, IconStar, IconTable } from "@/components/Icons";
 import { ActiveOrderCard } from "@/components/OrderCards";
+import { EVENT_KINDS } from "@round/core";
+import { whatsOn } from "@round/db/events";
 import { currentGuest, loadVenue } from "@/lib/server";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +18,7 @@ export default async function VenueHome({ params }: { params: Promise<{ slug: st
   const venue = await loadVenue((await params).slug);
   const guest = await currentGuest();
   const [summary, active] = guest ? await Promise.all([memberSummary(venue, guest.id), activeOrdersForCustomer(venue, guest.id)]) : [null, []];
+  const coming = (await whatsOn(venue, new Date(), new Date(Date.now() + 7 * 86_400_000))).slice(0, 2);
   const pct = summary?.next ? Math.min(100, ((summary.spend12mCents - summary.level.minSpend12mCents) / (summary.next.minSpend12mCents - summary.level.minSpend12mCents)) * 100) : 100;
   return (
     <div className="stack">
@@ -27,6 +30,18 @@ export default async function VenueHome({ params }: { params: Promise<{ slug: st
         </span>
       </section>
 
+      {coming.length > 0 && (
+        <Link href={`/v/${venue.slug}/events`} className="card" style={{ textDecoration: "none", color: "inherit" }}>
+          <span className="label">Coming up</span>
+          {coming.map((o) => (
+            <div key={o.key} className="row small">
+              <span>{EVENT_KINDS[o.kind].icon} <b>{o.title}</b></span>
+              <span className="muted num">{o.start.toLocaleString("en-IE", { timeZone: venue.timezone, weekday: "short", hour: "2-digit", minute: "2-digit" })}</span>
+            </div>
+          ))}
+          <span className="small" style={{ color: "var(--vacc)", fontWeight: 600 }}>See what&apos;s on ›</span>
+        </Link>
+      )}
       {active.length > 0 && (
         <section className="stack">
           <div className="label">In progress</div>

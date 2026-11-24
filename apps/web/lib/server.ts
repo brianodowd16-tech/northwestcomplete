@@ -96,7 +96,7 @@ export function json(data: unknown, status = 200) {
 
 export function errorJson(e: unknown) {
   const name = e instanceof Error ? e.constructor.name : "";
-  const status = name === "NotFound" ? 404 : name === "Forbidden" ? 403 : ["CartError", "LoyaltyError", "SignupError", "DocketError", "OnboardingError", "InventoryError"].includes(name) ? 400 : 500;
+  const status = name === "NotFound" ? 404 : name === "Forbidden" ? 403 : ["CartError", "LoyaltyError", "SignupError", "DocketError", "OnboardingError", "InventoryError", "EventError"].includes(name) ? 400 : 500;
   if (status === 500) console.error(e);
   return json({ error: status === 500 ? "Something went wrong" : (e as Error).message }, status);
 }

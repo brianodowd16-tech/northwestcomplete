@@ -494,7 +494,30 @@ export const tillImport = pgTable(
   (t) => [uniqueIndex("till_import_venue_date").on(t.venueId, t.businessDate)],
 );
 
+// ---------------------------------------------------------------- what's on
+
+export const venueEvent = pgTable(
+  "venue_event",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    kind: text("kind", { enum: ["music", "sport", "quiz", "comedy", "other"] }).notNull(),
+    title: text("title").notNull(),
+    details: text("details").notNull().default(""),
+    where: text("where").notNull().default(""),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    durationMins: integer("duration_mins").notNull().default(120),
+    repeatWeekly: boolean("repeat_weekly").notNull().default(false),
+    repeatUntil: date("repeat_until"),
+    coverCents: integer("cover_cents").notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [index("venue_event_venue").on(t.venueId, t.startsAt)],
+);
+
 export const TENANT_TABLES = [
+  "venue_event",
   "supplier",
   "stock_item",
   "recipe_line",

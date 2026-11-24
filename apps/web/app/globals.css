@@ -149,7 +149,7 @@ td.r, th.r { text-align: right; }
 .modechip i { width: 7px; height: 7px; border-radius: 50%; background: var(--vacc); }
 .guest { padding-bottom: 150px; }
 .bnav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; background: var(--surface); border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
-.bnav > div { max-width: 480px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
+.bnav > div { max-width: 480px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
 .bnav a { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; font-size: 11px; font-weight: 600; color: var(--muted); text-decoration: none; position: relative; border-radius: 10px; }
 .bnav a svg { width: 22px; height: 22px; }
 .bnav a[aria-current="page"] { color: var(--vacc); }
@@ -292,3 +292,8 @@ tr.fresh td { animation: fadeIn .6s ease both; background: color-mix(in srgb, va
 .reasons { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
 .reason { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: var(--sunk); cursor: pointer; font-size: 14px; }
 .reason:has(input:checked) { border-color: var(--vacc); background: var(--surface); box-shadow: inset 0 0 0 1px var(--vacc); }
+
+/* what's on */
+.event { border-left: 4px solid var(--vacc); }
+.event.sport { border-left-color: #2f6fb0; }
+.event.quiz, .event.comedy { border-left-color: #8a4fb3; }

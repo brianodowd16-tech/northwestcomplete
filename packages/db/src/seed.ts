@@ -1,4 +1,4 @@
-import { hashPassword } from "@round/core";
+import { hashPassword, zonedToUtc } from "@round/core";
 import { randomBytes } from "node:crypto";
 import type { Db } from "./index";
 import * as t from "./schema";
@@ -114,6 +114,28 @@ async function seedStock(db: Db, tenantId: string, venueId: string, menuIds: Map
   await db.insert(t.stockMovement).values(STOCK.map((x) => ({ tenantId, venueId, stockItemId: byName.get(x[0])!.id, kind: "delivery" as const, qty: x[4] * x[7], costCents: x[5] * x[7], refId: d.id })));
 }
 
+/** Example "What's on": weekly regulars plus a couple of upcoming one-offs, in Dublin time. */
+async function seedEvents(db: Db, tenantId: string, venueId: string, key: string) {
+  const day = (offset: number, hhmm: string) => {
+    const d = new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
+    return zonedToUtc(`${d}T${hhmm}`, "Europe/Dublin");
+  };
+  const nextDow = (dow: number, hhmm: string) => day((dow - new Date().getUTCDay() + 7) % 7, hhmm);
+  const rows =
+    key === "mjo"
+      ? [
+          { kind: "music" as const, title: "Trad session", details: "Bring an instrument or just a thirst.", where: "Front bar", startsAt: nextDow(4, "21:00"), durationMins: 180, repeatWeekly: true },
+          { kind: "quiz" as const, title: "Table quiz", details: "Teams of up to 4. Prizes for the winners.", where: "Back lounge", startsAt: nextDow(3, "20:30"), durationMins: 120, repeatWeekly: true, coverCents: 500 },
+          { kind: "sport" as const, title: "Ireland v France", details: "Six Nations · Live on the big screen", where: "Big screen", startsAt: day(3, "16:45"), durationMins: 120 },
+          { kind: "sport" as const, title: "Premier League: early kick-off", details: "Sound on in the lounge", where: "Lounge", startsAt: nextDow(6, "12:30"), durationMins: 120, repeatWeekly: true },
+        ]
+      : [
+          { kind: "music" as const, title: "Acoustic by the fire", details: "Local singer-songwriters.", where: "Fire pit", startsAt: nextDow(5, "20:00"), durationMins: 150, repeatWeekly: true },
+          { kind: "sport" as const, title: "All-Ireland club hurling", details: "Live on the screen in the bar", where: "Bar", startsAt: day(5, "14:00"), durationMins: 120 },
+        ];
+  await db.insert(t.venueEvent).values(rows.map((r) => ({ ...r, tenantId, venueId })));
+}
+
 export async function seed(db: Db, opts: { stock?: boolean } = {}) {
   const out: Record<string, { slug: string; tables: string[] }> = {};
   for (const [key, v] of Object.entries(VENUES) as [keyof typeof VENUES, (typeof VENUES)[keyof typeof VENUES]][]) {
@@ -163,6 +185,7 @@ export async function seed(db: Db, opts: { stock?: boolean } = {}) {
       })),
     ).returning();
     if (opts.stock !== false) await seedStock(db, tenantId, ven.id, new Map(menuRows.map((m) => [m.name, m.id])));
+    await seedEvents(db, tenantId, ven.id, key);
     await db.insert(t.staffUser).values({
       tenantId,
       venueId: ven.id,

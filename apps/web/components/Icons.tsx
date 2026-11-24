@@ -20,3 +20,4 @@ export const IconCheck = P("M5 12l5 5 9-10");
 export const IconBell = P("M6 16V11a6 6 0 1112 0v5l2 2H4l2-2zM10 21h4");
 export const IconFlame = P("M12 3s5 4 5 9a5 5 0 01-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-8z");
 export const IconBag = P("M5 8h14l-1 13H6L5 8zM9 8V6a3 3 0 016 0v2");
+export const IconCalendar = P("M7 3v3M17 3v3M4 8h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z");

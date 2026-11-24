@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { IconMenu, IconReceipt, IconStar, IconTable } from "./Icons";
+import { IconCalendar, IconMenu, IconReceipt, IconStar, IconTable } from "./Icons";
 import { useLive } from "./useLive";
 
 /** Guest tab bar. "Menu" returns to the table or collect menu the guest last used. */
@@ -22,6 +22,7 @@ export function BottomNav({ slug, activeOrders }: { slug: string; activeOrders: 
   const tabs = [
     { href: `/v/${slug}`, label: "Home", icon: <IconTable />, on: path === `/v/${slug}` },
     { href: menuHref, label: "Menu", icon: <IconMenu />, on: path.includes("/t/") || path.endsWith("/collect") },
+    { href: `/v/${slug}/events`, label: "What's on", icon: <IconCalendar />, on: path.endsWith("/events") },
     { href: `/v/${slug}/orders`, label: "Orders", icon: <IconReceipt />, on: path.includes("/order"), badge: activeOrders },
     { href: `/v/${slug}/rewards`, label: "Rewards", icon: <IconStar />, on: path.endsWith("/rewards") },
   ];
