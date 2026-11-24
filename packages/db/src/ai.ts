@@ -26,6 +26,8 @@ import {
   createOrder,
   creditBudgetLeftTx,
   customerById,
+  dashboard,
+  salesSummary,
   Forbidden,
   memberSummary,
   menu,
@@ -386,4 +388,51 @@ export async function runAgentTool(ctx: AgentContext, name: string, args: Args, 
     await audit(ctx, name, args, false, [msg], "error");
     return { ok: false, error: msg };
   }
+}
+
+// ---------------------------------------------------------------- venue AI assistant data
+
+/**
+ * A compact, venue-scoped snapshot of the numbers a manager might ask about. It is the
+ * only data the venue's AI assistant sees: no guest names, phones or emails.
+ */
+export async function venueSnapshot(venue: Venue) {
+  const end = new Date();
+  end.setHours(24, 0, 0, 0);
+  const day = 86_400_000;
+  const [today, week, month, rules] = await Promise.all([
+    dashboard(venue, new Date(end.getTime() - day), end),
+    dashboard(venue, new Date(end.getTime() - 7 * day), end),
+    dashboard(venue, new Date(end.getTime() - 30 * day), end),
+    redemptionRules(venue),
+  ]);
+  const yesterday = await salesSummary(venue, new Date(end.getTime() - 2 * day), new Date(end.getTime() - day));
+  const activity = await agentActivity(venue, { limit: 200 });
+  const pick = (s: Awaited<ReturnType<typeof salesSummary>>) => ({
+    orders: s.orders,
+    sales_cents: s.grossCents,
+    card_cents: s.cardCents,
+    credit_redeemed_cents: s.creditCents,
+    vat9_cents: s.vat9Cents,
+    vat23_cents: s.vat23Cents,
+    refunded_cents: s.refundedCents,
+    table_orders: s.tableOrders,
+    collect_orders: s.collectOrders,
+  });
+  return {
+    venue: venue.name,
+    generated_at: new Date().toISOString(),
+    money_note: "All amounts are euro cents, VAT included. App orders only; counter sales are on the venue's till.",
+    today: { ...pick(today.now), sales_by_hour_cents: today.now.byHour, top_items: today.topItems },
+    yesterday: pick(yesterday),
+    last_7_days: { ...pick(week.now), previous_7_days: pick(week.before), by_day: week.byDay, top_items: week.topItems },
+    last_30_days: { ...pick(month.now), previous_30_days: pick(month.before), by_day: month.byDay, top_items: month.topItems },
+    loyalty_members: month.now.members,
+    redemption_rules: rules,
+    ai_assistant_requests: {
+      total: activity.length,
+      refused: activity.filter((a) => !a.allowed).length,
+      by_tool: Object.fromEntries([...new Set(activity.map((a) => a.tool))].map((tool) => [tool, activity.filter((a) => a.tool === tool).length])),
+    },
+  };
 }

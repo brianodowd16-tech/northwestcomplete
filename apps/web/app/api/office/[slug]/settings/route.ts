@@ -1,6 +1,8 @@
 import type { XeroMapping } from "@round/core";
 import { localDate, parseConfigPack } from "@round/core";
 import { saveIntegration, saveXeroMapping, setGooglePlaceId, setPaymentProvider, syncXeroDay } from "@round/db/integrations";
+import { saveRedemptionRules } from "@round/db/ai";
+import { normaliseRules } from "@round/core";
 import { venueBySlug } from "@round/db/services";
 import { currentStaff, errorJson, json, secretsKey, xeroApp } from "@/lib/server";
 
@@ -47,6 +49,20 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
           );
         }
         await setPaymentProvider(venue, provider);
+        return json({ ok: true });
+      }
+      case "redemption": {
+        const euros = (v: unknown) => (str(v) === "" ? null : Math.round(Number(str(v)) * 100));
+        const budget = euros(b.monthlyCreditBudget);
+        await saveRedemptionRules(
+          venue,
+          normaliseRules({
+            creditMinOrderCents: euros(b.creditMinOrder) ?? 0,
+            doubleMinOrderCents: euros(b.doubleMinOrder) ?? 0,
+            monthlyCreditBudgetCents: budget,
+            allowCreditWithDouble: b.allowCreditWithDouble === "on" || b.allowCreditWithDouble === true,
+          }),
+        );
         return json({ ok: true });
       }
       case "reviews":
