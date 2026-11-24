@@ -2,6 +2,7 @@ import { NotFound, orderForCustomer } from "@round/db/services";
 import { notFound, redirect } from "next/navigation";
 import { eur } from "@/components/format";
 import { IconBell, IconCheck, IconFlame, IconGlass } from "@/components/Icons";
+import { ApproveOrder } from "@/components/ApproveOrder";
 import { OrderAlerts } from "@/components/OrderStatus";
 import { currentGuest, loadVenue } from "@/lib/server";
 
@@ -28,9 +29,11 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
   const bar = dockets.find((d) => d.station === "bar");
   const kitchen = dockets.find((d) => d.station === "kitchen");
 
+  const heldForApproval = order.status === "pending_payment" && !order.providerOrderId && order.idempotencyKey.startsWith("agent:");
   let hero: { cls: string; icon: React.ReactNode; title: string; sub: string };
   if (order.status === "refunded") hero = { cls: "", icon: <IconCheck />, title: "Refunded", sub: "This order was refunded in full to your card." };
   else if (order.status === "cancelled") hero = { cls: "", icon: <IconCheck />, title: "Not paid", sub: "This order wasn't paid, so it was cancelled." };
+  else if (heldForApproval) hero = { cls: "", icon: <IconBell />, title: "Waiting for your approval", sub: "Prepared by your AI assistant." };
   else if (order.status === "pending_payment") hero = cancelled ? { cls: "", icon: <IconCheck />, title: "Payment cancelled", sub: "Nothing was charged." } : { cls: "", icon: <IconBell />, title: "Confirming payment…", sub: "This takes a few seconds." };
   else if (bar?.status === "ready") hero = { cls: "ready", icon: <IconGlass />, title: "Your drinks are ready", sub: `Show order #${order.number} at the bar${bar.idCheckRequired && !bar.idCheckedAt ? " with your ID" : ""}.` };
   else if (kitchen?.status === "ready") hero = { cls: "ready", icon: <IconFlame />, title: "Your food is on its way", sub: `To table ${view.tableNumber}.` };
@@ -55,6 +58,7 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
           <div className="muted small">{hero.sub}</div>
         </div>
       </section>
+      {heldForApproval && <ApproveOrder slug={slug} orderId={order.id} amountCents={order.amountPaidCents} />}
       {order.status === "pending_payment" && cancelled && (
         <a className="btn ghost" href={`/v/${slug}/${order.channel === "collect" ? "collect" : ""}`}>
           Back to the menu

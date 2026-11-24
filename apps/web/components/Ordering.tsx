@@ -72,6 +72,7 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member 
   const [flash, setFlash] = useState<string | null>(null);
   const [bump, setBump] = useState(0);
   const chipsRef = useRef<HTMLElement>(null);
+  const [recs, setRecs] = useState<{ itemId: string; reason: "your_usual" | "goes_with" | "popular"; withName: string | null }[]>([]);
 
   // Remember this menu (table or collect) so the Menu tab comes back here.
   useEffect(() => {
@@ -147,6 +148,20 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member 
     }
     if (!Object.keys(next).length) setSheet(null);
   };
+
+  // Suggestions follow the basket: your usual, what goes with it, what's popular here.
+  const basketKey = Object.keys(cart).sort().join(",");
+  useEffect(() => {
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/v/${slug}/recommendations?basket=${encodeURIComponent(basketKey)}`);
+        if (res.ok) setRecs((await res.json()).recommendations);
+      } catch {}
+    }, 250);
+    return () => clearTimeout(t);
+  }, [slug, basketKey]);
+  const shownRecs = recs.filter((r) => items.get(r.itemId) && !items.get(r.itemId)!.soldOut && (mode === "table" || items.get(r.itemId)!.availableForCollect));
+  const REASON = { your_usual: "Your usual", goes_with: "Goes with", popular: "Popular here" } as const;
 
   const q = query.trim().toLowerCase();
   const shown = categories
@@ -240,6 +255,27 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member 
               </a>
             ))}
           </nav>
+        )}
+
+        {!q && shownRecs.length > 0 && (
+          <section className="stack" style={{ gap: 8 }} aria-label="Recommended for you">
+            <h3 style={{ fontSize: 16 }}>Recommended for you</h3>
+            <div className="recs">
+              {shownRecs.map((r) => {
+                const it = items.get(r.itemId)!;
+                return (
+                  <button key={r.itemId} className="rec rise" onClick={() => add(it.id, 1)} aria-label={`Add ${it.name}`}>
+                    <span className="stag">{REASON[r.reason]}{r.reason === "goes_with" && r.withName ? ` ${r.withName}` : ""}</span>
+                    <b>{it.name}</b>
+                    <span className="row">
+                      <span className="num">{eur(it.priceCents)}</span>
+                      <span className="plus">+</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
         )}
 
         {shown.length === 0 && <div className="empty">Nothing matches &quot;{query}&quot;.</div>}

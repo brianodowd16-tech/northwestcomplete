@@ -1,3 +1,4 @@
+import { redemptionRules } from "@round/db/ai";
 import { integrationStatus, xeroHistory } from "@round/db/integrations";
 import { SettingsForms } from "@/components/SettingsForms";
 import { StaffNav } from "@/components/StaffNav";
@@ -17,6 +18,7 @@ export default async function Settings({ params, searchParams }: { params: Promi
   const { staff, venue } = await requireStaffFor(slug, { admin: true });
   const status = await integrationStatus(venue);
   const history = await xeroHistory(venue);
+  const rules = await redemptionRules(venue);
   const xeroNotice = XERO_NOTICE[(await searchParams).xero ?? ""];
   const xc = (status.xero?.config ?? {}) as Record<string, string>;
   const mc = (status.mypos?.config ?? {}) as Record<string, string | number>;
@@ -48,6 +50,7 @@ export default async function Settings({ params, searchParams }: { params: Promi
             .map((h) => ({ date: h.businessDate, status: h.status, error: h.error })),
         }}
         serverReady={!!secretsKey()}
+        rules={rules}
       />
     </div>
   );

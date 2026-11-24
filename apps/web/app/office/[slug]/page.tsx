@@ -1,11 +1,14 @@
+import { agentActivity } from "@round/db/ai";
 import { reviewStats } from "@round/db/integrations";
 import { billingStatement, dashboard, venueTables } from "@round/db/services";
 import Link from "next/link";
+import { AskData } from "@/components/AskData";
 import { eur } from "@/components/format";
 import { LiveOffice } from "@/components/LiveOffice";
 import { OfficeChart } from "@/components/OfficeChart";
 import { StaffNav } from "@/components/StaffNav";
 import { VenueTheme } from "@/components/VenueTheme";
+import { assistantConfigured } from "@/lib/assistant";
 import { requireStaffFor } from "@/lib/server";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +37,7 @@ export default async function Office({ params, searchParams }: { params: Promise
   const end = new Date();
   end.setHours(24, 0, 0, 0);
   const start = new Date(end.getTime() - P.days * 86_400_000);
-  const [d, reviews, tables] = await Promise.all([dashboard(venue, start, end), reviewStats(venue, start, end), venueTables(venue)]);
+  const [d, reviews, tables, agents] = await Promise.all([dashboard(venue, start, end), reviewStats(venue, start, end), venueTables(venue), agentActivity(venue, { limit: 8 })]);
   const now = new Date();
   const bill = await billingStatement(venue, now.getUTCFullYear(), now.getUTCMonth() + 1);
   const avg = (s: { orders: number; grossCents: number }) => (s.orders ? Math.round(s.grossCents / s.orders) : 0);
@@ -91,6 +94,8 @@ export default async function Office({ params, searchParams }: { params: Promise
           <span>{venue.googlePlaceId ? `Opened the Google review form (of ${reviews.orders} orders)` : "Add your Google Place ID in Settings to ask for reviews"}</span>
         </div>
       </div>
+
+      <AskData slug={slug} configured={assistantConfigured()} />
 
       <section className="panel stack">
         <div className="row wrap">
@@ -191,6 +196,32 @@ export default async function Office({ params, searchParams }: { params: Promise
           </table>
         </section>
       </div>
+
+      <section className="panel stack">
+        <div className="row wrap">
+          <h3>Guests&apos; AI assistants</h3>
+          <span className="muted small">Every request is checked against your rules and the limits each guest set.</span>
+        </div>
+        {agents.length === 0 ? (
+          <div className="empty">No AI assistant activity yet. Guests connect one from Rewards → AI assistants.</div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table>
+              <tbody>
+                {agents.map((a) => (
+                  <tr key={a.id}>
+                    <td className="small num">{new Date(a.createdAt).toLocaleString("en-IE", { dateStyle: "short", timeStyle: "short" })}</td>
+                    <td>{a.grantName}</td>
+                    <td className="small">{a.tool.replace(/_/g, " ")}</td>
+                    <td>{a.allowed ? <span className="chip ok">Allowed</span> : <span className="chip crit">Refused</span>}</td>
+                    <td className="small muted">{a.allowed ? a.outcome : a.reasons[0]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       <details className="panel">
         <summary style={{ cursor: "pointer" }}>

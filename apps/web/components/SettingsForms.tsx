@@ -17,6 +17,7 @@ interface Props {
     history: { date: string; status: string; error: string | null }[];
   };
   serverReady: boolean;
+  rules: { creditMinOrderCents: number; allowCreditWithDouble: boolean; monthlyCreditBudgetCents: number | null; doubleMinOrderCents: number };
 }
 
 function useSave(slug: string) {
@@ -114,6 +115,36 @@ export function SettingsForms(p: Props) {
         )}
         <Msg m={msg} section="payments" />
         <button className="btn" disabled={busy === "payments"}>Save payments</button>
+      </form>
+
+      <form
+        className="panel stack"
+        onSubmit={(e) => {
+          e.preventDefault();
+          save("redemption", e.currentTarget);
+        }}
+      >
+        <h3>Redemption rules</h3>
+        <p className="muted small" style={{ margin: 0 }}>Checked on every order and every AI assistant request. Guests see the conditions next to their benefits.</p>
+        <div className="two">
+          <label className="field">
+            Credit only on orders of at least (€)
+            <input name="creditMinOrder" type="number" min={0} step="0.5" defaultValue={p.rules.creditMinOrderCents / 100} />
+          </label>
+          <label className="field">
+            Double points only on orders of at least (€)
+            <input name="doubleMinOrder" type="number" min={0} step="0.5" defaultValue={p.rules.doubleMinOrderCents / 100} />
+          </label>
+          <label className="field">
+            Most loyalty credit redeemed per month (€, blank for no limit)
+            <input name="monthlyCreditBudget" type="number" min={0} step="1" defaultValue={p.rules.monthlyCreditBudgetCents === null ? "" : p.rules.monthlyCreditBudgetCents / 100} />
+          </label>
+          <label className="toggle small" style={{ alignSelf: "end" }}>
+            <input type="checkbox" name="allowCreditWithDouble" defaultChecked={p.rules.allowCreditWithDouble} /> Credit and double points can be used together
+          </label>
+        </div>
+        <Msg m={msg} section="redemption" />
+        <button className="btn" disabled={busy === "redemption"}>Save rules</button>
       </form>
 
       <form

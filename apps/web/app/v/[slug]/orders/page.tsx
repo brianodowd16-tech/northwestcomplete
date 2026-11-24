@@ -1,4 +1,4 @@
-import { activeOrdersForCustomer, recentOrdersForCustomer } from "@round/db/services";
+import { activeOrdersForCustomer, heldOrdersForCustomer, recentOrdersForCustomer } from "@round/db/services";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { eur } from "@/components/format";
@@ -11,12 +11,21 @@ export default async function Orders({ params }: { params: Promise<{ slug: strin
   const venue = await loadVenue((await params).slug);
   const guest = await currentGuest();
   if (!guest) redirect(`/v/${venue.slug}/login?next=/v/${venue.slug}/orders`);
-  const [active, recent] = await Promise.all([activeOrdersForCustomer(venue, guest.id), recentOrdersForCustomer(venue, guest.id)]);
+  const [active, recent, held] = await Promise.all([activeOrdersForCustomer(venue, guest.id), recentOrdersForCustomer(venue, guest.id), heldOrdersForCustomer(venue, guest.id)]);
   const activeIds = new Set(active.map((a) => a.order.id));
   const past = recent.filter((o) => !activeIds.has(o.id));
   return (
     <div className="stack">
       <h1 style={{ fontSize: 26 }}>Your orders</h1>
+      {held.map((o) => (
+        <Link key={o.id} href={`/v/${venue.slug}/order/${o.id}`} className="card rise" style={{ textDecoration: "none", borderColor: "var(--vacc)" }}>
+          <div className="sumrow">
+            <b>Order #{o.number}</b>
+            <span className="chip warn">Needs your approval</span>
+          </div>
+          <span className="muted small">Prepared by your AI assistant · {eur(o.amountPaidCents)} to pay</span>
+        </Link>
+      ))}
       {active.length > 0 ? (
         active.map(({ order, dockets }) => <ActiveOrderCard key={order.id} slug={venue.slug} order={order} dockets={dockets} />)
       ) : (

@@ -238,3 +238,21 @@ td.r, th.r { text-align: right; }
 .toplist .bar i { display: block; height: 100%; background: var(--vacc); border-radius: 6px; transition: width .6s ease; }
 tr.rowlink { cursor: default; }
 tr.fresh td { animation: fadeIn .6s ease both; background: color-mix(in srgb, var(--vacc) 8%, transparent); }
+
+/* recommendations */
+.recs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(150px, 46%); gap: 10px; overflow-x: auto; margin: 0 -16px; padding: 2px 16px 6px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.rec { scroll-snap-align: start; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.rec b { font-size: 14px; }
+.rec .plus { width: 28px; height: 28px; border-radius: 50%; background: var(--vacc); color: var(--on-vacc); display: grid; place-items: center; font-weight: 700; }
+.rec:active { transform: scale(.98); }
+.benefit { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.benefit:last-child { border-bottom: 0; }
+.scopes { display: grid; gap: 6px; }
+.token { font-family: var(--f-mono); font-size: 12px; word-break: break-all; background: var(--sunk); border: 1px dashed var(--line); border-radius: 8px; padding: 10px; }
+.chat { display: flex; flex-direction: column; gap: 10px; }
+.bubble { border-radius: 12px; padding: 10px 12px; max-width: 90%; white-space: pre-wrap; font-size: 14px; }
+.bubble.me { align-self: flex-end; background: var(--vacc); color: var(--on-vacc); }
+.bubble.ai { align-self: flex-start; background: var(--sunk); border: 1px solid var(--line); }
+.qchips { display: flex; flex-wrap: wrap; gap: 6px; }
+.qchips button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 10px; font-size: 13px; }
+.bubble.error { background: var(--crit-bg); color: var(--crit); border-color: transparent; }

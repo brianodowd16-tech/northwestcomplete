@@ -1,6 +1,8 @@
+import { agentActivity, guestBenefits, listGrants } from "@round/db/ai";
 import { memberSummary } from "@round/db/services";
 import { redirect } from "next/navigation";
 import { CountUp } from "@/components/Animated";
+import { Assistants } from "@/components/Assistants";
 import { ConvertPoints } from "@/components/ConvertPoints";
 import { eur } from "@/components/format";
 import { TierCard } from "@/components/TierCard";
@@ -14,7 +16,7 @@ export default async function Rewards({ params }: { params: Promise<{ slug: stri
   const venue = await loadVenue((await params).slug);
   const guest = await currentGuest();
   if (!guest) redirect(`/v/${venue.slug}/login?next=/v/${venue.slug}/rewards`);
-  const s = await memberSummary(venue, guest.id);
+  const [s, b, grants, activity] = await Promise.all([memberSummary(venue, guest.id), guestBenefits(venue, guest.id), listGrants(venue, guest.id), agentActivity(venue, { customerId: guest.id, limit: 20 })]);
   return (
     <div className="stack">
       <TierCard programme={s.programme.name} levels={s.levels} level={s.level} next={s.next} spend={s.spend12mCents} />
@@ -24,6 +26,30 @@ export default async function Rewards({ params }: { params: Promise<{ slug: stri
         <div className="stat"><b className="num">{s.balances.doubles}</b><span>2× points</span></div>
       </div>
       <ConvertPoints slug={venue.slug} points={s.balances.points} block={s.programme.pointsPerCreditEuro} />
+      {b.suggestions[0] && (
+        <div className="card rise" style={{ background: "var(--sunk)" }}>
+          <span className="label">Worth doing next</span>
+          <b>{b.suggestions[0].title}</b>
+          <span className="muted small">{b.suggestions[0].why}</span>
+        </div>
+      )}
+      <section className="card" aria-label="Your benefits">
+        <b>Your benefits</b>
+        {b.benefits.map((x) => (
+          <div key={x.id} className="benefit">
+            <div>
+              <div>{x.title}</div>
+              <div className="muted small">{[...x.conditions, ...(x.reason && !x.available ? [x.reason] : [])].join(" · ")}</div>
+            </div>
+            <span className={`chip ${x.available ? "ok" : "plain"}`}>{x.available ? "Ready to use" : "Later"}</span>
+          </div>
+        ))}
+      </section>
+      <Assistants
+        slug={venue.slug}
+        grants={JSON.parse(JSON.stringify(grants.map(({ tokenHash: _h, ...g }) => g)))}
+        activity={JSON.parse(JSON.stringify(activity.map(({ input: _i, ...a }) => a)))}
+      />
       <div className="card">
         <b>Refer a mate</b>
         <span className="muted small">You both get {s.programme.referralPoints} points after their first order.</span>

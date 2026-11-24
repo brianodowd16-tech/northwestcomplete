@@ -24,7 +24,7 @@ import {
   type PricedMenuItem,
   type Station,
 } from "@round/core";
-import { and, asc, desc, eq, gte, inArray, lt, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNull, lt, ne, sql } from "drizzle-orm";
 import { randomBytes } from "node:crypto";
 import { publish, systemDb, topics, withTenant, type Tx } from "./index";
 import * as t from "./schema";
@@ -592,6 +592,18 @@ export async function recentOrdersForCustomer(venue: Venue, customerId: string) 
       .orderBy(desc(t.orders.createdAt))
       .limit(5),
   );
+}
+
+/** Orders the guest's AI assistant prepared that are waiting for the guest to approve. */
+export async function heldOrdersForCustomer(venue: Venue, customerId: string) {
+  return withTenant(venue.tenantId, async (tx) => {
+    const os = await tx
+      .select()
+      .from(t.orders)
+      .where(and(eq(t.orders.venueId, venue.id), eq(t.orders.customerId, customerId), eq(t.orders.status, "pending_payment"), isNull(t.orders.providerOrderId)))
+      .orderBy(desc(t.orders.createdAt));
+    return os.filter((o) => o.idempotencyKey.startsWith("agent:"));
+  });
 }
 
 /** Today's paid orders with their docket progress, for the guest's home screen. */
