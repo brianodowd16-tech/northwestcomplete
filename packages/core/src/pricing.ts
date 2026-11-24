@@ -1,7 +1,7 @@
 import { vatFromGross, type VatRate } from "./money";
 
 export type Station = "bar" | "kitchen";
-export type Channel = "table" | "collect" | "counter";
+export type Channel = "table" | "collect" | "counter" | "delivery";
 
 export interface PricedMenuItem {
   id: string;

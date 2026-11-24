@@ -9,16 +9,18 @@ import { Forbidden, toPriced, type Staff, type Venue } from "./services";
 // Money goes straight to the venue (cash in the drawer, card into its own myPOS account).
 // Till sales earn no loyalty and aren't part of Complete's 1% app fee.
 
-export type TillMethod = "cash" | "card";
+export type TillMethod = "cash" | "card" | "room";
 export const TILL_REFUND_MINUTES = 15;
 
 export async function ringUpSale(
   venue: Venue,
   staff: Staff,
-  input: { key: string; lines: { menuItemId: string; qty: number }[]; method: TillMethod; tableNumber?: number | null; tenderedCents?: number | null; cardRef?: string | null },
+  input: { key: string; lines: { menuItemId: string; qty: number }[]; method: TillMethod; tableNumber?: number | null; tenderedCents?: number | null; cardRef?: string | null; roomNumber?: string | null },
 ) {
   if (staff.venueId !== venue.id) throw new Forbidden("Not your venue");
-  if (input.method !== "cash" && input.method !== "card") throw new CartError("Choose cash or card");
+  if (!["cash", "card", "room"].includes(input.method)) throw new CartError("Choose cash, card or room");
+  const room = input.method === "room" ? String(input.roomNumber ?? "").trim().slice(0, 12) : null;
+  if (input.method === "room" && (venue.kind !== "hotel" || !/^[A-Za-z0-9-]{1,12}$/.test(room ?? ""))) throw new CartError(venue.kind === "hotel" ? "Enter the room number" : "Room charges are for hotels");
   if (!/^[A-Za-z0-9-]{8,64}$/.test(input.key ?? "")) throw new CartError("Missing sale key");
   return withTenant(venue.tenantId, async (tx) => {
     const idem = `till:${input.key}`;
@@ -47,7 +49,8 @@ export async function ringUpSale(
         vat23Cents: cart.vat23Cents,
         creditUsedCents: 0,
         amountPaidCents: cart.grossCents,
-        provider: input.method === "cash" ? "cash" : "mypos_terminal",
+        provider: input.method === "cash" ? "cash" : input.method === "room" ? "room" : "mypos_terminal",
+        roomNumber: room,
         providerTxnRef: input.method === "card" ? String(input.cardRef ?? "").slice(0, 64) || null : null,
         idempotencyKey: idem,
         paidAt: new Date(),
@@ -126,7 +129,8 @@ export async function dayReport(venue: Venue, date: string) {
         sales: till.filter(kept).length,
         grossCents: sum(till.filter(kept), (o) => o.amountPaidCents),
         cashCents: sum(till.filter((o) => kept(o) && o.provider === "cash"), (o) => o.amountPaidCents),
-        cardCents: sum(till.filter((o) => kept(o) && o.provider !== "cash"), (o) => o.amountPaidCents),
+        cardCents: sum(till.filter((o) => kept(o) && o.provider === "mypos_terminal"), (o) => o.amountPaidCents),
+        roomCents: sum(till.filter((o) => kept(o) && o.provider === "room"), (o) => o.amountPaidCents),
         vat9Cents: sum(till.filter(kept), (o) => o.vat9Cents),
         vat23Cents: sum(till.filter(kept), (o) => o.vat23Cents),
         refunds: till.filter((o) => o.status === "refunded").length,

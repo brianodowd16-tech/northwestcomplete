@@ -66,6 +66,10 @@ export const venue = pgTable("venue", {
   autoSoldOut: boolean("auto_sold_out").notNull().default(false),
   /** List Ireland's top televised games each day in What's on. */
   autoSports: boolean("auto_sports").notNull().default(true),
+  /** Share anonymised, aggregated sales with drinks brands (never guest data). */
+  shareBrandInsights: boolean("share_brand_insights").notNull().default(false),
+  /** Table bookings: seats bookable per 30-minute slot (0 = bookings off). */
+  bookingSeatsPerSlot: integer("booking_seats_per_slot").notNull().default(0),
   /** The venue's Fantasy Premier League mini-league invite code; guests join via /v/{slug}/fpl. */
   fplCode: text("fpl_code"),
   fplClicks: integer("fpl_clicks").notNull().default(0),
@@ -85,7 +89,7 @@ export const venueIntegration = pgTable(
     id: id(),
     tenantId: tenantId(),
     venueId: uuid("venue_id").notNull().references(() => venue.id),
-    kind: text("kind", { enum: ["revolut", "mypos", "xero"] }).notNull(),
+    kind: text("kind", { enum: ["revolut", "mypos", "xero", "delivery", "pms"] }).notNull(),
     config: jsonb("config").notNull().$type<Record<string, unknown>>(),
     secretEnc: text("secret_enc"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -113,6 +117,8 @@ export const staffUser = pgTable("staff_user", {
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
   role: text("role", { enum: ["admin", "staff"] }).notNull(),
+  /** Pay per hour (cents) for labour cost and payroll export. */
+  hourlyRateCents: integer("hourly_rate_cents").notNull().default(0),
   passwordHash: text("password_hash").notNull(),
   /** Set for invited staff with a temporary password: they choose their own on first sign-in. */
   mustChangePassword: boolean("must_change_password").notNull().default(false),
@@ -204,7 +210,10 @@ export const orders = pgTable(
     venueId: uuid("venue_id").notNull().references(() => venue.id),
     number: serial("number").notNull(),
     /** counter = rung up on the till by staff (no guest account, earns no loyalty). */
-    channel: text("channel", { enum: ["table", "collect", "counter"] }).notNull(),
+    channel: text("channel", { enum: ["table", "collect", "counter", "delivery"] }).notNull(),
+    /** Hotel room the bill was charged to, and the delivery platform an order came from. */
+    roomNumber: text("room_number"),
+    externalRef: text("external_ref"),
     tableId: uuid("table_id").references(() => venueTable.id),
     customerId: uuid("customer_id").references(() => customer.id),
     membershipId: uuid("membership_id").references(() => membership.id),
@@ -544,7 +553,45 @@ export const sportFixture = pgTable(
   (t) => [index("sport_fixture_time").on(t.startsAt)],
 );
 
+// ---------------------------------------------------------------- bookings, shifts
+
+export const booking = pgTable(
+  "booking",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    customerId: uuid("customer_id").notNull().references(() => customer.id),
+    partySize: integer("party_size").notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    /** "Book for Ireland v France": the What's on occurrence key. */
+    eventKey: text("event_key"),
+    eventTitle: text("event_title"),
+    note: text("note").notNull().default(""),
+    status: text("status", { enum: ["confirmed", "seated", "no_show", "cancelled"] }).notNull().default("confirmed"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("booking_venue_time").on(t.venueId, t.startsAt)],
+);
+
+export const staffShift = pgTable(
+  "staff_shift",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    staffId: uuid("staff_id").notNull().references(() => staffUser.id),
+    clockIn: timestamp("clock_in", { withTimezone: true }).notNull().defaultNow(),
+    clockOut: timestamp("clock_out", { withTimezone: true }),
+    /** Pay rate when the shift was worked. */
+    hourlyRateCents: integer("hourly_rate_cents").notNull(),
+  },
+  (t) => [index("staff_shift_venue").on(t.venueId, t.clockIn)],
+);
+
 export const TENANT_TABLES = [
+  "booking",
+  "staff_shift",
   "venue_event",
   "supplier",
   "stock_item",

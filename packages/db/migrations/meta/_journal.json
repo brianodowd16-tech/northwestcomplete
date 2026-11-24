@@ -64,6 +64,13 @@
       "when": 1795539266572,
       "tag": "0008_chilly_boomerang",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795541380855,
+      "tag": "0009_public_morlocks",
+      "breakpoints": true
     }
   ]
 }

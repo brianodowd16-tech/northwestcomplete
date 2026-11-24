@@ -13,7 +13,8 @@
     "./inventory": "./src/inventory.ts",
     "./push": "./src/push.ts",
     "./events": "./src/events.ts",
-    "./till": "./src/till.ts"
+    "./till": "./src/till.ts",
+    "./growth": "./src/growth.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",
