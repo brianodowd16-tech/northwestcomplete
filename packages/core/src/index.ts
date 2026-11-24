@@ -17,3 +17,4 @@ export * from "./events";
 export * from "./sports";
 export * from "./ops";
 export * from "./service";
+export * from "./rota";

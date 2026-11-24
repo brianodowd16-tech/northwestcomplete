@@ -76,6 +76,8 @@ export const venue = pgTable("venue", {
   pausedUntil: jsonb("paused_until").notNull().default({}).$type<{ bar?: string; kitchen?: string }>(),
   /** Offer a tip at app checkout (all of it goes to the staff). */
   tipsEnabled: boolean("tips_enabled").notNull().default(true),
+  /** Sunday premium on top of the hourly rate (Organisation of Working Time Act); 0 if rates already include it. */
+  sundayPremiumPct: integer("sunday_premium_pct").notNull().default(0),
   /** The venue's Fantasy Premier League mini-league invite code; guests join via /v/{slug}/fpl. */
   fplCode: text("fpl_code"),
   fplClicks: integer("fpl_clicks").notNull().default(0),
@@ -125,6 +127,8 @@ export const staffUser = pgTable("staff_user", {
   role: text("role", { enum: ["admin", "staff"] }).notNull(),
   /** Pay per hour (cents) for labour cost and payroll export. */
   hourlyRateCents: integer("hourly_rate_cents").notNull().default(0),
+  /** The employee's number in the payroll package (BrightPay, Thesaurus, Sage), for exports. */
+  payrollRef: text("payroll_ref").notNull().default(""),
   passwordHash: text("password_hash").notNull(),
   /** Set for invited staff with a temporary password: they choose their own on first sign-in. */
   mustChangePassword: boolean("must_change_password").notNull().default(false),
@@ -642,7 +646,41 @@ export const cashUp = pgTable("cash_up", {
   createdAt: createdAt(),
 });
 
+// ---------------------------------------------------------------- rota
+
+export const rotaShift = pgTable(
+  "rota_shift",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    staffId: uuid("staff_id").notNull().references(() => staffUser.id),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    role: text("role", { enum: ["bar", "floor", "kitchen", "manager", "other"] }).notNull().default("bar"),
+    note: text("note").notNull().default(""),
+    published: boolean("published").notNull().default(false),
+    createdAt: createdAt(),
+  },
+  (t) => [index("rota_shift_venue_time").on(t.venueId, t.startsAt)],
+);
+
+export const staffUnavailable = pgTable(
+  "staff_unavailable",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    staffId: uuid("staff_id").notNull().references(() => staffUser.id),
+    date: date("date").notNull(),
+    note: text("note").notNull().default(""),
+  },
+  (t) => [uniqueIndex("staff_unavailable_day").on(t.staffId, t.date)],
+);
+
 export const TENANT_TABLES = [
+  "rota_shift",
+  "staff_unavailable",
   "tab",
   "cash_up",
   "booking",

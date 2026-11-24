@@ -9,12 +9,15 @@ export function StaffNav({ slug, current, admin, other, setup }: { slug: string;
     ["kitchen", "Kitchen", `/staff/${slug}/kitchen`],
     ["menu", "Sold out", `/staff/${slug}/menu`],
     ["waste", "Waste", `/staff/${slug}/waste`],
+    ["shifts", "My shifts", `/staff/${slug}/shifts`],
   ];
   if (admin)
     tabs.push(
       ["office", "Back office", `/office/${slug}`],
       ["menuedit", "Menu", `/office/${slug}/menu`],
       ["planner", "Planner", `/office/${slug}/planner`],
+      ["rota", "Rota", `/office/${slug}/rota`],
+      ["payroll", "Payroll", `/office/${slug}/payroll`],
       ["stock", "Stock", `/office/${slug}/stock`],
       ["events", "What's on", `/office/${slug}/events`],
       ["tables", "Tables", `/office/${slug}/tables`],

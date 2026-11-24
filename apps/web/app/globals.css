@@ -333,3 +333,12 @@ tr.fresh td { animation: fadeIn .6s ease both; background: color-mix(in srgb, va
 .docket .note { font-style: italic; color: var(--crit); }
 
 .allergen-pick { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 4px 10px; }
+
+/* rota */
+.rota td, .rota th { vertical-align: top; min-width: 110px; }
+.rota td.off { background: repeating-linear-gradient(45deg, var(--sunk), var(--sunk) 6px, transparent 6px, transparent 12px); }
+.rota td.under { color: var(--crit); font-weight: 600; }
+.shiftchip { display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 12px; font-variant-numeric: tabular-nums; border-radius: 8px; padding: 3px 4px 3px 8px; margin-bottom: 4px; background: var(--sunk); border-left: 4px solid var(--vacc); }
+.shiftchip.kitchen { border-left-color: #b86b1d; } .shiftchip.floor { border-left-color: #2f6fb0; } .shiftchip.manager { border-left-color: #8a4fb3; }
+.shiftchip.draft { border-style: dashed; opacity: .8; }
+.shiftchip .btn { padding: 0 6px; min-height: 0; }
