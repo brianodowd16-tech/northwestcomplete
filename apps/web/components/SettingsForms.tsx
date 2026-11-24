@@ -65,9 +65,23 @@ export function SettingsForms(p: Props) {
         </label>
         {provider === "mypos" && (
           <>
+            <div className="panel stack" style={{ background: "var(--sunk)" }}>
+              <b>Quickest: import your myPOS configuration pack</b>
+              <span className="muted small">In myPOS, open Online → Stores → your store and download the configuration pack. Paste it here or choose the file. It fills in everything below and is stored encrypted.</span>
+              <textarea name="configPack" rows={3} placeholder="Paste the configuration pack" style={{ fontFamily: "var(--f-mono)", fontSize: 12 }} id="configPack" />
+              <input
+                type="file"
+                accept=".txt,.pack,.cfg,text/plain"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  if (f) (document.getElementById("configPack") as HTMLTextAreaElement).value = (await f.text()).trim();
+                }}
+              />
+            </div>
+            <p className="muted small" style={{ margin: 0 }}>Or enter the details by hand:</p>
             <div className="two">
-              <label className="field">Store ID (SID)<input name="sid" defaultValue={p.mypos.sid} required /></label>
-              <label className="field">Wallet number<input name="walletNumber" defaultValue={p.mypos.walletNumber} required /></label>
+              <label className="field">Store ID (SID)<input name="sid" defaultValue={p.mypos.sid} /></label>
+              <label className="field">Wallet number<input name="walletNumber" defaultValue={p.mypos.walletNumber} /></label>
               <label className="field">Key index<input name="keyIndex" type="number" min={1} defaultValue={p.mypos.keyIndex ?? 1} /></label>
               <label className="field">
                 Mode
@@ -79,11 +93,11 @@ export function SettingsForms(p: Props) {
             </div>
             <label className="field">
               myPOS public certificate (from the myPOS merchant portal)
-              <textarea name="myposCertPem" rows={4} defaultValue={p.mypos.myposCertPem} required style={{ fontFamily: "var(--f-mono)", fontSize: 12 }} />
+              <textarea name="myposCertPem" rows={4} defaultValue={p.mypos.myposCertPem} style={{ fontFamily: "var(--f-mono)", fontSize: 12 }} />
             </label>
             <label className="field">
               Your private key {p.mypos.hasKey ? "(stored, encrypted; paste a new one to replace it)" : "(RSA 2048, PEM)"}
-              <textarea name="privateKeyPem" rows={4} required={!p.mypos.hasKey} placeholder="-----BEGIN PRIVATE KEY-----" style={{ fontFamily: "var(--f-mono)", fontSize: 12 }} />
+              <textarea name="privateKeyPem" rows={4} placeholder="-----BEGIN PRIVATE KEY-----" style={{ fontFamily: "var(--f-mono)", fontSize: 12 }} />
             </label>
             <p className="muted small" style={{ margin: 0 }}>
               In myPOS, set the notification URL to <code>{p.notifyUrl}</code>.

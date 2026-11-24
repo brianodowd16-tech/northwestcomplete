@@ -1,5 +1,5 @@
 import type { XeroMapping } from "@round/core";
-import { localDate } from "@round/core";
+import { localDate, parseConfigPack } from "@round/core";
 import { saveIntegration, saveXeroMapping, setGooglePlaceId, setPaymentProvider, syncXeroDay } from "@round/db/integrations";
 import { venueBySlug } from "@round/db/services";
 import { currentStaff, errorJson, json, secretsKey, xeroApp } from "@/lib/server";
@@ -17,7 +17,17 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
     switch (b.section) {
       case "payments": {
         const provider = b.provider === "mypos" || b.provider === "revolut" ? b.provider : "mock";
-        if (provider === "mypos") {
+        if (provider === "mypos" && str(b.configPack)) {
+          // The quickest route: myPOS's own configuration pack carries every value.
+          if (!key) return json({ error: "SECRETS_KEY isn't set on the server, so keys can't be stored safely." }, 400);
+          let c;
+          try {
+            c = parseConfigPack(str(b.configPack), b.mode === "live" ? "live" : "test");
+          } catch (e) {
+            return json({ error: (e as Error).message }, 400);
+          }
+          await saveIntegration(venue, "mypos", { sid: c.sid, walletNumber: c.walletNumber, keyIndex: c.keyIndex, mode: c.mode, myposCertPem: c.myposCertPem }, JSON.stringify({ privateKeyPem: c.privateKeyPem }), key);
+        } else if (provider === "mypos") {
           if (!key) return json({ error: "SECRETS_KEY isn't set on the server, so keys can't be stored safely." }, 400);
           const cfg = { sid: str(b.sid), walletNumber: str(b.walletNumber), keyIndex: Number(b.keyIndex) || 1, mode: b.mode === "live" ? "live" : "test", myposCertPem: str(b.myposCertPem) };
           if (!cfg.sid || !cfg.walletNumber || !cfg.myposCertPem.includes("BEGIN")) return json({ error: "Fill in the store ID, wallet number and myPOS certificate." }, 400);

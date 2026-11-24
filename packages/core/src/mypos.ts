@@ -154,3 +154,24 @@ export class MyPosProvider implements PaymentProvider {
     if (String(status) !== "0") throw new Error(`myPOS refund failed: ${text.slice(0, 200)}`);
   }
 }
+
+/**
+ * Reads a myPOS "configuration pack" (Online → Stores → your store → Configuration pack):
+ * base64-encoded JSON with sid (store ID), cn (client/wallet number), pk (merchant private
+ * key, PEM), pc (myPOS public certificate, PEM) and idx (key index).
+ */
+export function parseConfigPack(pack: string, mode: "test" | "live"): MyPosConfig {
+  let data: Record<string, unknown>;
+  try {
+    data = JSON.parse(Buffer.from(pack.replace(/\s+/g, ""), "base64").toString("utf8")) as Record<string, unknown>;
+  } catch {
+    throw new Error("That isn't a myPOS configuration pack");
+  }
+  const str = (k: string) => (typeof data[k] === "string" || typeof data[k] === "number" ? String(data[k]).trim() : "");
+  const cfg = { sid: str("sid"), walletNumber: str("cn"), privateKeyPem: str("pk"), myposCertPem: str("pc"), keyIndex: Number(str("idx")), mode };
+  if (!cfg.sid || !cfg.walletNumber || !Number.isInteger(cfg.keyIndex) || cfg.keyIndex < 1) throw new Error("The pack is missing the store ID, wallet number or key index");
+  if (!cfg.privateKeyPem.includes("PRIVATE KEY") || !cfg.myposCertPem.includes("BEGIN")) throw new Error("The pack is missing its keys");
+  // Prove the private key can sign before saving it.
+  myposSign(["check"], cfg.privateKeyPem);
+  return cfg;
+}

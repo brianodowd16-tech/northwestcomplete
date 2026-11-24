@@ -10,6 +10,7 @@ import {
   myposSign,
   myposVerify,
   MyPosProvider,
+  parseConfigPack,
   splitName,
   XeroClient,
   type CreateOrderInput,
@@ -194,5 +195,20 @@ describe("Xero day summary", () => {
 
   it("uses the venue's local date", () => {
     expect(localDate(new Date("2026-06-30T23:30:00Z"), "Europe/Dublin")).toBe("2026-07-01");
+  });
+});
+
+describe("myPOS configuration pack", () => {
+  const pack = (o: object) => Buffer.from(JSON.stringify(o)).toString("base64");
+  it("reads sid, wallet, keys and index", () => {
+    const p = pack({ sid: "000000000000010", cn: "61938166610", pk: cfg.privateKeyPem, pc: cfg.myposCertPem, idx: 1 });
+    expect(parseConfigPack(p, "test")).toEqual({ ...cfg, privateKeyPem: cfg.privateKeyPem.trim(), myposCertPem: cfg.myposCertPem.trim(), mode: "test" });
+    expect(parseConfigPack(p.match(/.{1,60}/g)!.join("\n"), "live").mode).toBe("live");
+  });
+  it("rejects junk and incomplete packs", () => {
+    expect(() => parseConfigPack("not a pack!", "test")).toThrow(/isn't a myPOS/);
+    expect(() => parseConfigPack(pack({ sid: "1", cn: "2", idx: 1 }), "test")).toThrow(/missing its keys/);
+    expect(() => parseConfigPack(pack({ cn: "2", pk: cfg.privateKeyPem, pc: cfg.myposCertPem, idx: 1 }), "test")).toThrow(/store ID/);
+    expect(() => parseConfigPack(pack({ sid: "1", cn: "2", pk: "-----BEGIN PRIVATE KEY-----\nnope\n-----END PRIVATE KEY-----", pc: cfg.myposCertPem, idx: 1 }), "test")).toThrow();
   });
 });
