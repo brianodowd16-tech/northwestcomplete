@@ -6,7 +6,8 @@
     ".": "./src/index.ts",
     "./schema": "./src/schema.ts",
     "./services": "./src/services.ts",
-    "./integrations": "./src/integrations.ts"
+    "./integrations": "./src/integrations.ts",
+    "./ai": "./src/ai.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",

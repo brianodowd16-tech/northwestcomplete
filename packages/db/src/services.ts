@@ -5,7 +5,8 @@ import {
   balances,
   buildStatement,
   convertPoints,
-  creditToApply,
+  normaliseRules,
+  resolveRedemption,
   hashOtp,
   levelFor,
   newOtp,
@@ -266,6 +267,8 @@ export interface CreateOrderInput {
   idempotencyKey: string;
   /** public base URL of the app, for the payment provider's return and notify URLs */
   appUrl: string;
+  /** orders an AI assistant prepares wait for the guest to approve them, even when fully paid by credit */
+  holdForApproval?: boolean;
 }
 
 export type Order = typeof t.orders.$inferSelect;
@@ -300,7 +303,17 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
     const items = await tx.select().from(t.menuItem).where(eq(t.menuItem.venueId, venue.id));
     const cart = priceCart(new Map(items.map((i) => [i.id, toPriced(i)])), input.lines, input.channel);
     const b = await ledgerBalances(tx, m.id);
-    const credit = creditToApply(input.creditRequestedCents, b.creditCents, cart.grossCents);
+    // The venue's redemption rules decide what actually applies; the request is only a wish.
+    const [prog] = await tx.select().from(t.programme).where(eq(t.programme.id, venue.programmeId));
+    const rules = normaliseRules(prog.redemptionRules);
+    const resolved = resolveRedemption(
+      { wantCredit: input.creditRequestedCents > 0, wantDouble: input.useDouble },
+      cart.grossCents,
+      { balances: b },
+      rules,
+      await creditBudgetLeftTx(tx, venue, rules.monthlyCreditBudgetCents),
+    );
+    const credit = Math.min(resolved.creditCents, input.creditRequestedCents);
 
     const [order] = await tx
       .insert(t.orders)
@@ -317,7 +330,7 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
         vat23Cents: cart.vat23Cents,
         creditUsedCents: credit,
         amountPaidCents: cart.grossCents - credit,
-        useDouble: input.useDouble && b.doubles > 0,
+        useDouble: resolved.useDouble,
         provider: provider.name,
         idempotencyKey: input.idempotencyKey,
       })
@@ -343,6 +356,8 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
   const order = created.order;
 
   if (order.status !== "pending_payment") return { order, checkout: null };
+  // Prepared by an AI assistant: nothing is charged or sent to the bar until the guest approves.
+  if (created.isNew && input.holdForApproval) return { order, checkout: null };
   if (created.isNew && order.amountPaidCents === 0) {
     await completeOrder(venue.tenantId, order.id);
     return { order: (await getOrderRow(venue, order.id))!, checkout: null };
@@ -368,12 +383,40 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
   const updated = await withTenant(venue.tenantId, async (tx) => {
     const [u] = await tx
       .update(t.orders)
-      .set({ providerOrderId: p.providerOrderId, providerToken: p.token })
+      .set({ providerOrderId: p.providerOrderId, providerToken: p.token, provider: provider.name })
       .where(eq(t.orders.id, order.id))
       .returning();
     return u;
   });
   return { order: updated, checkout: { provider: provider.name, token: p.token, publicKey: provider.publicKey, redirect: p.redirect } };
+}
+
+/**
+ * The guest approves an order an AI assistant prepared: a fully credited order is placed
+ * straight away, otherwise the venue's normal checkout starts.
+ */
+export async function approveHeldOrder(venue: Venue, customer: Customer, orderId: string, provider: PaymentProvider, appUrl: string): Promise<CreatedOrderResult> {
+  const o = await getOrderRow(venue, orderId);
+  if (!o || o.customerId !== customer.id) throw new NotFound("Order not found");
+  if (o.status !== "pending_payment") throw new Forbidden("This order isn't waiting for approval");
+  if (o.amountPaidCents === 0) {
+    await completeOrder(venue.tenantId, o.id);
+    return { order: (await getOrderRow(venue, o.id))!, checkout: null };
+  }
+  return createOrder({ venue, customer, channel: o.channel, tableId: o.tableId, lines: [], creditRequestedCents: 0, useDouble: false, idempotencyKey: o.idempotencyKey, appUrl }, provider);
+}
+
+/** Loyalty credit the venue can still give away this month, or null when it has no cap. */
+export async function creditBudgetLeftTx(tx: Tx, venue: Venue, budgetCents: number | null): Promise<number | null> {
+  if (budgetCents === null) return null;
+  const monthStart = new Date();
+  monthStart.setUTCDate(1);
+  monthStart.setUTCHours(0, 0, 0, 0);
+  const [row] = await tx
+    .select({ used: sql<number>`coalesce(sum(${t.orders.creditUsedCents}), 0)::int` })
+    .from(t.orders)
+    .where(and(eq(t.orders.venueId, venue.id), inArray(t.orders.status, ["paid", "pending_payment"]), gte(t.orders.createdAt, monthStart)));
+  return Math.max(0, budgetCents - row.used);
 }
 
 async function getOrderRow(venue: Venue, orderId: string) {

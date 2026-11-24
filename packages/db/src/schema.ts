@@ -35,6 +35,8 @@ export const programme = pgTable("programme", {
   pointsPerCreditEuro: integer("points_per_credit_euro").notNull(),
   signupCreditCents: integer("signup_credit_cents").notNull(),
   referralPoints: integer("referral_points").notNull(),
+  /** venue redemption rules: see RedemptionRules in packages/core/src/decisions.ts */
+  redemptionRules: jsonb("redemption_rules").notNull().default({}).$type<Record<string, unknown>>(),
 });
 
 export const programmeLevel = pgTable("programme_level", {
@@ -275,6 +277,50 @@ export const xeroSync = pgTable(
   (t) => [uniqueIndex("xero_sync_day").on(t.venueId, t.businessDate)],
 );
 
+/**
+ * An AI assistant a guest has allowed to act for them at one venue. The token is shown
+ * to the guest once; only its SHA-256 hash is stored.
+ */
+export const agentGrant = pgTable(
+  "agent_grant",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    customerId: uuid("customer_id").notNull().references(() => customer.id),
+    name: text("name").notNull(),
+    tokenHash: text("token_hash").notNull().unique(),
+    tokenHint: text("token_hint").notNull(),
+    scopes: jsonb("scopes").notNull().$type<string[]>(),
+    maxOrderCents: integer("max_order_cents").notNull(),
+    maxCreditCents: integer("max_credit_cents").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("agent_grant_customer").on(t.customerId)],
+);
+
+/** Every request an AI assistant made, what was decided, and what happened. */
+export const agentAction = pgTable(
+  "agent_action",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    grantId: uuid("grant_id").notNull().references(() => agentGrant.id),
+    customerId: uuid("customer_id").notNull(),
+    tool: text("tool").notNull(),
+    input: jsonb("input"),
+    allowed: boolean("allowed").notNull(),
+    reasons: jsonb("reasons").notNull().$type<string[]>(),
+    outcome: text("outcome"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("agent_action_venue").on(t.venueId, t.createdAt), index("agent_action_grant").on(t.grantId)],
+);
+
 export const subscription = pgTable("subscription", {
   id: id(),
   tenantId: tenantId(),
@@ -310,4 +356,6 @@ export const TENANT_TABLES = [
   "audit_log",
   "venue_integration",
   "xero_sync",
+  "agent_grant",
+  "agent_action",
 ] as const;
