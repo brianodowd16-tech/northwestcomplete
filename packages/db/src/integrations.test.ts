@@ -226,3 +226,32 @@ describe("Payroll delivery set-up", () => {
     expect(await integ.payrollPeriodDone(drum, "2026-11-09")).toBe(true);
   });
 });
+
+describe("Deel and Bizimply set-up", () => {
+  it("keeps the Deel token encrypted, checks fortnights and keeps manual matches", async () => {
+    await expect(integ.saveDeel(drum, {}, null, KEY)).rejects.toThrow(/token/);
+    await expect(integ.saveDeel(drum, { frequency: "fortnightly", anchor: "2026-11-25" }, "tok_abcdefghijklmnopqrstuvwxyz", KEY)).rejects.toThrow(/Monday/);
+    await integ.saveDeel(drum, { env: "sandbox", payCategoryId: "cat-1", manual: { s1: "c-1", s2: "" } }, "tok_abcdefghijklmnopqrstuvwxyz", KEY);
+    await integ.saveDeel(drum, { tipsCategoryId: "cat-2" }, null, KEY);
+    const s = await integ.deelSettings(drum, KEY);
+    expect(s?.token).toBe("tok_abcdefghijklmnopqrstuvwxyz");
+    expect(s?.config).toMatchObject({ env: "sandbox", frequency: "weekly", payCategoryId: "cat-1", tipsCategoryId: "cat-2", manual: { s1: "c-1" } });
+    expect(JSON.stringify(await integ.integrationStatus(drum))).not.toContain("tok_abc");
+  });
+
+  it("checks the SFTP details and totals the day's sales after refunds", async () => {
+    await expect(integ.saveBizimply(mj, { host: "not a host", username: "u" }, "pw", KEY)).rejects.toThrow(/SFTP server/);
+    await expect(integ.saveBizimply(mj, { host: "sftp.bizimply.example", username: "" }, "pw", KEY)).rejects.toThrow(/username/);
+    await integ.saveBizimply(mj, { host: "SFTP.Bizimply.example", username: "mj", dir: "/sales/", headings: "Site, Day, Net, Gross, Count" }, "pw", KEY);
+    const s = await integ.bizimplySettings(mj, KEY);
+    expect(s?.config).toMatchObject({ host: "sftp.bizimply.example", port: 22, dir: "/sales", location: mj.name, headings: ["Site", "Day", "Net", "Gross", "Count"] });
+    expect(s?.password).toBe("pw");
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: mj.timezone }).format(new Date());
+    const day = await integ.daySales(mj, today);
+    const orders = await integ.dayOrders(mj, today);
+    const gross = orders.paid.reduce((a, o) => a + o.lines.reduce((b, l) => b + l.grossCents, 0), 0) - orders.refunded.reduce((a, o) => a + o.lines.reduce((b, l) => b + l.grossCents, 0), 0);
+    expect(day.grossCents).toBe(gross);
+    expect(day.vatCents).toBeGreaterThan(0);
+    expect(day.vatCents).toBeLessThan(day.grossCents);
+  });
+});

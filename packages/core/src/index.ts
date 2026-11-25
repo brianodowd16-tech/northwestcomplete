@@ -19,3 +19,5 @@ export * from "./ops";
 export * from "./service";
 export * from "./rota";
 export * from "./sage";
+export * from "./deel";
+export * from "./bizimply";

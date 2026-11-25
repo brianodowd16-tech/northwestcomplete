@@ -1,5 +1,8 @@
 import { PAYROLL_FORMATS, sageMapped, type SageMapping } from "@round/core";
+import { BIZIMPLY_DEFAULT_HEADINGS, localDate as ld } from "@round/core";
+import { listTeam } from "@round/db/admin";
 import { integrationStatus, sageOptions, syncHistory } from "@round/db/integrations";
+import { deelOverview } from "@/lib/deelsync";
 import { ActionForm } from "@/components/ActionForm";
 import { SecretForm } from "@/components/SecretForm";
 import { StaffNav } from "@/components/StaffNav";
@@ -38,6 +41,14 @@ export default async function Integrations({ params, searchParams }: { params: P
   const sageLog = st.sage ? (await syncHistory(venue, "sage")).sort((a, b) => b.businessDate.localeCompare(a.businessDate)).slice(0, 7) : [];
   const pc = (st.payroll?.config ?? {}) as { mode?: string; email?: string; url?: string; format?: string; frequency?: string; anchor?: string };
   const payLog = st.payroll ? (await syncHistory(venue, "payroll")).sort((a, b) => b.businessDate.localeCompare(a.businessDate)).slice(0, 6) : [];
+  const team = st.deel ? await listTeam(venue) : [];
+  let deel: Awaited<ReturnType<typeof deelOverview>> = null, deelError = "";
+  if (st.deel?.hasSecret) deel = await deelOverview(venue, team.map((x) => ({ id: x.id, email: x.email }))).catch((e) => ((deelError = String(e instanceof Error ? e.message : e).slice(0, 160)), null));
+  const dc = (st.deel?.config ?? {}) as { env?: string; frequency?: string; anchor?: string; payCategoryId?: string; tipsCategoryId?: string };
+  const deelLog = st.deel ? (await syncHistory(venue, "deel")).sort((a, b) => b.businessDate.localeCompare(a.businessDate)).slice(0, 6) : [];
+  const bc = (st.bizimply?.config ?? {}) as { host?: string; port?: number; username?: string; dir?: string; location?: string; headings?: string[] };
+  const bizLog = st.bizimply ? (await syncHistory(venue, "bizimply")).sort((a, b) => b.businessDate.localeCompare(a.businessDate)).slice(0, 7) : [];
+  const yday = ld(new Date(Date.now() - 86_400_000), venue.timezone);
   const chip = (s: string) => <span className={`chip ${s === "done" ? "ok" : s === "error" ? "warn" : "plain"}`}>{s === "done" ? "Sent" : s === "nothing" ? "Nothing to send" : "Failed"}</span>;
   return (
     <div className="page stack" style={{ maxWidth: 900 }}>
@@ -110,6 +121,89 @@ export default async function Integrations({ params, searchParams }: { params: P
           </ActionForm>
         )}
         {payLog.length > 0 && <table><tbody>{payLog.map((h) => <tr key={h.id}><td>Period from {h.businessDate}</td><td>{chip(h.status)}</td><td className="small muted">{h.error ?? h.invoiceId ?? ""}</td></tr>)}</tbody></table>}
+      </section>
+
+      <section className="panel stack">
+        <div className="row wrap"><h3>Deel</h3>{st.deel?.hasSecret ? <span className="chip ok">Connected{dc.env === "sandbox" ? " (sandbox)" : ""}</span> : <span className="chip plain">Not connected</span>}</div>
+        <p className="muted small" style={{ margin: 0 }}>
+          For staff paid through Deel. When a pay period ends, each person&apos;s hours go to Deel the morning after: hourly contractors as a timesheet, payroll and employer-of-record staff as a pay adjustment (gross pay for the hours, at their rate with the Sunday premium) plus their tips share. Staff are matched to Deel contracts by email, or by their Complete ID as the contract&apos;s external ID, or by hand below.
+        </p>
+        <ActionForm endpoint={api} action="deel" className="stack" okText="Saved">
+          <div className="two">
+            <label className="field">Organisation API token {st.deel?.hasSecret && <span className="muted small">(saved; paste a new one to replace it)</span>}<input name="token" type="password" autoComplete="off" placeholder="From Deel: More, Developer, Access tokens" /></label>
+            <label className="field">Account
+              <select name="env" defaultValue={dc.env ?? "production"}><option value="production">Live Deel account</option><option value="sandbox">Deel sandbox (testing)</option></select>
+            </label>
+            <label className="field">Pay period
+              <select name="frequency" defaultValue={dc.frequency ?? "weekly"}><option value="weekly">Weekly (Monday to Sunday)</option><option value="fortnightly">Fortnightly</option><option value="monthly">Monthly</option></select>
+            </label>
+            <label className="field">Fortnight starts on (a Monday)<input name="anchor" type="date" defaultValue={dc.anchor ?? ""} /></label>
+            {deel && (
+              <>
+                <label className="field">Pay category for hours (payroll staff)
+                  <select name="payCategoryId" defaultValue={dc.payCategoryId ?? ""}><option value="">Choose…</option>{deel.categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+                </label>
+                <label className="field">Category for tips (optional)
+                  <select name="tipsCategoryId" defaultValue={dc.tipsCategoryId ?? ""}><option value="">Don&apos;t send tips</option>{deel.categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+                </label>
+              </>
+            )}
+          </div>
+          {deel && (
+            <table>
+              <thead><tr><th>Staff</th><th>Deel contract</th></tr></thead>
+              <tbody>
+                {team.map((x) => (
+                  <tr key={x.id}>
+                    <td>{x.name}<div className="muted small">{x.email}</div></td>
+                    <td>
+                      <select name={`contract:${x.id}`} defaultValue={deel.matched[x.id]?.id ?? ""}>
+                        <option value="">Not paid through Deel</option>
+                        {deel.contracts.map((c) => <option key={c.id} value={c.id}>{c.name || c.email || c.id} · {c.title || c.type}</option>)}
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          <button className="btn sm" style={{ alignSelf: "flex-start" }}>{st.deel?.hasSecret ? "Save" : "Connect Deel"}</button>
+        </ActionForm>
+        {deelError && <div className="error">Couldn&apos;t read your Deel account: {deelError}. Check the token and account.</div>}
+        {st.deel?.hasSecret && (
+          <ActionForm endpoint={api} action="deel-send" className="row wrap" okText="Sent" confirmText="Send the last pay period to Deel now?">
+            <button className="btn sm ghost">Send the last pay period now</button>
+          </ActionForm>
+        )}
+        {deelLog.length > 0 && <table><tbody>{deelLog.map((h) => <tr key={h.id}><td>Period from {h.businessDate}</td><td>{chip(h.status)}</td><td className="small muted">{h.error ?? h.invoiceId ?? ""}</td></tr>)}</tbody></table>}
+      </section>
+
+      <section className="panel stack">
+        <div className="row wrap"><h3>Bizimply</h3>{st.bizimply ? <span className="chip ok">Uploading daily</span> : <span className="chip plain">Not set up</span>}</div>
+        <p className="muted small" style={{ margin: 0 }}>
+          If your rota and clock-ins are in Bizimply, send it your sales so it shows labour cost against takings. Bizimply has no open API: it collects a sales file from an SFTP folder at 6.30am. Complete uploads yesterday&apos;s sales (all app, till and delivery sales after refunds; net is ex VAT; tips left out) at 4.35am. Ask your Bizimply Customer Success manager for an SFTP folder and set up a recurring Sales Import in Bizimply (Settings, Company Settings, SFTP). Download Bizimply&apos;s Sample File and copy its column headings below if they differ.
+        </p>
+        <SecretForm endpoint={api} action="bizimply" button={st.bizimply ? "Save" : "Set up"}>
+          <div className="two">
+            <label className="field">SFTP server<input name="host" defaultValue={bc.host ?? ""} placeholder="sftp.example.com" /></label>
+            <label className="field">Port<input name="port" type="number" defaultValue={bc.port ?? 22} /></label>
+            <label className="field">Username<input name="username" defaultValue={bc.username ?? ""} autoComplete="off" /></label>
+            <label className="field">Password {st.bizimply && <span className="muted small">(saved; type to replace)</span>}<input name="password" type="password" autoComplete="off" /></label>
+            <label className="field">Folder<input name="dir" defaultValue={bc.dir ?? ""} placeholder="/sales" /></label>
+            <label className="field">Location name in Bizimply (exactly)<input name="location" defaultValue={bc.location ?? venue.name} /></label>
+          </div>
+          <label className="field">Column headings (5, comma separated: location, date, net, gross, transactions)<input name="headings" defaultValue={(bc.headings ?? [...BIZIMPLY_DEFAULT_HEADINGS]).join(", ")} /></label>
+        </SecretForm>
+        <div className="row wrap">
+          <a className="btn sm ghost" href={`${api}?bizimply=${yday}`}>Download yesterday&apos;s file</a>
+          {st.bizimply && (
+            <ActionForm endpoint={api} action="bizimply-send" className="row wrap" okText="Uploaded">
+              <input name="date" type="date" className="field-input" style={{ width: 170, textAlign: "left" }} />
+              <button className="btn sm ghost">Upload a day now</button>
+            </ActionForm>
+          )}
+        </div>
+        {bizLog.length > 0 && <table><tbody>{bizLog.map((h) => <tr key={h.id}><td>{h.businessDate}</td><td>{chip(h.status)}</td><td className="small muted">{h.error ?? h.invoiceId ?? ""}</td></tr>)}</tbody></table>}
       </section>
 
       <ActionForm endpoint={api} action="bookings" className="panel stack">

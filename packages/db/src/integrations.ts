@@ -21,6 +21,9 @@ import {
   SAGE_MAPPING_FIELDS,
   SageClient,
   sageMapped,
+  BIZIMPLY_DEFAULT_HEADINGS,
+  type DeelEnv,
+  type DaySales,
   type PayFrequency,
   type PayrollFormat,
   type SageApp,
@@ -32,7 +35,7 @@ import { systemDb, withTenant } from "./index";
 import * as t from "./schema";
 import { Forbidden, NotFound, type Venue } from "./services";
 
-export type IntegrationKind = "revolut" | "mypos" | "xero" | "delivery" | "pms" | "sage" | "payroll";
+export type IntegrationKind = "revolut" | "mypos" | "xero" | "delivery" | "pms" | "sage" | "payroll" | "deel" | "bizimply";
 
 export async function loadIntegration(venue: Venue, kind: IntegrationKind) {
   return withTenant(venue.tenantId, async (tx) => {
@@ -237,7 +240,7 @@ export function venuesWithXero() {
 
 // ---------------------------------------------------------------- sync records (Xero, Sage, payroll)
 
-export type SyncTarget = "xero" | "sage" | "payroll";
+export type SyncTarget = "xero" | "sage" | "payroll" | "deel" | "bizimply";
 
 /** Records one day (or pay period) sent to an outside system, counting attempts. */
 export async function recordSync(venue: Venue, target: SyncTarget, date: string, status: "done" | "nothing" | "error", ref: string | null, error: string | null) {
@@ -252,7 +255,7 @@ export async function syncHistory(venue: Venue, target: SyncTarget) {
   return withTenant(venue.tenantId, (tx) => tx.select().from(t.xeroSync).where(and(eq(t.xeroSync.venueId, venue.id), eq(t.xeroSync.target, target))));
 }
 
-async function syncDone(venue: Venue, target: SyncTarget, date: string) {
+export async function syncDone(venue: Venue, target: SyncTarget, date: string) {
   const [row] = await withTenant(venue.tenantId, (tx) =>
     tx.select().from(t.xeroSync).where(and(eq(t.xeroSync.venueId, venue.id), eq(t.xeroSync.target, target), eq(t.xeroSync.businessDate, date))),
   );
@@ -369,4 +372,103 @@ export async function payrollSyncConfig(venue: Venue) {
 
 export async function payrollPeriodDone(venue: Venue, start: string) {
   return syncDone(venue, "payroll", start);
+}
+
+
+// ---------------------------------------------------------------- Deel
+
+export interface DeelConfig {
+  env: DeelEnv;
+  frequency: PayFrequency;
+  anchor: string;
+  /** Deel adjustment categories for payroll (GP/EOR) staff */
+  payCategoryId: string;
+  tipsCategoryId: string;
+  /** staff id -> Deel contract id, where email or external_id don't match */
+  manual: Record<string, string>;
+}
+
+/** Saves Deel settings; `token` (an organisation API token) replaces the stored one when given. */
+export async function saveDeel(venue: Venue, input: Partial<DeelConfig>, token: string | null, secretsKey: string) {
+  const existing = await loadIntegration(venue, "deel");
+  if (!existing?.secretEnc && !token) throw new CartError("Paste your Deel API token");
+  if (token !== null && !/^[\w.\-~+/=]{20,}$/.test(token)) throw new CartError("That doesn't look like a Deel API token");
+  const prev = (existing?.config ?? {}) as Partial<DeelConfig>;
+  const frequency: PayFrequency = input.frequency === "fortnightly" || input.frequency === "monthly" ? input.frequency : input.frequency === "weekly" ? "weekly" : prev.frequency ?? "weekly";
+  const anchor = /^\d{4}-\d{2}-\d{2}$/.test(String(input.anchor ?? "")) ? String(input.anchor) : prev.anchor ?? "";
+  if (frequency === "fortnightly" && (!anchor || new Date(`${anchor}T12:00:00Z`).getUTCDay() !== 1)) throw new CartError("Pick the Monday a fortnightly pay period starts");
+  const clean = (v: unknown, fallback = "") => (v === undefined ? fallback : String(v).trim().slice(0, 64));
+  const config: DeelConfig = {
+    env: input.env === "sandbox" ? "sandbox" : input.env === "production" ? "production" : prev.env ?? "production",
+    frequency,
+    anchor,
+    payCategoryId: clean(input.payCategoryId, prev.payCategoryId ?? ""),
+    tipsCategoryId: clean(input.tipsCategoryId, prev.tipsCategoryId ?? ""),
+    manual: Object.fromEntries(Object.entries(input.manual ?? prev.manual ?? {}).filter(([, v]) => !!v).map(([k, v]) => [k, String(v).slice(0, 64)])),
+  };
+  await saveIntegration(venue, "deel", config as unknown as Record<string, unknown>, token, secretsKey);
+}
+
+export async function deelSettings(venue: Venue, secretsKey: string | undefined) {
+  const row = await loadIntegration(venue, "deel");
+  if (!row?.secretEnc || !secretsKey) return null;
+  return { config: row.config as unknown as DeelConfig, token: decryptSecret(row.secretEnc, secretsKey) };
+}
+
+// ---------------------------------------------------------------- Bizimply
+
+export interface BizimplyConfig {
+  host: string;
+  port: number;
+  username: string;
+  dir: string;
+  /** the venue's location name exactly as in Bizimply */
+  location: string;
+  headings: string[];
+}
+
+/** Saves the SFTP folder Bizimply collects sales from; `password` replaces the stored one when given. */
+export async function saveBizimply(venue: Venue, input: Partial<BizimplyConfig> & { headings?: string[] | string }, password: string | null, secretsKey: string) {
+  const host = String(input.host ?? "").trim().toLowerCase();
+  if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(host)) throw new CartError("Enter the SFTP server name Bizimply gave you (like sftp.example.com)");
+  const port = Number(input.port || 22);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new CartError("Port must be a number, usually 22");
+  const username = String(input.username ?? "").trim();
+  if (!username) throw new CartError("Enter the SFTP username");
+  const location = String(input.location ?? "").trim() || venue.name;
+  const raw = Array.isArray(input.headings) ? input.headings : String(input.headings ?? "").split(",");
+  const headings = raw.map((h) => h.trim()).filter(Boolean);
+  const existing = await loadIntegration(venue, "bizimply");
+  if (!existing?.secretEnc && !password) throw new CartError("Enter the SFTP password");
+  const config: BizimplyConfig = { host, port, username, dir: String(input.dir ?? "").trim().replace(/\/+$/, "") || ".", location: location.slice(0, 80), headings: headings.length === 5 ? headings : [...BIZIMPLY_DEFAULT_HEADINGS] };
+  await saveIntegration(venue, "bizimply", config as unknown as Record<string, unknown>, password, secretsKey);
+}
+
+export async function bizimplySettings(venue: Venue, secretsKey: string | undefined) {
+  const row = await loadIntegration(venue, "bizimply");
+  if (!row?.secretEnc || !secretsKey) return null;
+  return { config: row.config as unknown as BizimplyConfig, password: decryptSecret(row.secretEnc, secretsKey) };
+}
+
+/** One trading day's sales across every channel (app, till, delivery), after that day's refunds. */
+export async function daySales(venue: Venue, date: string): Promise<DaySales> {
+  const from = new Date(`${date}T00:00:00Z`);
+  const lo = new Date(from.getTime() - 86_400_000), hi = new Date(from.getTime() + 2 * 86_400_000);
+  return withTenant(venue.tenantId, async (tx) => {
+    const os = await tx
+      .select()
+      .from(t.orders)
+      .where(and(eq(t.orders.venueId, venue.id), inArray(t.orders.status, ["paid", "refunded"]), or(and(gte(t.orders.paidAt, lo), lt(t.orders.paidAt, hi)), and(isNotNull(t.orders.refundedAt), gte(t.orders.refundedAt, lo), lt(t.orders.refundedAt, hi)))));
+    const paid = os.filter((o) => o.paidAt && localDate(o.paidAt, venue.timezone) === date);
+    const refunded = os.filter((o) => o.refundedAt && localDate(o.refundedAt, venue.timezone) === date);
+    const ids = [...new Set([...paid, ...refunded].map((o) => o.id))];
+    const lines = ids.length ? await tx.select().from(t.orderLine).where(inArray(t.orderLine.orderId, ids)) : [];
+    const sum = (set: typeof os, f: (l: (typeof lines)[number]) => number) => set.reduce((s, o) => s + lines.filter((l) => l.orderId === o.id).reduce((a, l) => a + f(l), 0), 0);
+    return {
+      grossCents: sum(paid, (l) => l.grossCents) - sum(refunded, (l) => l.grossCents),
+      vatCents: sum(paid, (l) => l.vatCents) - sum(refunded, (l) => l.vatCents),
+      tipsCents: paid.reduce((s, o) => s + o.tipCents, 0) - refunded.reduce((s, o) => s + o.tipCents, 0),
+      transactions: paid.length,
+    };
+  });
 }
