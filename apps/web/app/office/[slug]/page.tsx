@@ -1,3 +1,4 @@
+import { openAlerts, venueInvoices } from "@round/db/platform";
 import { agentActivity } from "@round/db/ai";
 import { reviewStats } from "@round/db/integrations";
 import { billingStatement, dashboard, venueTables } from "@round/db/services";
@@ -40,6 +41,8 @@ export default async function Office({ params, searchParams }: { params: Promise
   const [d, reviews, tables, agents] = await Promise.all([dashboard(venue, start, end), reviewStats(venue, start, end), venueTables(venue), agentActivity(venue, { limit: 8 })]);
   const now = new Date();
   const bill = await billingStatement(venue, now.getUTCFullYear(), now.getUTCMonth() + 1);
+  const alerts = await openAlerts(venue);
+  const invoices = await venueInvoices(venue);
   const avg = (s: { orders: number; grossCents: number }) => (s.orders ? Math.round(s.grossCents / s.orders) : 0);
   const chart =
     p === "today"
@@ -55,6 +58,11 @@ export default async function Office({ params, searchParams }: { params: Promise
       <div>
         <div className="label">{venue.name}</div>
         <StaffNav setup={venue.status === "setup"} slug={slug} current="office" admin={staff.role === "admin"} />
+        {alerts.map((a) => (
+          <div key={a.id} className={a.severity === "error" ? "error" : "notice"} style={{ marginTop: 8 }}>
+            <b>{a.title}</b> {a.detail} <a href={a.href}>Fix it</a>
+          </div>
+        ))}
         <div className="row wrap">
           <h1 style={{ fontSize: 28 }}>{P.label}</h1>
           <nav className="seg" aria-label="Period">
@@ -192,6 +200,7 @@ export default async function Office({ params, searchParams }: { params: Promise
               <tr><td>Monthly subscription</td><td className="r num">{eur(bill.subscriptionCents)}</td></tr>
               <tr><td>VAT 23% on fees</td><td className="r num">{eur(bill.vatCents)}</td></tr>
               <tr><td><b>Total due so far</b></td><td className="r num"><b>{eur(bill.totalCents)}</b></td></tr>
+              {invoices.map((i) => <tr key={i.id}><td className="small">Invoice {i.number} ({i.period})</td><td className="r num small">{eur(i.totalCents)} · {i.status === "paid" ? "paid" : "issued"}</td></tr>)}
             </tbody>
           </table>
         </section>

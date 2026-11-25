@@ -1,0 +1,79 @@
+import { opsOverview } from "@round/db/platform";
+import { eur } from "@/components/format";
+
+export const dynamic = "force-dynamic";
+export const metadata = { title: "Complete ops", robots: { index: false } };
+
+const ago = (d: Date | null) => {
+  if (!d) return "never";
+  const h = Math.round((Date.now() - new Date(d).getTime()) / 3_600_000);
+  return h < 1 ? "just now" : h < 48 ? `${h}h ago` : `${Math.round(h / 24)}d ago`;
+};
+
+/** Every venue at a glance for Complete's own team (protected by middleware.ts). */
+export default async function Ops() {
+  const o = await opsOverview();
+  const live = o.venues.filter((v) => v.status === "live");
+  const setup = o.venues.filter((v) => v.status === "setup");
+  const mrr = live.reduce((s, v) => s + v.monthlyFeeCents, 0);
+  const gmv = o.venues.reduce((s, v) => s + v.paid30dCents, 0);
+  return (
+    <div className="page stack" style={{ maxWidth: 1200 }}>
+      <div>
+        <div className="label">Complete</div>
+        <h1 style={{ fontSize: 28 }}>Operations</h1>
+      </div>
+      <div className="row wrap" style={{ gap: 12 }}>
+        {[
+          ["Live venues", String(live.length)],
+          ["In set-up", String(setup.length)],
+          ["Subscriptions / month", eur(mrr)],
+          ["App and till payments, 30 days", eur(gmv)],
+          ["Open venue alerts", String(o.venues.reduce((s, v) => s + v.openAlerts, 0))],
+          ["Emails failed / waiting", `${o.outbox.failed ?? 0} / ${o.outbox.pending ?? 0}`],
+        ].map(([k, v]) => (
+          <div key={k} className="panel" style={{ flex: "1 1 160px" }}>
+            <div className="muted small">{k}</div>
+            <div style={{ fontSize: 24, fontWeight: 700 }}>{v}</div>
+          </div>
+        ))}
+      </div>
+      <section className="panel stack">
+        <h3>Venues</h3>
+        <div style={{ overflowX: "auto" }}>
+          <table>
+            <thead><tr><th>Venue</th><th>Status</th><th>Signed up</th><th className="r">Orders 30d</th><th className="r">Paid 30d</th><th>Last order</th><th className="r">Alerts</th><th>Last invoice</th></tr></thead>
+            <tbody>
+              {o.venues.map((v) => (
+                <tr key={v.id}>
+                  <td>{v.name}<div className="muted small">{v.town} · {v.kind} · {v.slug}</div></td>
+                  <td><span className={`chip ${v.status === "live" ? "ok" : v.status === "suspended" ? "warn" : "plain"}`}>{v.status}</span></td>
+                  <td className="small">{ago(v.createdAt)}</td>
+                  <td className="r num">{v.orders30d}</td>
+                  <td className="r num">{eur(v.paid30dCents)}</td>
+                  <td className="small">{ago(v.lastOrderAt)}</td>
+                  <td className="r">{v.openAlerts ? <span className="chip warn">{v.openAlerts}</span> : "0"}</td>
+                  <td className="small">{v.lastInvoice ? `${v.lastInvoice.period} · ${eur(v.lastInvoice.totalCents)} · ${v.lastInvoice.status}` : "none yet"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <div className="two">
+        <section className="panel stack">
+          <h3>Server errors</h3>
+          {o.errors.length === 0 ? <div className="empty">None recorded.</div> : (
+            <table><tbody>{o.errors.map((e) => <tr key={e.fingerprint}><td className="small">{e.message}<div className="muted small">{e.context}</div></td><td className="r num">{e.count}×</td><td className="small">{ago(e.lastAt)}</td></tr>)}</tbody></table>
+          )}
+        </section>
+        <section className="panel stack">
+          <h3>Emails that failed</h3>
+          {o.failedEmails.length === 0 ? <div className="empty">None.</div> : (
+            <table><tbody>{o.failedEmails.map((e) => <tr key={e.id}><td className="small">{e.subject}<div className="muted small">{e.to} · {e.lastError}</div></td><td className="small">{ago(e.createdAt)}</td></tr>)}</tbody></table>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}

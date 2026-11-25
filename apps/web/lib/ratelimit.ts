@@ -1,11 +1,21 @@
 import "server-only";
+import { rateAllow } from "@round/db/platform";
 import { headers } from "next/headers";
 
-// Per-instance sliding window. Enough to slow bots on one server; use a shared store (Postgres or Redis) when running several.
+// Shared limits live in Postgres (rate_bucket) so every app instance counts the same
+// attempts. If the database can't be reached, a per-instance window keeps limiting.
 const hits = new Map<string, number[]>();
 
-/** True if `key` has made fewer than `limit` calls in the last `windowMs`. Records this call. */
-export function allow(key: string, limit: number, windowMs: number): boolean {
+/** True if `key` has made fewer than `limit` calls in the current window. Records this call. */
+export async function allow(key: string, limit: number, windowMs: number): Promise<boolean> {
+  try {
+    return await rateAllow(key, limit, windowMs);
+  } catch {
+    return allowLocal(key, limit, windowMs);
+  }
+}
+
+function allowLocal(key: string, limit: number, windowMs: number): boolean {
   const now = Date.now();
   const recent = (hits.get(key) ?? []).filter((t) => now - t < windowMs);
   if (recent.length >= limit) {

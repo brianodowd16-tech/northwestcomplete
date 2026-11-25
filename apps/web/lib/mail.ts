@@ -1,4 +1,5 @@
 import "server-only";
+import { dueEmails, emailById, markEmailFailed, markEmailSent, queueEmail, recordError, type OutgoingEmail } from "@round/db/platform";
 import nodemailer from "nodemailer";
 
 // Outgoing email through the Complete mailbox's SMTP server (Hostinger: smtp.hostinger.com, port 465, SSL).
@@ -23,9 +24,40 @@ function smtp() {
 
 const from = () => process.env.MAIL_FROM || `Complete <${process.env.SMTP_USER}>`;
 
+/**
+ * Sends an email through the outbox: recorded first, sent straight away when the mail
+ * server answers, otherwise retried by the email job (1, 5, 15, 60, 240 minutes).
+ * Returns false only when an email with the same dedupe key was already sent or queued.
+ */
+export async function deliver(m: OutgoingEmail): Promise<boolean> {
+  const id = await queueEmail(m);
+  if (!id) return false;
+  if (mailConfigured()) await attempt(id);
+  return true;
+}
+
+async function attempt(id: string) {
+  const m = await emailById(id);
+  if (!m || m.status !== "pending") return;
+  try {
+    await smtp().sendMail({ from: from(), to: m.to, subject: m.subject, text: m.text, ...(m.html ? { html: m.html } : {}), ...(m.replyTo ? { replyTo: m.replyTo } : {}), ...(m.attachments ? { attachments: m.attachments } : {}) });
+    await markEmailSent(id);
+  } catch (e) {
+    await markEmailFailed(id, String(e instanceof Error ? e.message : e));
+    await recordError(e, `email ${m.subject.slice(0, 60)}`);
+  }
+}
+
+/** The email job: retries whatever is due. */
+export async function sendDueEmails() {
+  if (!mailConfigured()) return 0;
+  const due = await dueEmails(50);
+  for (const m of due) await attempt(m.id);
+  return due.length;
+}
+
 export async function sendSignupCode(to: string, code: string) {
-  await smtp().sendMail({
-    from: from(),
+  await deliver({
     to,
     subject: `${code} is your Complete code`,
     text: `Your code to set up your venue on Complete is ${code}.\n\nIt works for 15 minutes. If you didn't ask for it, you can ignore this email.\n\nComplete · complete.pub`,
@@ -34,6 +66,6 @@ export async function sendSignupCode(to: string, code: string) {
 }
 
 /** Any plain email from the Complete mailbox (supplier orders and similar). */
-export async function sendEmail(to: string, subject: string, text: string, replyTo?: string, attachments?: { filename: string; content: string; contentType: string }[]) {
-  await smtp().sendMail({ from: from(), to, subject, text, ...(replyTo ? { replyTo } : {}), ...(attachments ? { attachments } : {}) });
+export async function sendEmail(to: string, subject: string, text: string, replyTo?: string, attachments?: { filename: string; content: string; contentType: string }[], dedupeKey?: string) {
+  return deliver({ to, subject, text, replyTo, attachments, dedupeKey });
 }

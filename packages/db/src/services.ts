@@ -856,12 +856,13 @@ export async function dashboard(venue: Venue, from: Date, to: Date) {
       .orderBy(desc(t.orders.createdAt))
       .limit(10);
     const recentIds = recent.map((o) => o.id);
+    // One transaction is one connection: run these one after another (pg can't overlap queries on a client).
     const [rDockets, rCust, tables] = recentIds.length
-      ? await Promise.all([
-          tx.select().from(t.docket).where(inArray(t.docket.orderId, recentIds)),
-          tx.select({ id: t.customer.id, name: t.customer.name }).from(t.customer).where(inArray(t.customer.id, recent.flatMap((o) => (o.customerId ? [o.customerId] : ["00000000-0000-0000-0000-000000000000"])))),
-          tx.select().from(t.venueTable).where(eq(t.venueTable.venueId, venue.id)),
-        ])
+      ? [
+          await tx.select().from(t.docket).where(inArray(t.docket.orderId, recentIds)),
+          await tx.select({ id: t.customer.id, name: t.customer.name }).from(t.customer).where(inArray(t.customer.id, recent.flatMap((o) => (o.customerId ? [o.customerId] : ["00000000-0000-0000-0000-000000000000"])))),
+          await tx.select().from(t.venueTable).where(eq(t.venueTable.venueId, venue.id)),
+        ]
       : [[], [], []];
     return {
       now,

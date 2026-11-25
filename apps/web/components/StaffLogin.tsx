@@ -30,6 +30,9 @@ export function StaffLogin({ next }: { next?: string }) {
       {error && <div className="error">{error}</div>}
       <button className="btn block" disabled={busy}>Sign in</button>
       <p className="muted small" style={{ margin: 0, textAlign: "center" }}>
+        <a href="/staff/forgot">Forgot your password?</a>
+      </p>
+      <p className="muted small" style={{ margin: 0, textAlign: "center" }}>
         New venue? <a href="/start">Start your free trial</a>
       </p>
     </form>

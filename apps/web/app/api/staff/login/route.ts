@@ -5,7 +5,7 @@ import { errorJson, json, startStaffSession } from "@/lib/server";
 
 export async function POST(req: Request) {
   try {
-    if (!allow(`login:${await clientIp()}`, 20, 15 * 60_000)) return json({ error: "Too many attempts. Try again in a few minutes." }, 429);
+    if (!await allow(`login:${await clientIp()}`, 20, 15 * 60_000)) return json({ error: "Too many attempts. Try again in a few minutes." }, 429);
     const { email, password } = (await req.json()) as { email?: string; password?: string };
     const staff = await staffByEmail(email ?? "");
     if (!staff || !checkPassword(password ?? "", staff.passwordHash)) return json({ error: "Wrong email or password" }, 401);

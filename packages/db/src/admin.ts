@@ -135,22 +135,24 @@ export async function listTeam(venue: Venue) {
 }
 
 /** Adds a team member with a one-time password to hand over; they choose their own when they first sign in. */
-export async function addTeamMember(venue: Venue, by: Staff, input: { name: string; email: string; role: string }): Promise<{ tempPassword: string }> {
+export async function addTeamMember(venue: Venue, by: Staff, input: { name: string; email: string; role: string }): Promise<{ tempPassword: string; staffId: string; email: string; name: string }> {
   const name = cleanName(input.name, "name");
   const email = normaliseEmail(input.email);
   if (!email) throw new OnboardingError("Enter a valid email address");
   if (input.role !== "admin" && input.role !== "staff") throw new OnboardingError("Choose a role");
   const tempPassword = randomBytes(9).toString("base64url");
-  await withTenant(venue.tenantId, async (tx) => {
+  const staffId = await withTenant(venue.tenantId, async (tx) => {
+    let id: string;
     try {
-      await tx.insert(t.staffUser).values({ tenantId: venue.tenantId, venueId: venue.id, email, name, role: input.role as "admin" | "staff", passwordHash: hashPassword(tempPassword), mustChangePassword: true });
+      [{ id }] = await tx.insert(t.staffUser).values({ tenantId: venue.tenantId, venueId: venue.id, email, name, role: input.role as "admin" | "staff", passwordHash: hashPassword(tempPassword), mustChangePassword: true }).returning({ id: t.staffUser.id });
     } catch (e) {
       if (/unique|duplicate/i.test(String((e as { cause?: Error }).cause?.message ?? e))) throw new OnboardingError("Someone already uses that email");
       throw e;
     }
     await tx.insert(t.auditLog).values({ tenantId: venue.tenantId, actor: `staff:${by.id}`, action: "staff.added", entity: `staff:${email}`, detail: { role: input.role } });
+    return id;
   });
-  return { tempPassword };
+  return { tempPassword, staffId, email, name };
 }
 
 export async function removeTeamMember(venue: Venue, by: Staff, staffId: string) {

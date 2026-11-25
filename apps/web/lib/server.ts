@@ -103,7 +103,13 @@ export function json(data: unknown, status = 200) {
 
 export function errorJson(e: unknown) {
   const name = e instanceof Error ? e.constructor.name : "";
+  // A malformed id or value from the browser (Postgres "invalid text representation") is a bad request, not a crash.
+  const pgCode = (e as { code?: string; cause?: { code?: string } })?.cause?.code ?? (e as { code?: string })?.code;
+  if (pgCode === "22P02") return json({ error: "Not found" }, 404);
   const status = name === "NotFound" ? 404 : name === "Forbidden" ? 403 : ["CartError", "LoyaltyError", "SignupError", "DocketError", "OnboardingError", "InventoryError", "EventError"].includes(name) ? 400 : 500;
-  if (status === 500) console.error(e);
+  if (status === 500) {
+    console.error(e);
+    void import("@round/db/platform").then((m) => m.recordError(e, "api")).catch(() => {});
+  }
   return json({ error: status === 500 ? "Something went wrong" : (e as Error).message }, status);
 }

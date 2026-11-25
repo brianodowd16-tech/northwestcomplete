@@ -6,7 +6,7 @@ import { errorJson, json, sessionSecret } from "@/lib/server";
 /** Step 1 of business sign-up: email a 6-digit code. */
 export async function POST(req: Request) {
   try {
-    if (!allow(`code:${await clientIp()}`, 5, 15 * 60_000)) return json({ error: "Too many attempts. Try again in a few minutes." }, 429);
+    if (!await allow(`code:${await clientIp()}`, 5, 15 * 60_000)) return json({ error: "Too many attempts. Try again in a few minutes." }, 429);
     const { email } = (await req.json()) as { email?: string };
     const { email: clean, code } = await requestSignupCode(email ?? "", sessionSecret());
     const prod = process.env.NODE_ENV === "production";

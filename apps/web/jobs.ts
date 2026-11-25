@@ -7,6 +7,9 @@ import PgBoss from "pg-boss";
 import { refreshTopGames } from "./lib/sportsfeed";
 import { uploadBizimply } from "./lib/bizimply";
 import { sendDeel } from "./lib/deelsync";
+import { healthCheck, monthlyBilling, onboardingNudges, retention } from "./lib/autopilot";
+import { sendDueEmails } from "./lib/mail";
+import { recordError } from "@round/db/platform";
 import { sendPayroll } from "./lib/payrollsync";
 import { providerFor, sageApp, secretsKey, xeroApp } from "./lib/server";
 
@@ -15,6 +18,22 @@ const XERO_NIGHTLY = "xero-nightly";
 const TOP_GAMES = "top-games";
 const PAYROLL = "payroll-send";
 const BIZIMPLY = "bizimply-sales";
+const EMAILS = "email-retry";
+const HEALTH = "venue-health";
+const NUDGES = "onboarding-nudges";
+const BILLING = "monthly-billing";
+const RETENTION = "data-retention";
+
+/** Runs a job, recording any failure for the operator console before pg-boss retries it. */
+const tracked = (name: string, fn: () => Promise<unknown>) => async () => {
+  try {
+    const r = await fn();
+    if (r) console.log(`${name}: ${typeof r === "object" ? JSON.stringify(r) : r}`);
+  } catch (e) {
+    await recordError(e, `job ${name}`);
+    throw e;
+  }
+};
 
 async function reconcile() {
   await reconcilePending(async (venueId) => providerFor(await venueById(venueId)));
@@ -72,16 +91,27 @@ export async function startJobs() {
   const boss = new PgBoss({ connectionString: process.env.DATABASE_URL, schema: "pgboss" });
   boss.on("error", (e) => console.error("jobs", e));
   await boss.start();
-  for (const q of [RECONCILE, XERO_NIGHTLY, TOP_GAMES, PAYROLL, BIZIMPLY]) await boss.createQueue(q);
+  for (const q of [RECONCILE, XERO_NIGHTLY, TOP_GAMES, PAYROLL, BIZIMPLY, EMAILS, HEALTH, NUDGES, BILLING, RETENTION]) await boss.createQueue(q);
   await boss.schedule(RECONCILE, "* * * * *");
   await boss.schedule(XERO_NIGHTLY, "15 3 * * *", undefined, { tz: "Europe/Dublin" });
   await boss.work(RECONCILE, reconcile);
-  await boss.work(XERO_NIGHTLY, accountsNightly);
+  await boss.work(XERO_NIGHTLY, tracked(XERO_NIGHTLY, accountsNightly));
   // Pay periods close at midnight Sunday (or month end): send them first thing.
   await boss.schedule(PAYROLL, "20 6 * * *", undefined, { tz: "Europe/Dublin" });
-  await boss.work(PAYROLL, payrollDaily);
+  await boss.work(PAYROLL, tracked(PAYROLL, payrollDaily));
   await boss.schedule(BIZIMPLY, "35 4 * * *", undefined, { tz: "Europe/Dublin" });
-  await boss.work(BIZIMPLY, bizimplyDaily);
+  await boss.work(BIZIMPLY, tracked(BIZIMPLY, bizimplyDaily));
+  // Running at scale: email retries, venue health alerts, set-up nudges, monthly invoices, data clean-up.
+  await boss.schedule(EMAILS, "* * * * *");
+  await boss.work(EMAILS, tracked(EMAILS, sendDueEmails));
+  await boss.schedule(HEALTH, "7 * * * *");
+  await boss.work(HEALTH, tracked(HEALTH, healthCheck));
+  await boss.schedule(NUDGES, "5 10 * * *", undefined, { tz: "Europe/Dublin" });
+  await boss.work(NUDGES, tracked(NUDGES, onboardingNudges));
+  await boss.schedule(BILLING, "10 7 1 * *", undefined, { tz: "Europe/Dublin" });
+  await boss.work(BILLING, tracked(BILLING, monthlyBilling));
+  await boss.schedule(RETENTION, "50 3 * * *", undefined, { tz: "Europe/Dublin" });
+  await boss.work(RETENTION, tracked(RETENTION, retention));
   // Ireland's top televised games for the next week, refreshed every morning (and once at start-up).
   await boss.schedule(TOP_GAMES, "40 5 * * *", undefined, { tz: "Europe/Dublin" });
   await boss.work(TOP_GAMES, async () => console.log(`top games: ${await refreshTopGames()} listed`));

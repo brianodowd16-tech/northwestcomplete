@@ -6,7 +6,7 @@ import { errorJson, json, sessionSecret, startStaffSession } from "@/lib/server"
 /** Step 2: verified email + business details → a venue in test mode, and the owner signed in. */
 export async function POST(req: Request) {
   try {
-    if (!allow(`signup:${await clientIp()}`, 10, 60 * 60_000)) return json({ error: "Too many attempts. Try again later." }, 429);
+    if (!await allow(`signup:${await clientIp()}`, 10, 60 * 60_000)) return json({ error: "Too many attempts. Try again later." }, 429);
     const b = (await req.json()) as Record<string, unknown>;
     if (b.website) return json({ error: "Something went wrong" }, 400); // honeypot: people never fill this in
     const input = validateSignup({

@@ -99,6 +99,13 @@
       "when": 1795638751599,
       "tag": "0013_tough_starbolt",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1795641467619,
+      "tag": "0014_zippy_xavin",
+      "breakpoints": true
     }
   ]
 }

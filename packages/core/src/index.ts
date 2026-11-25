@@ -21,3 +21,4 @@ export * from "./rota";
 export * from "./sage";
 export * from "./deel";
 export * from "./bizimply";
+export * from "./platform";

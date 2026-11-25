@@ -680,7 +680,101 @@ export const staffUnavailable = pgTable(
   (t) => [uniqueIndex("staff_unavailable_day").on(t.staffId, t.date)],
 );
 
+// ---------------------------------------------------------------- running at scale
+
+/** Shared rate limits (fixed windows), so every app instance counts the same attempts. Not tenant data. */
+export const rateBucket = pgTable("rate_bucket", {
+  key: text("key").primaryKey(),
+  windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+  hits: integer("hits").notNull(),
+});
+
+/** Every email Complete sends: sent at once where possible, retried with back-off when the mail server fails. */
+export const emailOutbox = pgTable(
+  "email_outbox",
+  {
+    id: id(),
+    /** stops the same email (a nudge, an alert, an invoice) going twice */
+    dedupeKey: text("dedupe_key"),
+    to: text("to").notNull(),
+    subject: text("subject").notNull(),
+    text: text("text").notNull(),
+    html: text("html"),
+    replyTo: text("reply_to"),
+    attachments: jsonb("attachments").$type<{ filename: string; content: string; contentType: string }[]>(),
+    status: text("status", { enum: ["pending", "sent", "failed"] }).notNull().default("pending"),
+    attempts: integer("attempts").notNull().default(0),
+    nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true }).notNull().defaultNow(),
+    lastError: text("last_error"),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("email_outbox_dedupe").on(t.dedupeKey), index("email_outbox_due").on(t.status, t.nextAttemptAt)],
+);
+
+/** Server errors, grouped by fingerprint, for the operator console. */
+export const appError = pgTable("app_error", {
+  fingerprint: text("fingerprint").primaryKey(),
+  message: text("message").notNull(),
+  context: text("context").notNull().default(""),
+  stack: text("stack").notNull().default(""),
+  count: integer("count").notNull().default(1),
+  firstAt: timestamp("first_at", { withTimezone: true }).notNull().defaultNow(),
+  lastAt: timestamp("last_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** One-time links for staff: invitations (set your password) and password resets. Only the SHA-256 is stored. */
+export const staffToken = pgTable("staff_token", {
+  id: id(),
+  staffId: uuid("staff_id").notNull().references(() => staffUser.id),
+  tokenHash: text("token_hash").notNull().unique(),
+  purpose: text("purpose", { enum: ["invite", "reset"] }).notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  createdAt: createdAt(),
+});
+
+/** Problems a venue should know about (failed syncs, stuck payments), raised and cleared automatically. */
+export const venueAlert = pgTable(
+  "venue_alert",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    key: text("key").notNull(),
+    severity: text("severity", { enum: ["warn", "error"] }).notNull().default("warn"),
+    title: text("title").notNull(),
+    detail: text("detail").notNull().default(""),
+    href: text("href").notNull().default(""),
+    firstAt: timestamp("first_at", { withTimezone: true }).notNull().defaultNow(),
+    lastAt: timestamp("last_at", { withTimezone: true }).notNull().defaultNow(),
+    notifiedAt: timestamp("notified_at", { withTimezone: true }),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  },
+  (t) => [uniqueIndex("venue_alert_key").on(t.venueId, t.key)],
+);
+
+/** Complete's monthly invoice to a venue: subscription plus the app fee, computed from Complete's own orders. */
+export const billingInvoice = pgTable(
+  "billing_invoice",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    period: text("period").notNull(), // YYYY-MM
+    number: text("number").notNull(),
+    statement: jsonb("statement").notNull(),
+    totalCents: integer("total_cents").notNull(),
+    status: text("status", { enum: ["issued", "paid", "void"] }).notNull().default("issued"),
+    emailedAt: timestamp("emailed_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("billing_invoice_period").on(t.venueId, t.period)],
+);
+
 export const TENANT_TABLES = [
+  "venue_alert",
+  "billing_invoice",
   "rota_shift",
   "staff_unavailable",
   "tab",
