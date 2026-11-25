@@ -34,6 +34,6 @@ export async function sendSignupCode(to: string, code: string) {
 }
 
 /** Any plain email from the Complete mailbox (supplier orders and similar). */
-export async function sendEmail(to: string, subject: string, text: string, replyTo?: string) {
-  await smtp().sendMail({ from: from(), to, subject, text, ...(replyTo ? { replyTo } : {}) });
+export async function sendEmail(to: string, subject: string, text: string, replyTo?: string, attachments?: { filename: string; content: string; contentType: string }[]) {
+  await smtp().sendMail({ from: from(), to, subject, text, ...(replyTo ? { replyTo } : {}), ...(attachments ? { attachments } : {}) });
 }

@@ -56,7 +56,7 @@ export default async function Payroll({ params, searchParams }: { params: Promis
             </table>
           </div>
         )}
-        <span className="muted small">Tips from app orders in the period are shared by hours worked; agree your tips policy with staff and display it, as the 2022 tips law requires. Import the file into BrightPay, Thesaurus Payroll Manager or Sage (map the columns on your first import), or use the spreadsheet.</span>
+        <span className="muted small">Tips from app orders in the period are shared by hours worked; agree your tips policy with staff and display it, as the 2022 tips law requires. Import the file into BrightPay, Thesaurus Payroll Manager or Sage (map the columns on your first import), or use the spreadsheet. To send each period automatically, set up <a href={`/office/${slug}/integrations`}>Payroll in Integrations</a>.</span>
       </section>
       <div className="two">
         <section className="panel stack">

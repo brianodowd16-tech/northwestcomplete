@@ -15,13 +15,24 @@ import {
   type XeroApp,
   type XeroMapping,
   type XeroTokens,
+  buildSageDay,
+  CartError,
+  PAYROLL_FORMATS,
+  SAGE_MAPPING_FIELDS,
+  SageClient,
+  sageMapped,
+  type PayFrequency,
+  type PayrollFormat,
+  type SageApp,
+  type SageMapping,
+  type SageTokens,
 } from "@round/core";
 import { and, eq, gte, inArray, isNotNull, lt, or } from "drizzle-orm";
 import { systemDb, withTenant } from "./index";
 import * as t from "./schema";
 import { Forbidden, NotFound, type Venue } from "./services";
 
-export type IntegrationKind = "revolut" | "mypos" | "xero" | "delivery" | "pms";
+export type IntegrationKind = "revolut" | "mypos" | "xero" | "delivery" | "pms" | "sage" | "payroll";
 
 export async function loadIntegration(venue: Venue, kind: IntegrationKind) {
   return withTenant(venue.tenantId, async (tx) => {
@@ -187,15 +198,11 @@ export async function syncXeroDay(venue: Venue, date: string, app: XeroApp, secr
   const cfg = row.config as unknown as XeroConfig;
   if (!cfg.taxType9 || !cfg.taxType23 || !cfg.paymentAccountCode) return "not_mapped";
   const [done] = await withTenant(venue.tenantId, (tx) =>
-    tx.select().from(t.xeroSync).where(and(eq(t.xeroSync.venueId, venue.id), eq(t.xeroSync.businessDate, date))),
+    tx.select().from(t.xeroSync).where(and(eq(t.xeroSync.venueId, venue.id), eq(t.xeroSync.target, "xero"), eq(t.xeroSync.businessDate, date))),
   );
   if (done && done.status !== "error") return "already";
 
-  const record = (status: "done" | "nothing" | "error", invoiceId: string | null, error: string | null) =>
-    withTenant(venue.tenantId, async (tx) => {
-      const values = { tenantId: venue.tenantId, venueId: venue.id, businessDate: date, status, invoiceId, error, attempts: (done?.attempts ?? 0) + 1, updatedAt: new Date() };
-      await tx.insert(t.xeroSync).values(values).onConflictDoUpdate({ target: [t.xeroSync.venueId, t.xeroSync.businessDate], set: values });
-    });
+  const record = (status: "done" | "nothing" | "error", invoiceId: string | null, error: string | null) => recordSync(venue, "xero", date, status, invoiceId, error);
 
   try {
     const summary = buildDaySummary({ date, venueName: venue.name, ...(await dayOrders(venue, date)) }, cfg);
@@ -220,12 +227,146 @@ export async function syncXeroDay(venue: Venue, date: string, app: XeroApp, secr
 }
 
 export async function xeroHistory(venue: Venue) {
-  return withTenant(venue.tenantId, (tx) => tx.select().from(t.xeroSync).where(eq(t.xeroSync.venueId, venue.id)));
+  return syncHistory(venue, "xero");
 }
 
 /** Every venue with Xero connected, for the nightly job. */
-export async function venuesWithXero() {
-  const rows = await systemDb().select({ venueId: t.venueIntegration.venueId }).from(t.venueIntegration).where(eq(t.venueIntegration.kind, "xero"));
+export function venuesWithXero() {
+  return venuesWith("xero");
+}
+
+// ---------------------------------------------------------------- sync records (Xero, Sage, payroll)
+
+export type SyncTarget = "xero" | "sage" | "payroll";
+
+/** Records one day (or pay period) sent to an outside system, counting attempts. */
+export async function recordSync(venue: Venue, target: SyncTarget, date: string, status: "done" | "nothing" | "error", ref: string | null, error: string | null) {
+  await withTenant(venue.tenantId, async (tx) => {
+    const [prev] = await tx.select().from(t.xeroSync).where(and(eq(t.xeroSync.venueId, venue.id), eq(t.xeroSync.target, target), eq(t.xeroSync.businessDate, date)));
+    const values = { tenantId: venue.tenantId, venueId: venue.id, target, businessDate: date, status, invoiceId: ref, error, attempts: (prev?.attempts ?? 0) + 1, updatedAt: new Date() };
+    await tx.insert(t.xeroSync).values(values).onConflictDoUpdate({ target: [t.xeroSync.venueId, t.xeroSync.target, t.xeroSync.businessDate], set: values });
+  });
+}
+
+export async function syncHistory(venue: Venue, target: SyncTarget) {
+  return withTenant(venue.tenantId, (tx) => tx.select().from(t.xeroSync).where(and(eq(t.xeroSync.venueId, venue.id), eq(t.xeroSync.target, target))));
+}
+
+async function syncDone(venue: Venue, target: SyncTarget, date: string) {
+  const [row] = await withTenant(venue.tenantId, (tx) =>
+    tx.select().from(t.xeroSync).where(and(eq(t.xeroSync.venueId, venue.id), eq(t.xeroSync.target, target), eq(t.xeroSync.businessDate, date))),
+  );
+  return !!row && row.status !== "error";
+}
+
+/** Every venue with one integration set up, for the scheduled jobs. */
+export async function venuesWith(kind: IntegrationKind) {
+  const rows = await systemDb().select({ venueId: t.venueIntegration.venueId }).from(t.venueIntegration).where(eq(t.venueIntegration.kind, kind));
   if (!rows.length) return [];
   return systemDb().select().from(t.venue).where(inArray(t.venue.id, rows.map((r) => r.venueId)));
+}
+
+// ---------------------------------------------------------------- Sage Accounting
+
+export interface SageConfig extends Partial<SageMapping> {
+  businessId: string;
+  businessName: string;
+}
+
+/** Called from the Sage OAuth callback: stores tokens and the venue's Sage business. */
+export async function connectSage(venue: Venue, app: SageApp, code: string, secretsKey: string, fetchImpl?: typeof fetch) {
+  const client = new SageClient(app, fetchImpl);
+  const tokens = await client.exchangeCode(code);
+  const [biz] = await client.businesses(tokens.accessToken);
+  if (!biz) throw new Error("No Sage business was connected");
+  const existing = (await loadIntegration(venue, "sage"))?.config ?? {};
+  await saveIntegration(venue, "sage", { ...existing, businessId: biz.id, businessName: biz.name }, JSON.stringify(tokens), secretsKey);
+  return biz.name;
+}
+
+/** A fresh Sage access token; rotated refresh tokens are saved before use. */
+async function sageSession(venue: Venue, app: SageApp, secretsKey: string, fetchImpl?: typeof fetch) {
+  const row = await loadIntegration(venue, "sage");
+  if (!row?.secretEnc) return null;
+  const client = new SageClient(app, fetchImpl);
+  let tokens = JSON.parse(decryptSecret(row.secretEnc, secretsKey)) as SageTokens;
+  if (tokens.expiresAt - Date.now() < 120_000) {
+    tokens = await client.refresh(tokens.refreshToken);
+    await saveIntegration(venue, "sage", row.config, JSON.stringify(tokens), secretsKey);
+  }
+  return { client, token: tokens.accessToken, cfg: row.config as unknown as SageConfig };
+}
+
+/** Customers, ledgers, tax rates and bank accounts from the venue's Sage business, for the mapping form. */
+export async function sageOptions(venue: Venue, app: SageApp, secretsKey: string, fetchImpl?: typeof fetch) {
+  const s = await sageSession(venue, app, secretsKey, fetchImpl);
+  if (!s) throw new NotFound("Connect Sage first");
+  return s.client.options(s.token, s.cfg.businessId);
+}
+
+export async function saveSageMapping(venue: Venue, mapping: Partial<SageMapping>) {
+  const existing = await loadIntegration(venue, "sage");
+  if (!existing) throw new NotFound("Connect Sage first");
+  const clean = Object.fromEntries(SAGE_MAPPING_FIELDS.map((k) => [k, String(mapping[k] ?? "").trim().slice(0, 64)]));
+  await withTenant(venue.tenantId, (tx) =>
+    tx.update(t.venueIntegration).set({ config: { ...existing.config, ...clean }, updatedAt: new Date() }).where(eq(t.venueIntegration.id, existing.id)),
+  );
+}
+
+/** Pushes one trading day to Sage. Safe to repeat: done days are skipped and Sage is checked for the day's invoice first. */
+export async function syncSageDay(venue: Venue, date: string, app: SageApp, secretsKey: string, fetchImpl?: typeof fetch): Promise<XeroSyncResult> {
+  const row = await loadIntegration(venue, "sage");
+  if (!row?.secretEnc) return "not_connected";
+  if (!sageMapped(row.config as Partial<SageMapping>)) return "not_mapped";
+  if (await syncDone(venue, "sage", date)) return "already";
+  try {
+    const day = buildSageDay({ date, venueName: venue.name, ...(await dayOrders(venue, date)) }, row.config as unknown as SageMapping, venue.id);
+    if (!day) {
+      await recordSync(venue, "sage", date, "nothing", null, null);
+      return "nothing";
+    }
+    const s = (await sageSession(venue, app, secretsKey, fetchImpl))!;
+    const id = await s.client.postDay(s.token, s.cfg.businessId, day, s.cfg as SageMapping);
+    await recordSync(venue, "sage", date, "done", id, null);
+    return "done";
+  } catch (e) {
+    await recordSync(venue, "sage", date, "error", null, String(e).slice(0, 500));
+    return "error";
+  }
+}
+
+// ---------------------------------------------------------------- payroll delivery
+
+export interface PayrollSyncConfig {
+  mode: "email" | "webhook";
+  email: string;
+  url: string;
+  format: PayrollFormat;
+  frequency: PayFrequency;
+  /** first Monday of a fortnightly pay period */
+  anchor: string;
+}
+
+/** Where each closed pay period is sent: the payroll bureau's email, or an https endpoint (signed). */
+export async function savePayrollSync(venue: Venue, input: Partial<PayrollSyncConfig>, secret: string | null, secretsKey: string) {
+  const mode = input.mode === "webhook" ? "webhook" : "email";
+  const email = String(input.email ?? "").trim().toLowerCase();
+  const url = String(input.url ?? "").trim();
+  const format = (input.format && input.format in PAYROLL_FORMATS ? input.format : "generic") as PayrollFormat;
+  const frequency: PayFrequency = input.frequency === "fortnightly" || input.frequency === "monthly" ? input.frequency : "weekly";
+  const anchor = /^\d{4}-\d{2}-\d{2}$/.test(String(input.anchor ?? "")) ? String(input.anchor) : "";
+  if (mode === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new CartError("Enter the email address of whoever runs your payroll");
+  if (mode === "webhook" && !/^https:\/\/[^\s]+$/.test(url)) throw new CartError("Enter an https:// address");
+  if (frequency === "fortnightly" && (!anchor || new Date(`${anchor}T12:00:00Z`).getUTCDay() !== 1)) throw new CartError("Pick the Monday a fortnightly pay period starts");
+  const existing = await loadIntegration(venue, "payroll");
+  await saveIntegration(venue, "payroll", { mode, email, url, format, frequency, anchor }, secret ?? (existing?.secretEnc ? null : ""), secretsKey);
+}
+
+export async function payrollSyncConfig(venue: Venue) {
+  const row = await loadIntegration(venue, "payroll");
+  return row ? { config: row.config as unknown as PayrollSyncConfig, secret: row.secretEnc } : null;
+}
+
+export async function payrollPeriodDone(venue: Venue, start: string) {
+  return syncDone(venue, "payroll", start);
 }

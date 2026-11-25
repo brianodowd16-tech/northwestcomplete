@@ -56,25 +56,36 @@ function byRate(orders: DayOrder[], rate: 9 | 23) {
   return orders.reduce((s, o) => s + o.lines.filter((l) => l.vatRate === rate).reduce((a, l) => a + l.grossCents, 0), 0);
 }
 
+export type DayLineKind = "sales9" | "sales23" | "credit";
+export interface DayLine { label: string; cents: number; kind: DayLineKind }
+
 /**
- * Builds the day's invoice. Returns null when there is nothing to post.
- * Throws when refunds exceed sales (needs a credit note, done by hand).
+ * The day's sales as accounting-neutral lines (VAT-inclusive cents), shared by
+ * Xero and Sage. Throws when refunds exceed sales (needs a credit note, done by hand).
  */
-export function buildDaySummary(input: DaySummaryInput, m: XeroMapping): DaySummary | null {
+export function dayLines(input: DaySummaryInput): { lines: DayLine[]; totalCents: number; paymentCents: number } | null {
   if (!input.paid.length && !input.refunded.length) return null;
-  const items: [string, number, string, string][] = [
-    ["Food & hot drinks (9% VAT)", byRate(input.paid, 9), m.salesAccountCode, m.taxType9],
-    ["Drinks (23% VAT)", byRate(input.paid, 23), m.salesAccountCode, m.taxType23],
-    ["Loyalty credit redeemed", -input.paid.reduce((s, o) => s + o.creditUsedCents, 0), m.creditAccountCode, m.creditTaxType],
-    ["Refunds: food & hot drinks (9% VAT)", -byRate(input.refunded, 9), m.salesAccountCode, m.taxType9],
-    ["Refunds: drinks (23% VAT)", -byRate(input.refunded, 23), m.salesAccountCode, m.taxType23],
+  const items: DayLine[] = [
+    { label: "Food & hot drinks (9% VAT)", cents: byRate(input.paid, 9), kind: "sales9" },
+    { label: "Drinks (23% VAT)", cents: byRate(input.paid, 23), kind: "sales23" },
+    { label: "Loyalty credit redeemed", cents: -input.paid.reduce((s, o) => s + o.creditUsedCents, 0), kind: "credit" },
+    { label: "Refunds: food & hot drinks (9% VAT)", cents: -byRate(input.refunded, 9), kind: "sales9" },
+    { label: "Refunds: drinks (23% VAT)", cents: -byRate(input.refunded, 23), kind: "sales23" },
     // A refund returns the card amount; credit spent on a refunded order goes back to the guest.
-    ["Refunds: loyalty credit returned", input.refunded.reduce((s, o) => s + o.creditUsedCents, 0), m.creditAccountCode, m.creditTaxType],
+    { label: "Refunds: loyalty credit returned", cents: input.refunded.reduce((s, o) => s + o.creditUsedCents, 0), kind: "credit" },
   ];
-  const lines = items.filter(([, c]) => c !== 0);
-  const totalCents = lines.reduce((s, [, c]) => s + c, 0);
+  const lines = items.filter((l) => l.cents !== 0);
+  const totalCents = lines.reduce((s, l) => s + l.cents, 0);
   const paymentCents = input.paid.reduce((s, o) => s + o.amountPaidCents, 0) - input.refunded.reduce((s, o) => s + o.amountPaidCents, 0);
   if (totalCents < 0) throw new Error(`Refunds exceed sales on ${input.date}: post a credit note by hand`);
+  return { lines, totalCents, paymentCents };
+}
+
+/** Builds the day's Xero invoice. Returns null when there is nothing to post. */
+export function buildDaySummary(input: DaySummaryInput, m: XeroMapping): DaySummary | null {
+  const day = dayLines(input);
+  if (!day) return null;
+  const map = { sales9: [m.salesAccountCode, m.taxType9], sales23: [m.salesAccountCode, m.taxType23], credit: [m.creditAccountCode, m.creditTaxType] } as const;
   return {
     invoice: {
       Type: "ACCREC",
@@ -84,10 +95,10 @@ export function buildDaySummary(input: DaySummaryInput, m: XeroMapping): DaySumm
       LineAmountTypes: "Inclusive",
       Reference: `Complete app sales ${input.date}`,
       Status: "AUTHORISED",
-      LineItems: lines.map(([d, c, a, tt]) => ({ Description: `${input.venueName}: ${d}`, Quantity: 1, UnitAmount: euros(c), AccountCode: a, TaxType: tt })),
+      LineItems: day.lines.map((l) => ({ Description: `${input.venueName}: ${l.label}`, Quantity: 1, UnitAmount: euros(l.cents), AccountCode: map[l.kind][0], TaxType: map[l.kind][1] })),
     },
-    totalCents,
-    paymentCents,
+    totalCents: day.totalCents,
+    paymentCents: day.paymentCents,
   };
 }
 

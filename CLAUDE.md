@@ -25,7 +25,8 @@ Complete is a white-label ordering, payments and loyalty platform for Irish bars
 - **AI assistants:** guests' assistants act only through `agent_grant` tokens (store the SHA-256 only), within their scopes and limits and the venue's redemption rules. They can never pay: `start_order` holds the order until the guest approves. Audit every call in `agent_action`. The venue assistant never receives guest personal data.
 - **What's on:** events live in `venue_event` in UTC; weekly repeats keep local venue time (`occurrences` in core). Guests get the tab, per-event and full `.ics` calendars.
 - **Google reviews:** the same prompt for every paid order, no rewards of any kind, no rating question first (Google bans incentives and gating).
-- **Xero:** one invoice + one payment per venue per trading day, idempotency keys `complete:{venue}:{date}:…`, recorded in `xero_sync`. Save rotated refresh tokens before use.
+- **Xero / Sage Accounting:** one invoice + one payment per venue per trading day, idempotency keys `complete:{venue}:{date}:…` (Sage: look up the day's reference first, pay only what's outstanding), recorded in `xero_sync` by `target`. Save rotated refresh tokens before use.
+- **Payroll sync:** each closed pay period goes once to the venue's payroll (emailed import file, or signed JSON push), recorded in `xero_sync` with `target = payroll`. Never PPS numbers or emails.
 - **Billing:** venues pay a monthly subscription plus `app_fee_bps` (default 100 = 1%) of completed app payments net of refunds. Compute it from Round's own order records.
 - **GDPR:** EU hosting, separate marketing consent, data export and deletion.
 

@@ -160,3 +160,69 @@ describe("Xero", () => {
     expect(await integ.syncXeroDay(drum, today, app, KEY, fetchImpl)).toBe("not_connected");
   });
 });
+
+describe("Sage Accounting", () => {
+  const app = { clientId: "sid", clientSecret: "ssecret", redirectUri: "https://app.test/api/sage/callback" };
+  const mapping = { contactId: "c1", salesLedgerId: "l4000", creditLedgerId: "l4900", taxRate9Id: "IE_LOWER_2", taxRate23Id: "IE_STANDARD", taxRateNoneId: "IE_ZERO", bankAccountId: "b1" };
+
+  it("connects, waits for mapping, posts each day once and keeps its record apart from Xero", async () => {
+    const calls: { method: string; url: string; body: unknown; business: string | null }[] = [];
+    let invoices: { id: string; reference: string }[] = [];
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("oauth.accounting.sage.com")) return Response.json({ access_token: "sat", refresh_token: "srt", expires_in: 300 });
+      const method = init?.method ?? "GET";
+      const body = init?.body ? JSON.parse(String(init.body)) : null;
+      calls.push({ method, url, body, business: (init?.headers as Record<string, string>)["X-Business"] ?? null });
+      if (url.endsWith("/businesses")) return Response.json([{ id: "biz-1", name: "MJ O'Connor's (Sage)" }]);
+      if (method === "GET" && url.includes("/sales_invoices?")) return Response.json({ $items: invoices });
+      if (method === "POST" && url.endsWith("/sales_invoices")) {
+        invoices = [{ id: "si-1", reference: body.sales_invoice.reference }];
+        return Response.json({ id: "si-1" });
+      }
+      if (method === "GET" && url.endsWith("/sales_invoices/si-1")) return Response.json({ outstanding_amount: "0.00" });
+      return Response.json({ id: "cp-1" });
+    }) as unknown as typeof fetch;
+
+    expect(await integ.connectSage(mj, app, "code", KEY, fetchImpl)).toBe("MJ O'Connor's (Sage)");
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: mj.timezone }).format(new Date());
+    expect(await integ.syncSageDay(mj, today, app, KEY, fetchImpl)).toBe("not_mapped");
+    await integ.saveSageMapping(mj, mapping);
+    expect(await integ.syncSageDay(mj, today, app, KEY, fetchImpl)).toBe("done");
+    expect(await integ.syncSageDay(mj, today, app, KEY, fetchImpl)).toBe("already");
+
+    const writes = calls.filter((c) => c.method === "POST");
+    expect(writes.map((c) => c.url.split("/").pop())).toEqual(["sales_invoices", "contact_payments"]);
+    expect(writes.every((c) => c.business === "biz-1")).toBe(true);
+    const lines = (writes[0].body as { sales_invoice: { invoice_lines: { unit_price: number; tax_rate_id: string }[] } }).sales_invoice.invoice_lines;
+    const day = await integ.dayOrders(mj, today);
+    const payout = day.paid.reduce((s, o) => s + o.amountPaidCents, 0) - day.refunded.reduce((s, o) => s + o.amountPaidCents, 0);
+    expect(lines.reduce((s, l) => s + Math.round(l.unit_price * 100), 0)).toBe(payout);
+    expect(Math.round((writes[1].body as { contact_payment: { total_amount: number } }).contact_payment.total_amount * 100)).toBe(payout);
+
+    // A failed record is retried, but the invoice already in Sage (and fully paid) isn't posted twice.
+    await integ.recordSync(mj, "sage", today, "error", null, "timeout");
+    expect(await integ.syncSageDay(mj, today, app, KEY, fetchImpl)).toBe("done");
+    expect(calls.filter((c) => c.method === "POST")).toHaveLength(2);
+
+    const xero = await integ.xeroHistory(mj);
+    expect(xero.every((h) => h.target === "xero")).toBe(true);
+    expect((await integ.syncHistory(mj, "sage")).map((h) => h.status)).toEqual(["done"]);
+    // The access token never reaches the browser-facing status.
+    expect(JSON.stringify(await integ.integrationStatus(mj))).not.toContain("sat");
+  });
+});
+
+describe("Payroll delivery set-up", () => {
+  it("checks the address, pay period and keeps the push secret encrypted", async () => {
+    await expect(integ.savePayrollSync(drum, { mode: "email", email: "nope" }, null, KEY)).rejects.toThrow(/email/);
+    await expect(integ.savePayrollSync(drum, { mode: "webhook", url: "http://x" }, "s", KEY)).rejects.toThrow(/https/);
+    await expect(integ.savePayrollSync(drum, { mode: "email", email: "pay@bureau.ie", frequency: "fortnightly", anchor: "2026-11-25" }, null, KEY)).rejects.toThrow(/Monday/);
+    await integ.savePayrollSync(drum, { mode: "webhook", url: "https://payroll.example/hours", format: "brightpay", frequency: "fortnightly", anchor: "2026-11-23" }, "topsecret", KEY);
+    const set = await integ.payrollSyncConfig(drum);
+    expect(set?.config).toMatchObject({ mode: "webhook", format: "brightpay", frequency: "fortnightly", anchor: "2026-11-23" });
+    expect(set?.secret).not.toContain("topsecret");
+    expect(await integ.payrollPeriodDone(drum, "2026-11-09")).toBe(false);
+    await integ.recordSync(drum, "payroll", "2026-11-09", "done", "push:payroll.example", null);
+    expect(await integ.payrollPeriodDone(drum, "2026-11-09")).toBe(true);
+  });
+});

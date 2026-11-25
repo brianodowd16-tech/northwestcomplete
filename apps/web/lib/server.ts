@@ -1,5 +1,5 @@
 import "server-only";
-import { signSession, verifySession, type PaymentProvider, type XeroApp } from "@round/core";
+import { signSession, verifySession, type PaymentProvider, type SageApp, type XeroApp } from "@round/core";
 import { providerForVenue } from "@round/db/integrations";
 import { customerById, staffById, venueById, venueBySlug, NotFound, type Customer, type Staff, type Venue } from "@round/db/services";
 import { cookies } from "next/headers";
@@ -30,6 +30,13 @@ export function xeroApp(): XeroApp | null {
   const { XERO_CLIENT_ID: clientId, XERO_CLIENT_SECRET: clientSecret } = process.env;
   if (!clientId || !clientSecret) return null;
   return { clientId, clientSecret, redirectUri: `${appUrl()}/api/xero/callback`, scopes: process.env.XERO_SCOPES };
+}
+
+/** Complete's Sage developer app (developerselfservice.sageone.com). Null until SAGE_CLIENT_ID/SECRET are set. */
+export function sageApp(): SageApp | null {
+  const { SAGE_CLIENT_ID: clientId, SAGE_CLIENT_SECRET: clientSecret } = process.env;
+  if (!clientId || !clientSecret) return null;
+  return { clientId, clientSecret, redirectUri: `${appUrl()}/api/sage/callback` };
 }
 
 const GUEST_COOKIE = "round_guest";

@@ -115,3 +115,42 @@ export function payrollCsv(rows: ReturnType<typeof payrollPeriod>, format: Payro
           : [["Payroll ref", "Name", "Email", "Hours", "Sunday hours", "Hourly rate", "Gross pay", "Tips share"], ...rows.map((r) => [r.payrollRef, r.name, r.email, r.hours.toFixed(2), r.sundayHours.toFixed(2), e(r.rateCents), e(r.grossCents), e(r.tipsCents)])];
   return table.map((row) => row.map(q).join(",")).join("\r\n") + "\r\n";
 }
+
+// ---------------------------------------------------------------- payroll delivery
+
+export type PayFrequency = "weekly" | "fortnightly" | "monthly";
+
+const addDays = (d: string, n: number) => new Date(Date.parse(`${d}T12:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
+
+/**
+ * The most recent pay period that has fully ended by `today` (venue-local YYYY-MM-DD).
+ * Weeks run Monday to Sunday; fortnights count from `anchor` (a Monday); months are calendar months.
+ * `end` is exclusive (the day after the last day).
+ */
+export function lastClosedPeriod(today: string, freq: PayFrequency, anchor?: string): { start: string; end: string } {
+  if (freq === "monthly") {
+    const end = `${today.slice(0, 7)}-01`;
+    const prev = new Date(Date.parse(`${end}T12:00:00Z`) - 86_400_000).toISOString().slice(0, 7);
+    return { start: `${prev}-01`, end };
+  }
+  const dow = (new Date(`${today}T12:00:00Z`).getUTCDay() + 6) % 7;
+  const monday = addDays(today, -dow);
+  if (freq === "weekly") return { start: addDays(monday, -7), end: monday };
+  const a = anchor && /^\d{4}-\d{2}-\d{2}$/.test(anchor) ? anchor : "2026-01-05";
+  const weeks = Math.floor((Date.parse(`${monday}T12:00:00Z`) - Date.parse(`${a}T12:00:00Z`)) / (7 * 86_400_000));
+  const end = addDays(a, (weeks - (((weeks % 2) + 2) % 2)) * 7);
+  return { start: addDays(end, -14), end };
+}
+
+/** JSON body for a payroll push (webhook). Names, refs, hours and pay only: no email, no PPS numbers. */
+export function payrollPushBody(venue: { slug: string; name: string }, period: { start: string; end: string }, rows: ReturnType<typeof payrollPeriod>, format: PayrollFormat) {
+  return {
+    type: "payroll_period",
+    venue: venue.slug,
+    employer: venue.name,
+    period: { start: period.start, end: addDays(period.end, -1) },
+    currency: "EUR",
+    employees: rows.map((r) => ({ payrollRef: r.payrollRef, name: r.name, hours: r.hours, sundayHours: r.sundayHours, hourlyRateCents: r.rateCents, grossCents: r.grossCents, tipsCents: r.tipsCents })),
+    csv: { format, filename: `payroll-${format}-${venue.slug}-${period.start}.csv`, content: payrollCsv(rows, format) },
+  };
+}

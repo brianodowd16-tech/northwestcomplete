@@ -97,7 +97,7 @@ export const venueIntegration = pgTable(
     id: id(),
     tenantId: tenantId(),
     venueId: uuid("venue_id").notNull().references(() => venue.id),
-    kind: text("kind", { enum: ["revolut", "mypos", "xero", "delivery", "pms"] }).notNull(),
+    kind: text("kind", { enum: ["revolut", "mypos", "xero", "delivery", "pms", "sage", "payroll"] }).notNull(),
     config: jsonb("config").notNull().$type<Record<string, unknown>>(),
     secretEnc: text("secret_enc"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -321,6 +321,8 @@ export const xeroSync = pgTable(
     id: id(),
     tenantId: tenantId(),
     venueId: uuid("venue_id").notNull().references(() => venue.id),
+    /** which system the day (or pay period, keyed by its first day) was sent to */
+    target: text("target", { enum: ["xero", "sage", "payroll"] }).notNull().default("xero"),
     businessDate: date("business_date").notNull(),
     status: text("status", { enum: ["done", "nothing", "error"] }).notNull(),
     invoiceId: text("invoice_id"),
@@ -328,7 +330,7 @@ export const xeroSync = pgTable(
     attempts: integer("attempts").notNull().default(0),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("xero_sync_day").on(t.venueId, t.businessDate)],
+  (t) => [uniqueIndex("xero_sync_day").on(t.venueId, t.target, t.businessDate)],
 );
 
 /**
