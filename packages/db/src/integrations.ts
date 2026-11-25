@@ -428,7 +428,7 @@ export interface BizimplyConfig {
 }
 
 /** Saves the SFTP folder Bizimply collects sales from; `password` replaces the stored one when given. */
-export async function saveBizimply(venue: Venue, input: Partial<BizimplyConfig> & { headings?: string[] | string }, password: string | null, secretsKey: string) {
+export async function saveBizimply(venue: Venue, input: Partial<Omit<BizimplyConfig, "headings">> & { headings?: string[] | string }, password: string | null, secretsKey: string) {
   const host = String(input.host ?? "").trim().toLowerCase();
   if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(host)) throw new CartError("Enter the SFTP server name Bizimply gave you (like sftp.example.com)");
   const port = Number(input.port || 22);
