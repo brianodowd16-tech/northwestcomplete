@@ -19,7 +19,8 @@
     "./rota": "./src/rota.ts",
     "./platform": "./src/platform.ts",
     "./groups": "./src/groups.ts",
-    "./social": "./src/social.ts"
+    "./social": "./src/social.ts",
+    "./controls": "./src/controls.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",

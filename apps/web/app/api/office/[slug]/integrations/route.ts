@@ -1,4 +1,4 @@
-import { localDate } from "@round/core";
+import { localDate, publicHttpsUrl } from "@round/core";
 import { saveBizimply, saveDeel, saveIntegration, savePayrollSync, saveSageMapping, syncSageDay } from "@round/db/integrations";
 import { setBookingCapacity, setBrandSharing } from "@round/db/growth";
 import { randomBytes } from "node:crypto";
@@ -40,7 +40,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
       case "pms": {
         if (!key) return json({ error: "SECRETS_KEY isn't set on the server" }, 500);
         const url = String(b.url ?? "").trim();
-        if (url && !/^https:\/\/[^\s]+$/.test(url)) return json({ error: "Enter an https:// address" }, 400);
+        if (url && !publicHttpsUrl(url)) return json({ error: "Enter a public https:// address" }, 400);
         const secret = randomBytes(24).toString("base64url");
         await saveIntegration(m.venue, "pms", { url }, secret, key);
         return json({ message: url ? "Room charges will be posted to your hotel system" : "Room charges are recorded for reception to post", secret });

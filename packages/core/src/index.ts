@@ -24,3 +24,4 @@ export * from "./bizimply";
 export * from "./platform";
 export * from "./groups";
 export * from "./social";
+export * from "./controls";

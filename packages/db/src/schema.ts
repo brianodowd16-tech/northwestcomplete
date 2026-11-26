@@ -104,7 +104,7 @@ export const venueIntegration = pgTable(
     id: id(),
     tenantId: tenantId(),
     venueId: uuid("venue_id").notNull().references(() => venue.id),
-    kind: text("kind", { enum: ["revolut", "mypos", "xero", "delivery", "pms", "sage", "payroll", "deel", "bizimply", "meta", "google_business", "social"] }).notNull(),
+    kind: text("kind", { enum: ["revolut", "mypos", "xero", "delivery", "pms", "sage", "payroll", "deel", "bizimply", "meta", "google_business", "social", "homeassistant", "lifx", "controls_webhook"] }).notNull(),
     config: jsonb("config").notNull().$type<Record<string, unknown>>(),
     secretEnc: text("secret_enc"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -943,7 +943,74 @@ export const socialPost = pgTable(
   (t) => [uniqueIndex("social_post_source").on(t.venueId, t.sourceKey), index("social_post_due").on(t.status, t.scheduledFor)],
 );
 
+// ---------------------------------------------------------------- venue controls (music, lighting, HVAC)
+
+/** A light, heating/cooling unit, music player, switch or scene found through the venue's control system. */
+export const venueDevice = pgTable(
+  "venue_device",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    provider: text("provider", { enum: ["homeassistant", "lifx", "webhook"] }).notNull(),
+    externalId: text("external_id").notNull(),
+    kind: text("kind", { enum: ["light", "climate", "media", "switch", "scene"] }).notNull(),
+    name: text("name").notNull(),
+    zone: text("zone").notNull().default(""),
+    /** shown on the staff Controls screen at all */
+    enabled: boolean("enabled").notNull().default(false),
+    /** staff (not only managers) may use it */
+    staffAllowed: boolean("staff_allowed").notNull().default(false),
+    /** heating/cooling limits staff can't go past, in °C */
+    minTemp: integer("min_temp").notNull().default(17),
+    maxTemp: integer("max_temp").notNull().default(24),
+    /** music volume ceiling staff can't go past, 0-100 */
+    maxVolume: integer("max_volume").notNull().default(80),
+    missingSince: timestamp("missing_since", { withTimezone: true }),
+    sort: integer("sort").notNull().default(0),
+  },
+  (t) => [uniqueIndex("venue_device_ext").on(t.venueId, t.provider, t.externalId)],
+);
+
+/** A saved set of device settings ("Opening", "Match on", "Closing"), optionally run on a schedule. */
+export const venueScene = pgTable("venue_scene", {
+  id: id(),
+  tenantId: tenantId(),
+  venueId: uuid("venue_id").notNull().references(() => venue.id),
+  name: text("name").notNull(),
+  steps: jsonb("steps").$type<{ deviceId: string; action: string; value?: number | string }[]>().notNull().default([]),
+  /** weekdays (0 = Sunday) and local time to run it, if scheduled */
+  days: jsonb("days").$type<number[]>().notNull().default([]),
+  at: text("at"),
+  staffAllowed: boolean("staff_allowed").notNull().default(true),
+  createdAt: createdAt(),
+});
+
+/** Every control action: who, what, and whether the system accepted it. */
+export const controlLog = pgTable(
+  "control_log",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    actor: text("actor").notNull(),
+    deviceId: uuid("device_id"),
+    sceneId: uuid("scene_id"),
+    action: text("action").notNull(),
+    value: text("value"),
+    ok: boolean("ok").notNull(),
+    error: text("error"),
+    /** scheduled scene runs: scene:{id}:{date}:{time}, run once */
+    runKey: text("run_key"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("control_log_venue").on(t.venueId, t.createdAt), uniqueIndex("control_log_run").on(t.runKey)],
+);
+
 export const TENANT_TABLES = [
+  "venue_device",
+  "venue_scene",
+  "control_log",
   "song_request",
   "venue_alert",
   "billing_invoice",

@@ -17,6 +17,7 @@ import {
   type XeroTokens,
   buildSageDay,
   CartError,
+  publicHttpsUrl,
   PAYROLL_FORMATS,
   SAGE_MAPPING_FIELDS,
   SageClient,
@@ -35,7 +36,7 @@ import { systemDb, withTenant } from "./index";
 import * as t from "./schema";
 import { Forbidden, NotFound, type Venue } from "./services";
 
-export type IntegrationKind = "revolut" | "mypos" | "xero" | "delivery" | "pms" | "sage" | "payroll" | "deel" | "bizimply" | "meta" | "google_business" | "social";
+export type IntegrationKind = "revolut" | "mypos" | "xero" | "delivery" | "pms" | "sage" | "payroll" | "deel" | "bizimply" | "meta" | "google_business" | "social" | "homeassistant" | "lifx" | "controls_webhook";
 
 export async function loadIntegration(venue: Venue, kind: IntegrationKind) {
   return withTenant(venue.tenantId, async (tx) => {
@@ -50,6 +51,10 @@ export async function saveIntegration(venue: Venue, kind: IntegrationKind, confi
     const values = { tenantId: venue.tenantId, venueId: venue.id, kind, config, updatedAt: new Date(), ...(secret !== null ? { secretEnc: encryptSecret(secret, secretsKey) } : {}) };
     await tx.insert(t.venueIntegration).values(values).onConflictDoUpdate({ target: [t.venueIntegration.venueId, t.venueIntegration.kind], set: values });
   });
+}
+
+export async function removeIntegration(venue: Venue, kind: IntegrationKind) {
+  await withTenant(venue.tenantId, (tx) => tx.delete(t.venueIntegration).where(and(eq(t.venueIntegration.venueId, venue.id), eq(t.venueIntegration.kind, kind))));
 }
 
 /** What the back office may show: config and whether a secret is stored, never the secret. */
@@ -359,7 +364,7 @@ export async function savePayrollSync(venue: Venue, input: Partial<PayrollSyncCo
   const frequency: PayFrequency = input.frequency === "fortnightly" || input.frequency === "monthly" ? input.frequency : "weekly";
   const anchor = /^\d{4}-\d{2}-\d{2}$/.test(String(input.anchor ?? "")) ? String(input.anchor) : "";
   if (mode === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new CartError("Enter the email address of whoever runs your payroll");
-  if (mode === "webhook" && !/^https:\/\/[^\s]+$/.test(url)) throw new CartError("Enter an https:// address");
+  if (mode === "webhook" && !publicHttpsUrl(url)) throw new CartError("Enter a public https:// address");
   if (frequency === "fortnightly" && (!anchor || new Date(`${anchor}T12:00:00Z`).getUTCDay() !== 1)) throw new CartError("Pick the Monday a fortnightly pay period starts");
   const existing = await loadIntegration(venue, "payroll");
   await saveIntegration(venue, "payroll", { mode, email, url, format, frequency, anchor }, secret ?? (existing?.secretEnc ? null : ""), secretsKey);
@@ -430,7 +435,7 @@ export interface BizimplyConfig {
 /** Saves the SFTP folder Bizimply collects sales from; `password` replaces the stored one when given. */
 export async function saveBizimply(venue: Venue, input: Partial<Omit<BizimplyConfig, "headings">> & { headings?: string[] | string }, password: string | null, secretsKey: string) {
   const host = String(input.host ?? "").trim().toLowerCase();
-  if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(host)) throw new CartError("Enter the SFTP server name Bizimply gave you (like sftp.example.com)");
+  if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(host) || !publicHttpsUrl(`https://${host}`)) throw new CartError("Enter the SFTP server name Bizimply gave you (like sftp.example.com)");
   const port = Number(input.port || 22);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new CartError("Port must be a number, usually 22");
   const username = String(input.username ?? "").trim();

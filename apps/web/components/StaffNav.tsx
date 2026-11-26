@@ -10,6 +10,7 @@ export function StaffNav({ slug, current, admin, other, setup }: { slug: string;
     ["menu", "Sold out", `/staff/${slug}/menu`],
     ["waste", "Waste", `/staff/${slug}/waste`],
     ["music", "Music", `/staff/${slug}/music`],
+    ["controls", "Controls", `/staff/${slug}/controls`],
     ["shifts", "My shifts", `/staff/${slug}/shifts`],
   ];
   if (admin)
@@ -22,6 +23,7 @@ export function StaffNav({ slug, current, admin, other, setup }: { slug: string;
       ["stock", "Stock", `/office/${slug}/stock`],
       ["events", "What's on", `/office/${slug}/events`],
       ["social", "Social", `/office/${slug}/social`],
+      ["devices", "Venue systems", `/office/${slug}/controls`],
       ["tables", "Tables", `/office/${slug}/tables`],
       ["team", "Team", `/office/${slug}/team`],
       ["settings", "Settings", `/office/${slug}/settings`],
