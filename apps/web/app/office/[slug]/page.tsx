@@ -78,13 +78,13 @@ export default async function Office({ params, searchParams }: { params: Promise
       <div className="kpis">
         <div className="panel kpi rise">
           <b className="num">{eur(d.now.grossCents)}</b>
-          <span>App sales incl. VAT</span>
+          <span>Sales incl. VAT (app and till)</span>
           <Delta now={d.now.grossCents} before={d.before.grossCents} vs={P.vs} />
         </div>
         <div className="panel kpi rise">
           <b className="num">{d.now.orders}</b>
           <span>
-            Orders ({d.now.tableOrders} table · {d.now.collectOrders} collect)
+            Orders ({d.now.tableOrders} table · {d.now.collectOrders} collect · {d.now.tillOrders} till)
           </span>
           <Delta now={d.now.orders} before={d.before.orders} vs={P.vs} />
         </div>
@@ -108,7 +108,7 @@ export default async function Office({ params, searchParams }: { params: Promise
       <section className="panel stack">
         <div className="row wrap">
           <h3>{p === "today" ? "Sales by hour" : "Sales by day"}</h3>
-          <span className="muted small">Hover or tap a bar. App orders only; counter sales stay on your till.</span>
+          <span className="muted small">Hover or tap a bar. App and till sales.</span>
         </div>
         <OfficeChart points={chart} highlight={p === "today" ? now.getHours() : chart.length - 1} />
       </section>
@@ -153,7 +153,7 @@ export default async function Office({ params, searchParams }: { params: Promise
                     <tr key={o.id} className={i === 0 && Date.now() - new Date(o.createdAt).getTime() < 60_000 ? "fresh" : ""}>
                       <td className="num">#{o.number}</td>
                       <td>{o.guest}</td>
-                      <td className="small">{o.channel === "collect" ? "Collect" : `Table ${o.tableNumber}`}</td>
+                      <td className="small">{o.channel === "collect" ? "Collect" : o.channel === "counter" ? (o.tableNumber ? `Till · table ${o.tableNumber}` : "Till") : o.channel === "delivery" ? "Delivery" : o.tableNumber ? `Table ${o.tableNumber}` : "Table"}</td>
                       <td className="small">
                         {o.status === "refunded" ? (
                           <span className="chip crit">Refunded</span>

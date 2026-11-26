@@ -20,7 +20,7 @@ export function ClockButton() {
         toast(d.clockedIn ? "Clocked in" : "Clocked out. Thanks!", { kind: "ok" });
       }}
     >
-      {state.clockedIn ? `Clock out (since ${new Date(state.since!).toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" })})` : "Clock in"}
+      {state.clockedIn ? `Clock out · ${new Date(state.since!).toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" })}` : "Clock in"}
     </button>
   );
 }

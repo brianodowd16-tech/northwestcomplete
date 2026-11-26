@@ -44,7 +44,7 @@ packages/db    schema, migrations, RLS policies (sql/rls.sql), seed, services, i
 packages/core  pricing, VAT, loyalty, billing, sessions, secrets, PaymentProvider (myPOS, Revolut, mock), Xero client
 ```
 
-Scheduled jobs live in `apps/web/jobs.ts` (pg-boss). Shortcuts to replace before launch: guest sign-in codes are texted through Twilio (`TWILIO_*`) and also shown in dev; business sign-up codes are emailed through the Hostinger mailbox over SMTP (`SMTP_*` env, `apps/web/lib/mail.ts`) and also shown in dev; the app connects as the DB owner and drops to `round_app` per request (use a dedicated login role in production). Split `apps/web` into guest/staff/office apps only if deployment needs it.
+Scheduled jobs live in one table (`SCHEDULE`) in `apps/web/jobs.ts` (pg-boss); everything per-minute runs in one tick, each part tracked separately. Shortcuts to replace before launch: guest sign-in codes are texted through Twilio (`TWILIO_*`) and also shown in dev; business sign-up codes are emailed through the Hostinger mailbox over SMTP (`SMTP_*` env, `apps/web/lib/mail.ts`) and also shown in dev; the app connects as the DB owner and drops to `round_app` per request (use a dedicated login role in production). Split `apps/web` into guest/staff/office apps only if deployment needs it.
 
 Commands: `pnpm db:reset` (wipe + migrate + seed), `pnpm dev`, `pnpm test`, `pnpm typecheck`. After changing `packages/db/src/schema.ts`, run `pnpm --filter @round/db generate`.
 

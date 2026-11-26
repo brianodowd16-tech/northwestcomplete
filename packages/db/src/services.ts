@@ -821,6 +821,7 @@ export async function salesSummary(venue: Venue, from: Date, to: Date) {
       refundedCents: os.reduce((s, o) => s + o.refundedCents, 0),
       tableOrders: paid.filter((o) => o.channel === "table").length,
       collectOrders: paid.filter((o) => o.channel === "collect").length,
+      tillOrders: paid.filter((o) => o.channel === "counter" || o.channel === "delivery").length,
       byHour,
       members,
     };

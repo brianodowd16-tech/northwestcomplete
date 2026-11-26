@@ -15,7 +15,7 @@ export async function GET(req: Request) {
   if (!new URL(req.url).searchParams.has("deep")) return Response.json({ ok: true });
   const warnings: string[] = [];
   const q = async (text: string) => (await pool().query(text).catch(() => ({ rows: [] as Record<string, unknown>[] }))).rows[0] ?? {};
-  const jobs = await q(`select max(completed_on) as last from pgboss.job where name = 'reconcile-payments' and state = 'completed'`);
+  const jobs = await q(`select max(completed_on) as last from pgboss.job where name = 'every-minute' and state = 'completed'`);
   const last = jobs.last ? new Date(jobs.last as string) : null;
   if (!last || Date.now() - last.getTime() > 10 * 60_000) warnings.push("Scheduled jobs haven't run in the last 10 minutes");
   const mail = await q(`select count(*) filter (where status = 'failed' and created_at > now() - interval '1 day')::int as failed, count(*) filter (where status = 'pending' and created_at < now() - interval '1 hour')::int as stuck from email_outbox`);

@@ -41,21 +41,25 @@ export function GroupRoom({ id, venues, appUrl, myRevolut }: { id: string; venue
   }, [id]);
   useEffect(() => {
     load();
-    const full = setInterval(load, 20_000);
+    const full = setInterval(() => !document.hidden && load(), 20_000);
     return () => clearInterval(full);
   }, [load]);
-  // New chat messages every 4 seconds.
+  // New chat messages every 4 seconds (one timer; skipped while the tab is hidden).
+  const lastAt = useRef<string | null>(null);
+  lastAt.current = d?.messages.at(-1)?.at ?? lastAt.current;
+  const ready = !!d;
   useEffect(() => {
-    if (!d) return;
+    if (!ready) return;
     const t = setInterval(async () => {
-      const last = d.messages.at(-1)?.at;
-      const r = await fetch(`/api/groups/${id}?since=${encodeURIComponent(last ? new Date(new Date(last).getTime() + 1).toISOString() : new Date(0).toISOString())}`);
+      if (document.hidden) return;
+      const since = lastAt.current ? new Date(new Date(lastAt.current).getTime() + 1).toISOString() : new Date(0).toISOString();
+      const r = await fetch(`/api/groups/${id}?since=${encodeURIComponent(since)}`);
       if (!r.ok) return;
       const { messages } = (await r.json()) as { messages: Msg[] };
       if (messages.length) setD((x) => (x ? { ...x, messages: [...x.messages, ...messages.filter((m) => !x.messages.some((y) => y.id === m.id))] } : x));
     }, 4000);
     return () => clearInterval(t);
-  }, [d, id]);
+  }, [ready, id]);
   useEffect(() => { if (tab === "chat") bottom.current?.scrollIntoView({ block: "end" }); }, [d?.messages.length, tab]);
 
   async function act(body: Record<string, unknown>, after?: () => void) {

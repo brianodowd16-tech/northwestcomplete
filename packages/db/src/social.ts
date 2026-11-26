@@ -3,7 +3,7 @@
 // queue the posting job works through. Complete's own network posts (county round-ups of
 // venues that opted in) have no venue.
 import {
-  DEFAULT_SOCIAL_RULES, eventPost, gamesPost, localDate, networkPost, newItemPost, weeklyPost,
+  DEFAULT_SOCIAL_RULES, zonedToUtc, eventPost, gamesPost, localDate, networkPost, newItemPost, weeklyPost,
   type DraftPost, type SocialChannel, type SocialRules,
 } from "@round/core";
 import { and, asc, desc, eq, gte, inArray, isNull, lte, or } from "drizzle-orm";
@@ -63,12 +63,7 @@ async function insertDraft(venue: Venue | null, d: DraftPost, channels: SocialCh
 }
 
 const mondayOf = (date: string) => { const d = new Date(`${date}T12:00:00Z`); return new Date(d.getTime() - ((d.getUTCDay() + 6) % 7) * 86_400_000).toISOString().slice(0, 10); };
-const localAt = (date: string, hhmm: string, tz: string) => {
-  const guess = new Date(`${date}T${hhmm}:00Z`);
-  const parts = new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false }).format(guess).split(":").map(Number);
-  const [h, m] = hhmm.split(":").map(Number);
-  return new Date(guess.getTime() - ((parts[0] * 60 + parts[1]) - (h * 60 + m)) * 60_000);
-};
+const localAt = (date: string, hhmm: string, tz: string) => zonedToUtc(`${date}T${hhmm}`, tz);
 
 /**
  * Plans the venue's next posts from its own data: each event (and events it co-hosts with

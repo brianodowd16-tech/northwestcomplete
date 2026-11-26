@@ -18,7 +18,7 @@ export function ControlsBoard() {
   }, []);
   useEffect(() => {
     load();
-    const t = setInterval(load, 15_000);
+    const t = setInterval(() => !document.hidden && load(), 15_000);
     return () => clearInterval(t);
   }, [load]);
   const act = async (body: Record<string, unknown>, key: string) => {

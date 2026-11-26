@@ -7,6 +7,7 @@ import { hashPassword, invoiceNumber, invoicePeriod, retryDelayMs, sageMapped, v
 import { and, asc, count, desc, eq, gte, inArray, isNull, lt, lte, ne, sql } from "drizzle-orm";
 import { systemDb, withTenant } from "./index";
 import * as t from "./schema";
+import { setupStatus } from "./onboarding";
 import { billingStatement, type Venue } from "./services";
 
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -235,7 +236,6 @@ export async function venuesInSetup(now = new Date()) {
 
 /** The set-up steps still missing (uses the same checklist as the set-up page). */
 export async function setupMissing(venue: Venue): Promise<string[]> {
-  const { setupStatus } = await import("./onboarding");
   return (await setupStatus(venue)).missing;
 }
 

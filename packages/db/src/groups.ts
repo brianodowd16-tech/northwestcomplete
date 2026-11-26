@@ -2,7 +2,7 @@
 // requests, shared costs (group bills) and leaderboards. Groups belong to guests, not
 // venues: every call checks the guest is a current member before reading or writing.
 import {
-  checkCustom, cleanGroupName, cleanLeaderboardName, cleanMessage, GroupError, inviteCode, rankRows, revolutLink, settleUp,
+  checkCustom, cleanGroupName, localDate, zonedToUtc, cleanLeaderboardName, cleanMessage, GroupError, inviteCode, rankRows, revolutLink, settleUp,
   splitByItems, splitEqual, spotifyLink, type ShareRow,
 } from "@round/core";
 import { and, asc, desc, eq, gte, inArray, isNull, lt, ne, sql } from "drizzle-orm";
@@ -427,7 +427,8 @@ export async function leaderboard(scope: BoardScope, metric: "points" | "spend",
   if (!venues.length) return { rows: [], me: null };
   const ids = venues.map((v) => v.id);
   const now = new Date();
-  const since = period === "month" ? new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)) : new Date(0);
+  // "This month" starts at midnight Irish time on the 1st.
+  const since = period === "month" ? zonedToUtc(`${localDate(now, "Europe/Dublin").slice(0, 8)}01T00:00`, "Europe/Dublin") : new Date(0);
   const scores =
     metric === "spend"
       ? await db()

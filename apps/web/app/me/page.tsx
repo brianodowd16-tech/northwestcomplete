@@ -40,11 +40,16 @@ export default async function Me() {
       {tonight.length > 0 && (
         <section className="stack" style={{ gap: 8 }}>
           <h3>On tonight</h3>
-          {tonight.slice(0, 6).map(({ v, o }) => (
-            <Link key={v.id + o.key} href={`/v/${v.slug}/events`} className="card row small" style={{ textDecoration: "none", color: "inherit" }}>
-              <span>{EVENT_KINDS[o.kind].icon} <b>{o.title}</b><div className="muted">{v.name}</div></span>
-              <span className="num">{o.start.toLocaleTimeString("en-IE", { timeZone: v.timezone, hour: "2-digit", minute: "2-digit" })}</span>
-            </Link>
+          {/* One line per event; the same televised game at several venues is listed once with each venue. */}
+          {Object.values(tonight.reduce<Record<string, { o: (typeof tonight)[number]["o"]; vs: (typeof tonight)[number]["v"][] }>>((acc, { v, o }) => {
+            const k = `${o.title}|${o.start.toISOString()}`;
+            (acc[k] ??= { o, vs: [] }).vs.push(v);
+            return acc;
+          }, {})).slice(0, 6).map(({ o, vs }) => (
+            <div key={o.key + vs[0].id} className="card row small" style={{ alignItems: "flex-start", gap: 12 }}>
+              <span>{EVENT_KINDS[o.kind].icon} <b>{o.title}</b><div className="muted">{vs.map((v, i) => <span key={v.id}>{i ? ", " : ""}<Link href={`/v/${v.slug}/events`}>{v.name}</Link></span>)}</div></span>
+              <span className="num" style={{ whiteSpace: "nowrap" }}>{o.start.toLocaleTimeString("en-IE", { timeZone: vs[0].timezone, hour: "2-digit", minute: "2-digit" })}</span>
+            </div>
           ))}
         </section>
       )}
