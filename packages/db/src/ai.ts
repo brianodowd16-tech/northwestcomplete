@@ -420,11 +420,12 @@ export async function venueSnapshot(venue: Venue) {
     refunded_cents: s.refundedCents,
     table_orders: s.tableOrders,
     collect_orders: s.collectOrders,
+    till_orders: s.tillOrders,
   });
   return {
     venue: venue.name,
     generated_at: new Date().toISOString(),
-    money_note: "All amounts are euro cents, VAT included. App orders only; counter sales are on the venue's till.",
+    money_note: "All amounts are euro cents, VAT included. Sales include app orders and the venue's own till (table, collect and till order counts are separate).",
     today: { ...pick(today.now), sales_by_hour_cents: today.now.byHour, top_items: today.topItems },
     yesterday: pick(yesterday),
     last_7_days: { ...pick(week.now), previous_7_days: pick(week.before), by_day: week.byDay, top_items: week.topItems },

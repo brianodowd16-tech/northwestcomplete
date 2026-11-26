@@ -17,7 +17,8 @@ export function StaffNav({ slug, current, admin, other, setup }: { slug: string;
   ];
   const office: [string, string, string][] = [
     ...(setup ? ([["setup", "Get started", `/office/${slug}/setup`]] as [string, string, string][]) : []),
-    ["office", "Overview", `/office/${slug}`],
+    ["office", "Home", `/office/${slug}`],
+    ["reports", "Reports", `/office/${slug}/reports`],
     ["menuedit", "Menu", `/office/${slug}/menu`],
     ["stock", "Stock", `/office/${slug}/stock`],
     ["events", "What's on", `/office/${slug}/events`],
