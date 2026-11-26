@@ -1,7 +1,10 @@
 // The manager's home screen: the day and the week in a few plain sentences, plus the
 // handful of things that need them. Built from facts only, so it reads the same with or
 // without the AI assistant (which can then put it in its own words and answer questions).
-import { formatEur } from "./money";
+import { formatEur as exact } from "./money";
+
+/** Easy to read aloud: whole euros with thousands separators from €100 up ("€1,240"), exact below. */
+const formatEur = (c: number) => (Math.abs(c) >= 10_000 ? `€${Math.round(c / 100).toLocaleString("en-IE")}` : exact(c));
 
 export interface BriefingFacts {
   venue: string;
@@ -39,7 +42,7 @@ const list = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1
 export function buildBriefing(f: BriefingFacts): Briefing {
   const greeting = `${f.hour < 12 ? "Good morning" : f.hour < 18 ? "Good afternoon" : "Good evening"}, ${f.firstName}`;
   const today: string[] = [];
-  if (f.today.orders === 0) today.push(f.hour < 12 ? "No sales yet today." : "No sales yet today, which is quiet for this time.");
+  if (f.today.orders === 0) today.push(f.today.sameTimeLastWeekCents > 0 ? `No sales yet today; by now last ${f.weekday} you'd taken ${formatEur(f.today.sameTimeLastWeekCents)}.` : "No sales yet today.");
   else today.push(`So far today: ${formatEur(f.today.salesCents)} from ${f.today.orders} ${f.today.orders === 1 ? "order" : "orders"}${change(f.today.salesCents, f.today.sameTimeLastWeekCents, `last ${f.weekday} at this time`)}.`);
   if (f.today.topItem) today.push(`Best seller today: ${f.today.topItem.name} (${f.today.topItem.qty}).`);
   if (f.bookingsTonight.count) today.push(`${f.bookingsTonight.count} ${f.bookingsTonight.count === 1 ? "booking" : "bookings"} still to come today (${f.bookingsTonight.covers} people)${f.bookingsTonight.next ? `, next at ${f.bookingsTonight.next}` : ""}.`);
