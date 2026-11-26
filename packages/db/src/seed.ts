@@ -191,7 +191,7 @@ export async function seed(db: Db, opts: { stock?: boolean } = {}) {
     );
     const [ven] = await db
       .insert(t.venue)
-      .values({ tenantId, programmeId: prog.id, slug: v.slug, name: v.name, tagline: v.tagline, town: v.town, brandColor: v.brandColor, vatNumber: "IE0000000X", fplCode: key === "mjo" ? "mjo2627" : null, bookingSeatsPerSlot: key === "mjo" ? 40 : 0, kind: key === "drum" ? "hotel" : "bar" })
+      .values({ tenantId, programmeId: prog.id, slug: v.slug, name: v.name, tagline: v.tagline, town: v.town, brandColor: v.brandColor, vatNumber: "IE0000000X", fplCode: key === "mjo" ? "mjo2627" : null, bookingSeatsPerSlot: key === "mjo" ? 40 : 0, kind: key === "drum" ? "hotel" : "bar", county: key === "drum" ? "Leitrim" : null, shareNetwork: key === "drum" })
       .returning();
     await db.insert(t.subscription).values({ tenantId, venueId: ven.id, monthlyFeeCents: 9900, appFeeBps: 100 });
     const tables = await db

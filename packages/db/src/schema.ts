@@ -86,6 +86,13 @@ export const venue = pgTable("venue", {
   /** setup: test mode while the venue gets ready; live: taking real orders; suspended: closed by the platform. */
   status: text("status", { enum: ["setup", "live", "suspended"] }).notNull().default("live"),
   kind: text("kind", { enum: ["bar", "restaurant", "hotel", "cafe"] }).notNull().default("bar"),
+  /** for county and country leaderboards and network posts */
+  county: text("county"),
+  country: text("country").notNull().default("IE"),
+  /** happy to be featured in Complete's own network posts and cross-promotion */
+  shareNetwork: boolean("share_network").notNull().default(false),
+  /** guests in group sessions can send song requests to the staff Music list */
+  songRequests: boolean("song_requests").notNull().default(true),
   liveAt: timestamp("live_at", { withTimezone: true }),
   createdAt: createdAt(),
 });
@@ -97,7 +104,7 @@ export const venueIntegration = pgTable(
     id: id(),
     tenantId: tenantId(),
     venueId: uuid("venue_id").notNull().references(() => venue.id),
-    kind: text("kind", { enum: ["revolut", "mypos", "xero", "delivery", "pms", "sage", "payroll", "deel", "bizimply"] }).notNull(),
+    kind: text("kind", { enum: ["revolut", "mypos", "xero", "delivery", "pms", "sage", "payroll", "deel", "bizimply", "meta", "google_business", "social"] }).notNull(),
     config: jsonb("config").notNull().$type<Record<string, unknown>>(),
     secretEnc: text("secret_enc"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -162,6 +169,7 @@ export const menuItem = pgTable("menu_item", {
   soldOutByStock: boolean("sold_out_by_stock").notNull().default(false),
   externalItemId: text("external_item_id"),
   sort: integer("sort").notNull().default(0),
+  createdAt: createdAt(),
 });
 
 export const customer = pgTable("customer", {
@@ -177,6 +185,11 @@ export const customer = pgTable("customer", {
   ageDocumentType: text("age_document_type", { enum: ["age_card", "passport", "driving_licence"] }),
   /** Set when the guest deleted their account: personal details are wiped, orders kept for VAT records. */
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  /** Opted in to public leaderboards, shown under this name (never their real name unless they type it) */
+  leaderboardOptIn: boolean("leaderboard_opt_in").notNull().default(false),
+  leaderboardName: text("leaderboard_name"),
+  /** revolut.me handle, so friends can settle a split by Revolut */
+  revolutHandle: text("revolut_handle"),
   createdAt: createdAt(),
 });
 
@@ -245,6 +258,8 @@ export const orders = pgTable(
     discountCents: integer("discount_cents").notNull().default(0),
     discountReason: text("discount_reason"),
     tabId: uuid("tab_id"),
+    /** placed during a group session, so the group sees its orders together */
+    sessionId: uuid("session_id"),
     grossCents: integer("gross_cents").notNull(),
     vat9Cents: integer("vat9_cents").notNull(),
     vat23Cents: integer("vat23_cents").notNull(),
@@ -557,6 +572,8 @@ export const venueEvent = pgTable(
     repeatWeekly: boolean("repeat_weekly").notNull().default(false),
     repeatUntil: date("repeat_until"),
     coverCents: integer("cover_cents").notNull().default(0),
+    /** co-hosted with another venue on Complete: posted to both venues' social accounts */
+    partnerVenueId: uuid("partner_venue_id"),
     createdAt: createdAt(),
   },
   (t) => [index("venue_event_venue").on(t.venueId, t.startsAt)],
@@ -772,7 +789,162 @@ export const billingInvoice = pgTable(
   (t) => [uniqueIndex("billing_invoice_period").on(t.venueId, t.period)],
 );
 
+// ---------------------------------------------------------------- groups, sessions, splits (guest-level, across venues)
+
+/** A group of guests (friends, a team, a hen party). Not venue data: members are checked in the service layer. */
+export const guestGroup = pgTable("guest_group", {
+  id: id(),
+  name: text("name").notNull(),
+  inviteCode: text("invite_code").notNull().unique(),
+  createdBy: uuid("created_by").notNull().references(() => customer.id),
+  /** a personal Spotify playlist the group shares (a link only: Spotify can't be used to play music in venues) */
+  playlistUrl: text("playlist_url"),
+  createdAt: createdAt(),
+});
+
+export const groupMember = pgTable(
+  "group_member",
+  {
+    id: id(),
+    groupId: uuid("group_id").notNull().references(() => guestGroup.id),
+    customerId: uuid("customer_id").notNull().references(() => customer.id),
+    role: text("role", { enum: ["owner", "member"] }).notNull().default("member"),
+    joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+    leftAt: timestamp("left_at", { withTimezone: true }),
+  },
+  (t) => [uniqueIndex("group_member_unique").on(t.groupId, t.customerId)],
+);
+
+export const groupMessage = pgTable(
+  "group_message",
+  {
+    id: id(),
+    groupId: uuid("group_id").notNull().references(() => guestGroup.id),
+    customerId: uuid("customer_id").references(() => customer.id),
+    kind: text("kind", { enum: ["text", "system", "song"] }).notNull().default("text"),
+    body: text("body").notNull(),
+    reportedAt: timestamp("reported_at", { withTimezone: true }),
+    hiddenAt: timestamp("hidden_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("group_message_group").on(t.groupId, t.createdAt)],
+);
+
+/** A night out at a venue (session, now) or a planned party, for one group. */
+export const groupSession = pgTable(
+  "group_session",
+  {
+    id: id(),
+    groupId: uuid("group_id").notNull().references(() => guestGroup.id),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    kind: text("kind", { enum: ["session", "party"] }).notNull(),
+    title: text("title").notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    bookingId: uuid("booking_id"),
+    createdBy: uuid("created_by").notNull().references(() => customer.id),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("group_session_group").on(t.groupId, t.startsAt)],
+);
+
+export const sessionRsvp = pgTable(
+  "session_rsvp",
+  {
+    sessionId: uuid("session_id").notNull().references(() => groupSession.id),
+    customerId: uuid("customer_id").notNull().references(() => customer.id),
+    answer: text("answer", { enum: ["going", "maybe", "no"] }).notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("session_rsvp_unique").on(t.sessionId, t.customerId)],
+);
+
+/** A song a group asks the venue to play. Staff see these on the Music list and play them on their own licensed system. */
+export const songRequest = pgTable(
+  "song_request",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    sessionId: uuid("session_id"),
+    customerId: uuid("customer_id"),
+    title: text("title").notNull(),
+    link: text("link"),
+    status: text("status", { enum: ["requested", "played", "declined"] }).notNull().default("requested"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("song_request_venue").on(t.venueId, t.createdAt)],
+);
+
+/**
+ * A shared cost split between group members, like a group bill: someone paid (an app order,
+ * tickets, a taxi) and the others owe their share. Money never moves through Complete:
+ * shares are settled between friends (Revolut link or marked paid). Balances are sums of shares.
+ */
+export const billSplit = pgTable("bill_split", {
+  id: id(),
+  groupId: uuid("group_id").notNull().references(() => guestGroup.id),
+  sessionId: uuid("session_id"),
+  venueId: uuid("venue_id"),
+  orderId: uuid("order_id"),
+  title: text("title").notNull(),
+  /** who paid the bill in the first place */
+  paidBy: uuid("paid_by").notNull().references(() => customer.id),
+  totalCents: integer("total_cents").notNull(),
+  method: text("method", { enum: ["equal", "items", "custom"] }).notNull(),
+  /** bill lines (from the order, or typed in: tickets, deposits), for splitting by item */
+  lines: jsonb("lines").$type<{ id: string; name: string; cents: number; ticket?: boolean }[]>().notNull().default([]),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+  createdAt: createdAt(),
+});
+
+export const billShare = pgTable(
+  "bill_share",
+  {
+    id: id(),
+    splitId: uuid("split_id").notNull().references(() => billSplit.id),
+    customerId: uuid("customer_id").notNull().references(() => customer.id),
+    amountCents: integer("amount_cents").notNull(),
+    /** line ids this person had, when split by item */
+    lineIds: jsonb("line_ids").$type<string[]>().notNull().default([]),
+    status: text("status", { enum: ["owed", "paid", "covered"] }).notNull().default("owed"),
+    settledAt: timestamp("settled_at", { withTimezone: true }),
+    remindedAt: timestamp("reminded_at", { withTimezone: true }),
+  },
+  (t) => [uniqueIndex("bill_share_unique").on(t.splitId, t.customerId)],
+);
+
+// ---------------------------------------------------------------- social media
+
+/** A post for a venue's social accounts (or Complete's network accounts when venueId is null). */
+export const socialPost = pgTable(
+  "social_post",
+  {
+    id: id(),
+    tenantId: uuid("tenant_id"),
+    venueId: uuid("venue_id"),
+    /** what made it: event:{id}:{date}, games:{date}, weekly:{week}, item:{id}, network:{county}:{week}, manual */
+    sourceKey: text("source_key").notNull(),
+    channels: jsonb("channels").$type<("facebook" | "instagram" | "google")[]>().notNull(),
+    text: text("text").notNull(),
+    link: text("link"),
+    /** Instagram handles of co-hosting venues (collaborators) */
+    collaborators: jsonb("collaborators").$type<string[]>().notNull().default([]),
+    imageTitle: text("image_title").notNull().default(""),
+    imageSubtitle: text("image_subtitle").notNull().default(""),
+    scheduledFor: timestamp("scheduled_for", { withTimezone: true }).notNull(),
+    status: text("status", { enum: ["draft", "approved", "posted", "failed", "skipped"] }).notNull().default("draft"),
+    results: jsonb("results").$type<Record<string, string>>().notNull().default({}),
+    error: text("error"),
+    postedAt: timestamp("posted_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("social_post_source").on(t.venueId, t.sourceKey), index("social_post_due").on(t.status, t.scheduledFor)],
+);
+
 export const TENANT_TABLES = [
+  "song_request",
   "venue_alert",
   "billing_invoice",
   "rota_shift",

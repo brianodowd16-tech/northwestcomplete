@@ -19,7 +19,7 @@ export async function whatsOn(venue: Venue, from: Date, to: Date) {
   const auto = games
     .map((g) => {
       const start = g.startsAt, end = new Date(start.getTime() + g.durationMins * 60_000);
-      return { id: g.id, key: `sport:${g.externalId}`, kind: "sport" as const, title: `${g.home} v ${g.away}`, details: g.league, where: "On the TVs", startsAt: start, durationMins: g.durationMins, repeatWeekly: false, repeatUntil: null, coverCents: 0, start, end, auto: true };
+      return { id: g.id, key: `sport:${g.externalId}`, kind: "sport" as const, title: `${g.home} v ${g.away}`, details: g.league, where: "On the TVs", startsAt: start, durationMins: g.durationMins, repeatWeekly: false, repeatUntil: null, coverCents: 0, partnerVenueId: null, start, end, auto: true };
     })
     .filter((g) => g.end > from && !ownKeys.has(g.title.toLowerCase()));
   return [...own.map((o) => ({ ...o, auto: false })), ...auto].sort((a, b) => a.start.getTime() - b.start.getTime());
@@ -75,4 +75,13 @@ export async function setFplCode(venue: Venue, input: string) {
 /** Counts a guest following the venue's FPL link. */
 export async function countFplClick(venue: Venue) {
   await withTenant(venue.tenantId, (tx) => tx.update(t.venue).set({ fplClicks: sql`${t.venue.fplClicks} + 1` }).where(eq(t.venue.id, venue.id)));
+}
+
+/** Marks an event as co-hosted with another live venue on Complete (posted on both venues' social accounts). */
+export async function setEventPartner(venue: Venue, eventId: string, partnerVenueId: string | null) {
+  if (partnerVenueId) {
+    const [p] = await systemDb().select({ id: t.venue.id, status: t.venue.status }).from(t.venue).where(eq(t.venue.id, partnerVenueId));
+    if (!p || p.id === venue.id || p.status !== "live") throw new EventError("Choose another live venue on Complete");
+  }
+  await withTenant(venue.tenantId, (tx) => tx.update(t.venueEvent).set({ partnerVenueId }).where(and(eq(t.venueEvent.id, eventId), eq(t.venueEvent.venueId, venue.id))));
 }

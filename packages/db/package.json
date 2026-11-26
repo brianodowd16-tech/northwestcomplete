@@ -17,7 +17,9 @@
     "./growth": "./src/growth.ts",
     "./privacy": "./src/privacy.ts",
     "./rota": "./src/rota.ts",
-    "./platform": "./src/platform.ts"
+    "./platform": "./src/platform.ts",
+    "./groups": "./src/groups.ts",
+    "./social": "./src/social.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",

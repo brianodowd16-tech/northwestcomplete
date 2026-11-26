@@ -1,3 +1,4 @@
+import { liveSessionFor, tagOrderSession } from "@round/db/groups";
 import { createOrder, tableByToken, venueBySlug } from "@round/db/services";
 import { appUrl, currentGuest, errorJson, json, providerFor } from "@/lib/server";
 
@@ -37,6 +38,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
       },
       await providerFor(venue),
     );
+    // Out with a group here? The order shows on the group's session.
+    const session = await liveSessionFor(guest.id, venue.id).catch(() => null);
+    if (session) await tagOrderSession(venue, order.id, session.id);
     return json({
       orderId: order.id,
       status: order.status,

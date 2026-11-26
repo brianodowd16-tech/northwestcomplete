@@ -74,6 +74,7 @@ export function validateEvent(input: EventInput, tz: string) {
 }
 
 export interface StoredEvent {
+  partnerVenueId?: string | null;
   id: string;
   kind: EventKind;
   title: string;

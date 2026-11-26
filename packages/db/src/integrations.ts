@@ -35,7 +35,7 @@ import { systemDb, withTenant } from "./index";
 import * as t from "./schema";
 import { Forbidden, NotFound, type Venue } from "./services";
 
-export type IntegrationKind = "revolut" | "mypos" | "xero" | "delivery" | "pms" | "sage" | "payroll" | "deel" | "bizimply";
+export type IntegrationKind = "revolut" | "mypos" | "xero" | "delivery" | "pms" | "sage" | "payroll" | "deel" | "bizimply" | "meta" | "google_business" | "social";
 
 export async function loadIntegration(venue: Venue, kind: IntegrationKind) {
   return withTenant(venue.tenantId, async (tx) => {

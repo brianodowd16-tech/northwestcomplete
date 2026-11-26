@@ -1,4 +1,6 @@
 import { opsOverview } from "@round/db/platform";
+import { networkPosts } from "@round/db/social";
+import { OpsPostButton } from "@/components/OpsPostButton";
 import { eur } from "@/components/format";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +15,7 @@ const ago = (d: Date | null) => {
 /** Every venue at a glance for Complete's own team (protected by middleware.ts). */
 export default async function Ops() {
   const o = await opsOverview();
+  const net = await networkPosts();
   const live = o.venues.filter((v) => v.status === "live");
   const setup = o.venues.filter((v) => v.status === "setup");
   const mrr = live.reduce((s, v) => s + v.monthlyFeeCents, 0);
@@ -59,6 +62,18 @@ export default async function Ops() {
             </tbody>
           </table>
         </div>
+      </section>
+      <section className="panel stack">
+        <h3>Network posts (Complete&apos;s own accounts)</h3>
+        {net.length === 0 ? <div className="empty">None yet. Set NETWORK_META_PAGE_ID and NETWORK_META_PAGE_TOKEN, and venues opt in from Social → Community.</div> : (
+          <table><tbody>{net.map((p) => (
+            <tr key={p.id}>
+              <td className="small" style={{ whiteSpace: "pre-wrap" }}>{p.text.slice(0, 220)}{p.text.length > 220 ? "…" : ""}</td>
+              <td className="small">{p.scheduledFor.toLocaleString("en-IE", { timeZone: "Europe/Dublin", weekday: "short", hour: "2-digit", minute: "2-digit" })}</td>
+              <td className="r">{p.status === "draft" ? <OpsPostButton id={p.id} /> : <span className="chip plain">{p.status}</span>}</td>
+            </tr>
+          ))}</tbody></table>
+        )}
       </section>
       <div className="two">
         <section className="panel stack">

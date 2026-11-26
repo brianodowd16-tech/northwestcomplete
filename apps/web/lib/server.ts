@@ -1,5 +1,5 @@
 import "server-only";
-import { signSession, verifySession, type PaymentProvider, type SageApp, type XeroApp } from "@round/core";
+import { signSession, verifySession, type OAuthApp, type PaymentProvider, type SageApp, type XeroApp } from "@round/core";
 import { providerForVenue } from "@round/db/integrations";
 import { customerById, staffById, venueById, venueBySlug, NotFound, type Customer, type Staff, type Venue } from "@round/db/services";
 import { cookies } from "next/headers";
@@ -37,6 +37,18 @@ export function sageApp(): SageApp | null {
   const { SAGE_CLIENT_ID: clientId, SAGE_CLIENT_SECRET: clientSecret } = process.env;
   if (!clientId || !clientSecret) return null;
   return { clientId, clientSecret, redirectUri: `${appUrl()}/api/sage/callback` };
+}
+
+/** Complete's Meta app (Facebook Pages + Instagram posting). Null until META_APP_ID/SECRET are set. */
+export function metaApp(): OAuthApp | null {
+  const { META_APP_ID: clientId, META_APP_SECRET: clientSecret } = process.env;
+  return clientId && clientSecret ? { clientId, clientSecret, redirectUri: `${appUrl()}/api/social/meta/callback` } : null;
+}
+
+/** Complete's Google app (Business Profile posts). Null until GOOGLE_CLIENT_ID/SECRET are set. */
+export function googleApp(): OAuthApp | null {
+  const { GOOGLE_CLIENT_ID: clientId, GOOGLE_CLIENT_SECRET: clientSecret } = process.env;
+  return clientId && clientSecret ? { clientId, clientSecret, redirectUri: `${appUrl()}/api/social/google/callback` } : null;
 }
 
 const GUEST_COOKIE = "round_guest";
@@ -106,7 +118,7 @@ export function errorJson(e: unknown) {
   // A malformed id or value from the browser (Postgres "invalid text representation") is a bad request, not a crash.
   const pgCode = (e as { code?: string; cause?: { code?: string } })?.cause?.code ?? (e as { code?: string })?.code;
   if (pgCode === "22P02") return json({ error: "Not found" }, 404);
-  const status = name === "NotFound" ? 404 : name === "Forbidden" ? 403 : ["CartError", "LoyaltyError", "SignupError", "DocketError", "OnboardingError", "InventoryError", "EventError"].includes(name) ? 400 : 500;
+  const status = name === "NotFound" ? 404 : name === "Forbidden" ? 403 : ["CartError", "LoyaltyError", "SignupError", "DocketError", "OnboardingError", "InventoryError", "EventError", "GroupError"].includes(name) ? 400 : 500;
   if (status === 500) {
     console.error(e);
     void import("@round/db/platform").then((m) => m.recordError(e, "api")).catch(() => {});

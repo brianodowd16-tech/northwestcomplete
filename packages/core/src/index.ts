@@ -22,3 +22,5 @@ export * from "./sage";
 export * from "./deel";
 export * from "./bizimply";
 export * from "./platform";
+export * from "./groups";
+export * from "./social";

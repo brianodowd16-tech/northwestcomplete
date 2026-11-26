@@ -227,8 +227,9 @@ td.r, th.r { text-align: right; }
 .kpi .delta.up { color: var(--ok); }
 .kpi .delta.down { color: var(--crit); }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
-.seg a { padding: 7px 12px; font-size: 13px; font-weight: 600; color: var(--muted); text-decoration: none; }
-.seg a[aria-current="page"] { background: var(--ink); color: var(--bg); }
+.seg a, .seg button { padding: 7px 12px; font-size: 13px; font-weight: 600; color: var(--muted); text-decoration: none; background: none; border: 0; cursor: pointer; font-family: inherit; }
+.seg a[aria-current="page"], .seg button[aria-current="page"] { background: var(--ink); color: var(--bg); }
+.seg button:disabled { opacity: 0.4; cursor: default; }
 .chart { position: relative; }
 .chart .bars i { transition: height .5s ease, background .2s; cursor: pointer; }
 .chart .bars i:hover, .chart .bars i.hl { background: var(--vacc); }

@@ -21,6 +21,10 @@ export default async function Rewards({ params }: { params: Promise<{ slug: stri
   return (
     <div className="stack">
       <TierCard programme={s.programme.name} levels={s.levels} level={s.level} next={s.next} spend={s.spend12mCents} />
+      <div className="row wrap" style={{ justifyContent: "flex-start", gap: 6 }}>
+        <a className="btn sm ghost" href={`/v/${venue.slug}/leaderboard`}>🏆 Leaderboard</a>
+        <a className="btn sm ghost" href="/me/groups">👥 Groups and splitting</a>
+      </div>
       <div className="stats3">
         <div className="stat"><b><CountUp value={s.balances.points} /></b><span>points</span></div>
         <div className="stat"><b><CountUp value={s.balances.creditCents} format="eur" /></b><span>credit</span></div>

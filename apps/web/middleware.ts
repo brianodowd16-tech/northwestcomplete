@@ -17,4 +17,4 @@ function timingSafeEqual(a: string, b: string) {
   return diff === 0;
 }
 
-export const config = { matcher: ["/ops", "/ops/:path*"] };
+export const config = { matcher: ["/ops", "/ops/:path*", "/api/ops/:path*"] };

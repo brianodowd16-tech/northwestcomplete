@@ -1,5 +1,6 @@
 import { EVENT_KINDS, utcToZoned } from "@round/core";
 import { listEvents } from "@round/db/events";
+import { liveVenues } from "@round/db/services";
 import Link from "next/link";
 import { ActionForm } from "@/components/ActionForm";
 import { eur } from "@/components/format";
@@ -14,6 +15,7 @@ export default async function EventsAdmin({ params, searchParams }: { params: Pr
   const { slug } = await params;
   const { staff, venue } = await requireStaffFor(slug, { admin: true });
   const events = await listEvents(venue);
+  const others = (await liveVenues()).filter((v) => v.id !== venue.id);
   const editId = (await searchParams).edit;
   const edit = events.find((e) => e.id === editId);
   const api = `/api/office/${slug}/events`;
@@ -94,6 +96,7 @@ export default async function EventsAdmin({ params, searchParams }: { params: Pr
             <label className="field">Length (hours)<input name="hours" inputMode="decimal" defaultValue={edit ? String(edit.durationMins / 60) : "2"} /></label>
             <label className="field">Where in the venue<input name="where" maxLength={80} defaultValue={edit?.where} placeholder="Big screen" /></label>
             <label className="field">Entry price (€, blank if free)<input name="cover" inputMode="decimal" defaultValue={edit?.coverCents ? (edit.coverCents / 100).toFixed(2) : ""} /></label>
+            <label className="field">Co-hosted with (optional)<select name="partner" defaultValue={edit?.partnerVenueId ?? ""}><option value="">Just us</option>{others.map((v) => <option key={v.id} value={v.id}>{v.name}{v.town ? `, ${v.town}` : ""}</option>)}</select></label>
           </div>
           <label className="toggle small"><input type="checkbox" name="repeatWeekly" defaultChecked={edit?.repeatWeekly} /> Every week</label>
           <label className="field">Last week (optional)<input name="repeatUntil" type="date" defaultValue={edit?.repeatUntil ?? ""} /></label>

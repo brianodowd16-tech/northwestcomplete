@@ -22,6 +22,10 @@ export default async function Me() {
       <Link href="/" className="label" style={{ textDecoration: "none" }}>Complete</Link>
       <h1 style={{ fontSize: 28 }}>{guest ? `Hi ${guest.name.split(" ")[0]}` : "Your venues"}</h1>
       {!guest && <div className="notice">Open a venue below and sign in once: your account works at every venue on Complete.</div>}
+      <div className="row wrap" style={{ justifyContent: "flex-start", gap: 6 }}>
+        <Link className="btn sm" href="/me/groups">👥 Groups, nights out and splitting</Link>
+        <Link className="btn sm ghost" href="/leaderboards">🏆 Leaderboards</Link>
+      </div>
       {hub.length > 0 && (
         <section className="stack" style={{ gap: 8 }}>
           <h3>Your rewards</h3>

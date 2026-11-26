@@ -9,6 +9,7 @@ import { uploadBizimply } from "./lib/bizimply";
 import { sendDeel } from "./lib/deelsync";
 import { healthCheck, monthlyBilling, onboardingNudges, retention } from "./lib/autopilot";
 import { sendDueEmails } from "./lib/mail";
+import { socialTick } from "./lib/social";
 import { recordError } from "@round/db/platform";
 import { sendPayroll } from "./lib/payrollsync";
 import { providerFor, sageApp, secretsKey, xeroApp } from "./lib/server";
@@ -23,6 +24,7 @@ const HEALTH = "venue-health";
 const NUDGES = "onboarding-nudges";
 const BILLING = "monthly-billing";
 const RETENTION = "data-retention";
+const SOCIAL = "social-posts";
 
 /** Runs a job, recording any failure for the operator console before pg-boss retries it. */
 const tracked = (name: string, fn: () => Promise<unknown>) => async () => {
@@ -91,7 +93,7 @@ export async function startJobs() {
   const boss = new PgBoss({ connectionString: process.env.DATABASE_URL, schema: "pgboss" });
   boss.on("error", (e) => console.error("jobs", e));
   await boss.start();
-  for (const q of [RECONCILE, XERO_NIGHTLY, TOP_GAMES, PAYROLL, BIZIMPLY, EMAILS, HEALTH, NUDGES, BILLING, RETENTION]) await boss.createQueue(q);
+  for (const q of [RECONCILE, XERO_NIGHTLY, TOP_GAMES, PAYROLL, BIZIMPLY, EMAILS, HEALTH, NUDGES, BILLING, RETENTION, SOCIAL]) await boss.createQueue(q);
   await boss.schedule(RECONCILE, "* * * * *");
   await boss.schedule(XERO_NIGHTLY, "15 3 * * *", undefined, { tz: "Europe/Dublin" });
   await boss.work(RECONCILE, reconcile);
@@ -112,6 +114,9 @@ export async function startJobs() {
   await boss.work(BILLING, tracked(BILLING, monthlyBilling));
   await boss.schedule(RETENTION, "50 3 * * *", undefined, { tz: "Europe/Dublin" });
   await boss.work(RETENTION, tracked(RETENTION, retention));
+  // Social: plan posts from each venue's What's on, games and menu, and publish what's due.
+  await boss.schedule(SOCIAL, "*/5 * * * *");
+  await boss.work(SOCIAL, tracked(SOCIAL, socialTick));
   // Ireland's top televised games for the next week, refreshed every morning (and once at start-up).
   await boss.schedule(TOP_GAMES, "40 5 * * *", undefined, { tz: "Europe/Dublin" });
   await boss.work(TOP_GAMES, async () => console.log(`top games: ${await refreshTopGames()} listed`));

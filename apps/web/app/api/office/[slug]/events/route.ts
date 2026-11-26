@@ -1,4 +1,4 @@
-import { deleteEvent, saveEvent, setAutoSports, setFplCode } from "@round/db/events";
+import { deleteEvent, saveEvent, setAutoSports, setEventPartner, setFplCode } from "@round/db/events";
 import { parseEuro } from "@round/core";
 import { managerFor } from "@/lib/office";
 import { errorJson, json } from "@/lib/server";
@@ -22,7 +22,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
       await deleteEvent(m.venue, str(b.id));
       return json({ message: "Event removed" });
     }
-    await saveEvent(m.venue, {
+    const saved = await saveEvent(m.venue, {
       id: str(b.id) || undefined,
       kind: str(b.kind),
       title: str(b.title),
@@ -34,6 +34,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
       repeatUntil: str(b.repeatUntil) || null,
       coverCents: str(b.cover) ? parseEuro(str(b.cover)) : 0,
     });
+    if (b.partner !== undefined) await setEventPartner(m.venue, saved.id, str(b.partner) || null);
     return json({ message: str(b.id) ? "Event saved" : "Added to What's on" });
   } catch (e) {
     return errorJson(e);
