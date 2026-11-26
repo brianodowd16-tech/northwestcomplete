@@ -24,6 +24,7 @@ export default async function MyShifts({ params }: { params: Promise<{ slug: str
         <div className="label">{venue.name}</div>
         <StaffNav setup={venue.status === "setup"} slug={slug} current="shifts" admin={staff.role === "admin"} />
         <h1 style={{ fontSize: 26 }}>My shifts</h1>
+        <p className="muted small" style={{ margin: "4px 0 0" }}>Shared till or tablet? Open <a href={`/clock/${slug}`}>{`/clock/${slug}`}</a> on it: everyone clocks in and out with their own passkey (Face ID, fingerprint or Windows Hello), so nobody can clock in for someone else. Add yours in <a href="/staff/security">Security</a>.</p>
       </div>
       <section className="panel stack">
         <div className="row"><h3>Next 3 weeks</h3><span className="chip plain num">{hours.toFixed(1)} hours</span></div>

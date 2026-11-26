@@ -134,6 +134,13 @@
       "when": 1795700136090,
       "tag": "0018_cuddly_tombstone",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1795702255010,
+      "tag": "0019_parched_crystal",
+      "breakpoints": true
     }
   ]
 }

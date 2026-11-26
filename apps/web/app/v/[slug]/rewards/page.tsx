@@ -3,6 +3,7 @@ import { memberSummary } from "@round/db/services";
 import { redirect } from "next/navigation";
 import { CountUp } from "@/components/Animated";
 import { PrivacyControls } from "@/components/PrivacyControls";
+import { SecuritySettings } from "@/components/SecuritySettings";
 import { Assistants } from "@/components/Assistants";
 import { ConvertPoints } from "@/components/ConvertPoints";
 import { eur } from "@/components/format";
@@ -55,6 +56,7 @@ export default async function Rewards({ params }: { params: Promise<{ slug: stri
         grants={JSON.parse(JSON.stringify(grants.map(({ tokenHash: _h, ...g }) => g)))}
         activity={JSON.parse(JSON.stringify(activity.map(({ input: _i, ...a }) => a)))}
       />
+      <SecuritySettings as="guest" />
       <PrivacyControls slug={venue.slug} />
       <div className="card">
         <b>Refer a mate</b>

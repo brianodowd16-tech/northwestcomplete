@@ -20,7 +20,8 @@
     "./platform": "./src/platform.ts",
     "./groups": "./src/groups.ts",
     "./social": "./src/social.ts",
-    "./controls": "./src/controls.ts"
+    "./controls": "./src/controls.ts",
+    "./passkeys": "./src/passkeys.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",

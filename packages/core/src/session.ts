@@ -2,7 +2,7 @@ import { createHmac, randomInt, scryptSync, timingSafeEqual, randomBytes } from 
 
 // Signed cookie values: `{payload}.{hmac}`. Payload is `{kind}:{id}:{expiresAtMs}`.
 
-export type SessionKind = "guest" | "staff" | "phone" | "xero" | "sage" | "meta" | "google";
+export type SessionKind = "guest" | "staff" | "phone" | "xero" | "sage" | "meta" | "google" | "webauthn" | "totp";
 
 function mac(payload: string, secret: string) {
   return createHmac("sha256", secret).update(payload).digest("base64url");

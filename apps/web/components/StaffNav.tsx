@@ -13,6 +13,7 @@ export function StaffNav({ slug, current, admin, other, setup }: { slug: string;
     ["music", "Music", `/staff/${slug}/music`],
     ["controls", "Controls", `/staff/${slug}/controls`],
     ["shifts", "My shifts", `/staff/${slug}/shifts`],
+    ["account", "Security", `/staff/security`],
   ];
   const office: [string, string, string][] = [
     ...(setup ? ([["setup", "Get started", `/office/${slug}/setup`]] as [string, string, string][]) : []),

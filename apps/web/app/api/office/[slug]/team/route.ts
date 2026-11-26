@@ -1,3 +1,4 @@
+import { resetStaffSignIn } from "@round/db/passkeys";
 import { addTeamMember, removeTeamMember } from "@round/db/admin";
 import { createStaffToken } from "@round/db/platform";
 import { sendEmail } from "@/lib/mail";
@@ -8,7 +9,11 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
   try {
     const m = await managerFor((await ctx.params).slug);
     if (m instanceof Response) return m;
-    const b = (await req.json()) as { name?: string; email?: string; role?: string };
+    const b = (await req.json()) as { name?: string; email?: string; role?: string; action?: string; id?: string };
+    if (b.action === "resetSignIn") {
+      await resetStaffSignIn(m.venue, m.staff, String(b.id ?? ""));
+      return json({ message: "Authenticator and passkeys cleared. They can sign in with their password again." });
+    }
     const added = await addTeamMember(m.venue, m.staff, { name: b.name ?? "", email: b.email ?? "", role: b.role ?? "" });
     // The new person gets a link to set their own password (valid 7 days); the temporary password stays as a fallback.
     const token = await createStaffToken(added.staffId, "invite");

@@ -13,6 +13,8 @@
     "@revolut/checkout": "1.1.25",
     "@round/core": "workspace:*",
     "@round/db": "workspace:*",
+    "@simplewebauthn/browser": "13.3.0",
+    "@simplewebauthn/server": "13.3.3",
     "next": "15.5.28",
     "nodemailer": "10.4.0",
     "pg": "8.23.1",

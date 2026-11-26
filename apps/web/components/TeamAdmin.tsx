@@ -35,6 +35,20 @@ export function TeamAdmin({ slug, team, me }: { slug: string; team: Member[]; me
                     {m.id !== me && (
                       <button
                         className="btn sm ghost"
+                        title="Lost phone: clears their authenticator app and passkeys"
+                        onClick={async () => {
+                          if (!confirm(`Clear ${m.name}'s authenticator app and passkeys? They'll sign in with their password.`)) return;
+                          const res = await fetch(`/api/office/${slug}/team`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "resetSignIn", id: m.id }) });
+                          const d = await res.json();
+                          toast(res.ok ? d.message : d.error, { kind: res.ok ? "ok" : "err" });
+                        }}
+                      >
+                        Reset sign-in
+                      </button>
+                    )}
+                    {m.id !== me && (
+                      <button
+                        className="btn sm ghost"
                         onClick={async () => {
                           if (!confirm(`Remove ${m.name}? They won't be able to sign in.`)) return;
                           const res = await fetch(`/api/office/${slug}/team?id=${m.id}`, { method: "DELETE" });

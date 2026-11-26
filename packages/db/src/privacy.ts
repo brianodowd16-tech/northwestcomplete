@@ -61,5 +61,6 @@ export async function deleteGuest(customerId: string) {
     await tx.update(t.groupMessage).set({ body: "", hiddenAt: new Date() }).where(eq(t.groupMessage.customerId, customerId));
     await tx.update(t.groupMember).set({ leftAt: new Date() }).where(and(eq(t.groupMember.customerId, customerId), isNull(t.groupMember.leftAt)));
     await tx.update(t.customer).set({ leaderboardOptIn: false, leaderboardName: null, revolutHandle: null }).where(eq(t.customer.id, customerId));
+    await tx.delete(t.passkey).where(and(eq(t.passkey.ownerKind, "guest"), eq(t.passkey.ownerId, customerId)));
   });
 }

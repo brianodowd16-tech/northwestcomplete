@@ -138,6 +138,9 @@ export const staffUser = pgTable("staff_user", {
   payrollRef: text("payroll_ref").notNull().default(""),
   passwordHash: text("password_hash").notNull(),
   /** Set for invited staff with a temporary password: they choose their own on first sign-in. */
+  /** authenticator app (TOTP) secret, encrypted; asked for after the password when set */
+  totpSecretEnc: text("totp_secret_enc"),
+  totpLastStep: integer("totp_last_step"),
   mustChangePassword: boolean("must_change_password").notNull().default(false),
 });
 
@@ -1005,6 +1008,29 @@ export const controlLog = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("control_log_venue").on(t.venueId, t.createdAt), uniqueIndex("control_log_run").on(t.runKey)],
+);
+
+// ---------------------------------------------------------------- passkeys
+
+/**
+ * A passkey (WebAuthn credential): Face ID / Touch ID, Windows Hello, Android or Google
+ * Password Manager, or a security key. Only the public key is stored. Owners are guests or staff.
+ */
+export const passkey = pgTable(
+  "passkey",
+  {
+    id: id(),
+    ownerKind: text("owner_kind", { enum: ["guest", "staff"] }).notNull(),
+    ownerId: uuid("owner_id").notNull(),
+    credentialId: text("credential_id").notNull().unique(),
+    publicKey: text("public_key").notNull(),
+    counter: integer("counter").notNull().default(0),
+    transports: jsonb("transports").$type<string[]>().notNull().default([]),
+    name: text("name").notNull().default("Passkey"),
+    createdAt: createdAt(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  },
+  (t) => [index("passkey_owner").on(t.ownerKind, t.ownerId)],
 );
 
 export const TENANT_TABLES = [

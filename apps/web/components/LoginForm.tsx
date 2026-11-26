@@ -1,4 +1,5 @@
 "use client";
+import { PasskeyButton } from "./PasskeyButton";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -52,6 +53,7 @@ export function LoginForm({ next, venueName }: { next: string; venueName: string
         </label>
         {error && <div className="error">{error}</div>}
         <button className="btn block" disabled={busy}>Send code</button>
+        <PasskeyButton purpose="login" as="guest" label="Sign in with Face ID or a passkey" ghost block onDone={done} />
       </form>
     );
 
