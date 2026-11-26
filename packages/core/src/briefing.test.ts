@@ -28,6 +28,7 @@ describe("manager briefing", () => {
   it("handles a quiet start", () => {
     const b = buildBriefing({ ...base, hour: 9, today: { ...base.today, salesCents: 0, orders: 0, topItem: null }, staffOn: [], bookingsTonight: { count: 0, covers: 0, next: null } });
     expect(b.greeting).toBe("Good morning, Niamh");
-    expect(b.today).toEqual(["No sales yet today.", "3 people are rostered today; nobody is clocked in yet."]);
+    expect(b.today).toEqual(["No sales yet today; by now last Tuesday you'd taken €1,100.", "3 people are rostered today; nobody is clocked in yet."]);
+    expect(buildBriefing({ ...base, today: { ...base.today, salesCents: 0, orders: 0, sameTimeLastWeekCents: 0, topItem: null } }).today[0]).toBe("No sales yet today.");
   });
 });
