@@ -1,0 +1,41 @@
+# Complete on one Hostinger VPS (Ubuntu): Caddy (automatic HTTPS) -> 3 app replicas -> Postgres 16.
+# Migrations run once in their own container before the app starts. Started by setup.sh.
+name: complete
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment: { POSTGRES_USER: round, POSTGRES_PASSWORD: "${DB_PASSWORD}", POSTGRES_DB: round }
+    command: ["postgres", "-c", "max_connections=200", "-c", "shared_buffers=${PG_SHARED_BUFFERS:-1GB}", "-c", "effective_cache_size=${PG_CACHE:-3GB}", "-c", "work_mem=16MB"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U round"], interval: 5s, retries: 20 }
+
+  migrate:
+    build: ../..
+    env_file: [../../.env]
+    environment: { DATABASE_URL: "postgres://round:${DB_PASSWORD}@db:5432/round", SEED_DEMO: "${SEED_DEMO:-0}" }
+    depends_on: { db: { condition: service_healthy } }
+    command: ["pnpm", "db:migrate"]
+    restart: "no"
+
+  app:
+    build: ../..
+    restart: unless-stopped
+    env_file: [../../.env]
+    environment: { DATABASE_URL: "postgres://round:${DB_PASSWORD}@db:5432/round", DB_POOL_MAX: "15", JOBS_POOL_MAX: "3" }
+    depends_on: { migrate: { condition: service_completed_successfully } }
+    command: ["pnpm", "--filter", "@round/web", "start"]
+    deploy: { replicas: "${APP_REPLICAS:-3}" }
+
+  caddy:
+    image: caddy:2.8.4
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment: { DOMAIN: "${DOMAIN}" }
+    volumes: ["./Caddyfile:/etc/caddy/Caddyfile:ro", "caddy_data:/data", "caddy_config:/config"]
+    depends_on: [app]
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

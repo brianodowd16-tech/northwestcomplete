@@ -1,0 +1,20 @@
+# HTTPS certificates are issued and renewed automatically for {$DOMAIN}.
+{$DOMAIN}, www.{$DOMAIN} {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+	# Spread requests over every app replica Docker knows about; live screens (SSE) stream unbuffered.
+	reverse_proxy {
+		dynamic a app 3000 {
+			refresh 10s
+		}
+		lb_policy least_conn
+		health_uri /api/health
+		health_interval 15s
+		flush_interval -1
+	}
+}

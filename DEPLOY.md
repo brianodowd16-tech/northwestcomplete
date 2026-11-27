@@ -2,6 +2,28 @@
 
 One Docker image runs everything (guest app, staff screens, back office, scheduled jobs). It applies new database migrations on start (never drops data) and answers `/api/health`.
 
+## 0. Hostinger VPS (quickest path)
+
+Files in `deploy/hostinger/`: Caddy (automatic HTTPS) → 3 app replicas → Postgres 16, migrations run once
+before the app starts, daily database backups, firewall. Needs a **VPS** (KVM 4 or larger: 4 vCPU, 16 GB;
+Ubuntu 24.04, EU data centre). Hostinger's shared web hosting can't run this (no Postgres, no long-running Node).
+
+1. **hPanel → VPS:** install Ubuntu 24.04 and note the server's IP. **hPanel → Domains → DNS:** point
+   `complete.pub` and `www` (A records) at that IP.
+2. **SSH in as root** and clone the private repo with a read-only GitHub token or deploy key:
+   `git clone https://<token>@github.com/brianodowd16-tech/northwestcomplete.git /opt/complete`
+3. `bash /opt/complete/deploy/hostinger/setup.sh complete.pub`: installs Docker, opens ports 22/80/443,
+   writes `/opt/complete/.env` with fresh secrets (session, encryption key, database and `/ops` passwords),
+   sets up backups and starts everything. It prints the `/ops` password.
+4. Fill in `/opt/complete/.env`: Hostinger mailbox SMTP (`SMTP_USER`/`SMTP_PASS`), Twilio, `ANTHROPIC_API_KEY`,
+   Xero; VAPID keys from `docker compose -f deploy/hostinger/docker-compose.yml run --rm app npx web-push generate-vapid-keys`.
+   Then `bash /opt/complete/deploy/hostinger/update.sh`.
+5. Check `https://complete.pub/api/health?deep=1` and `https://complete.pub/ops`.
+
+Every later release: `bash /opt/complete/deploy/hostinger/update.sh` (pull, rebuild, migrate once, restart).
+Backups: `/var/backups/complete/*.dump` (14 days); copy them off the server too (Hostinger VPS snapshots, or rsync).
+More traffic: set `APP_REPLICAS=4` in `.env` and run update.sh; past one VPS, move Postgres to its own server.
+
 ## 1. Hosting (EU)
 
 Any host that runs a Dockerfile, with Postgres 16 in the EU. For example:
