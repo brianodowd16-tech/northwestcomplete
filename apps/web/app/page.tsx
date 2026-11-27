@@ -5,8 +5,10 @@ export const dynamic = "force-dynamic";
 
 const FEATURES: [string, string][] = [
   ["Order from the table", "Guests scan a QR code, order and pay on their phone. No app download needed."],
+  ["Made for a night out", "Group chat for the table, the crew's Spotify playlist and song requests to the bar."],
+  ["Split it, no awkward maths", "Everyone pays for their own order; shared rounds, tickets and taxis split in a tap."],
   ["Paid straight to you", "Payments go into your own myPOS account. We never hold your money."],
-  ["Loyalty that brings them back", "Points, levels, birthday credit and referrals, run automatically."],
+  ["Loyalty that brings them back", "Points, levels and leaderboards for your pub, the county and Ireland."],
   ["Bar and kitchen screens", "Drinks to the bar, food to the kitchen, with ID checks built in."],
   ["Xero every night", "One tidy invoice a day, split by VAT rate."],
   ["Google reviews", "Every paying guest is asked to review you, the way Google allows."],
@@ -35,9 +37,9 @@ export default async function Home() {
       <section className="landing-hero">
         <div className="stack" style={{ gap: 12 }}>
           <span className="label">For bars, hotels and restaurants</span>
-          <h1>Table ordering, payments and loyalty in one app.</h1>
+          <h1>The app the whole table opens.</h1>
           <p className="muted" style={{ margin: 0, fontSize: 17 }}>
-            Your own branded app for guests on iPhone, Android and the web. Set up in minutes, free for 30 days.
+            Ordering, payments and loyalty under your brand, plus the group chat, bill split and leaderboard that bring the whole crew back. iPhone, Android and the web; set up in minutes, free for 30 days.
           </p>
           <div className="row wrap" style={{ justifyContent: "flex-start" }}>
             <Link className="btn" href="/start">
@@ -46,6 +48,9 @@ export default async function Home() {
             <a className="btn ghost" href="#venues">
               I&apos;m a guest
             </a>
+            <Link className="btn ghost" href="/leaderboards">
+              Leaderboards
+            </Link>
           </div>
           <span className="muted small">€99 a month after the trial, plus 1% of app payments. No card needed to start.</span>
         </div>
@@ -72,7 +77,7 @@ export default async function Home() {
       <section id="venues" className="stack">
         <h2 style={{ fontSize: 22 }}>Order at a venue</h2>
         <p className="muted small" style={{ margin: 0 }}>
-          At a table? Scan the QR code on it. Joining a venue&apos;s rewards is free: you need to be 18 or over.
+          At a table? Scan the QR code on it, then start a crew so your friends can join. Joining a venue&apos;s rewards is free: you need to be 18 or over.
         </p>
         {venues.length === 0 ? (
           <div className="empty">No venues yet.</div>
