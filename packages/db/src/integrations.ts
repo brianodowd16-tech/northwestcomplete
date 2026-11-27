@@ -179,8 +179,11 @@ export async function dayOrders(venue: Venue, date: string): Promise<{ paid: Day
           or(and(gte(t.orders.paidAt, lo), lt(t.orders.paidAt, hi)), and(isNotNull(t.orders.refundedAt), gte(t.orders.refundedAt, lo), lt(t.orders.refundedAt, hi))),
         ),
       );
-    const paid = os.filter((o) => o.paidAt && localDate(o.paidAt, venue.timezone) === date);
-    const refunded = os.filter((o) => o.refundedAt && localDate(o.refundedAt, venue.timezone) === date);
+    // A shop that already sends its own sales to the accounts: leave its orders out so they're not counted twice.
+    const [woo] = await tx.select().from(t.venueIntegration).where(and(eq(t.venueIntegration.venueId, venue.id), eq(t.venueIntegration.kind, "woocommerce")));
+    const skip = (o: (typeof os)[number]) => o.provider === "woocommerce" && (woo?.config as { inAccounts?: boolean } | undefined)?.inAccounts === false;
+    const paid = os.filter((o) => !skip(o) && o.paidAt && localDate(o.paidAt, venue.timezone) === date);
+    const refunded = os.filter((o) => !skip(o) && o.refundedAt && localDate(o.refundedAt, venue.timezone) === date);
     const ids = [...new Set([...paid, ...refunded].map((o) => o.id))];
     const lines = ids.length ? await tx.select().from(t.orderLine).where(inArray(t.orderLine.orderId, ids)) : [];
     const toDay = (o: (typeof os)[number]): DayOrder => ({

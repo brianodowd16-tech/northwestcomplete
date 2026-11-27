@@ -49,7 +49,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
       }
       case "woocommerce": {
         if (!key) return json({ error: "SECRETS_KEY isn't set on the server" }, 500);
-        await saveConnection(m.venue, "woocommerce", { store: checkStoreUrl(String(b.store ?? "")) }, { consumerKey: b.consumerKey ?? "", consumerSecret: b.consumerSecret ?? "", webhookSecret: b.webhookSecret ?? "" }, key);
+        await saveConnection(m.venue, "woocommerce", { store: checkStoreUrl(String(b.store ?? "")), inAccounts: b.inAccounts === "on" }, { consumerKey: b.consumerKey ?? "", consumerSecret: b.consumerSecret ?? "", webhookSecret: b.webhookSecret ?? "" }, key);
         return json({ message: "Shop connected" });
       }
       case "trybe": {

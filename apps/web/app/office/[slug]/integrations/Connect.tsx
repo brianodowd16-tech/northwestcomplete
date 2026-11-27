@@ -18,7 +18,7 @@ export async function ConnectSections({ venue, api }: { venue: Venue; api: strin
   const st = await connectionStatus(venue, secretsKey());
   const woo = st.woocommerce, trybe = st.trybe, mews = st.mews, rb = st.revolut_business, mp = st.mypos_reports;
   const cfg = <T,>(x: { config: Record<string, unknown> } | undefined) => (x?.config ?? {}) as Partial<T>;
-  const wc = cfg<{ store: string }>(woo), tc = cfg<{ siteId: string; playground: boolean }>(trybe), mc = cfg<{ platform: string; serviceId: string; taxCodes: { "9": string; "23": string }; accountingCategoryId: string }>(mews);
+  const wc = cfg<{ store: string; inAccounts: boolean }>(woo), tc = cfg<{ siteId: string; playground: boolean }>(trybe), mc = cfg<{ platform: string; serviceId: string; taxCodes: { "9": string; "23": string }; accountingCategoryId: string }>(mews);
   const rc = cfg<{ env: string; clientId: string; issuer: string; maxFeePct: number }>(rb), pc = cfg<{ env: string }>(mp);
   const on = (x: unknown, label: string) => (x ? <span className="chip ok">{label}</span> : <span className="chip plain">Not set up</span>);
   return (
@@ -36,6 +36,7 @@ export async function ConnectSections({ venue, api }: { venue: Venue; api: strin
             <label className="field">Consumer key{saved(woo?.has, "consumerKey")}<input name="consumerKey" autoComplete="off" placeholder="ck_…" /></label>
             <label className="field">Consumer secret{saved(woo?.has, "consumerSecret")}<input name="consumerSecret" type="password" autoComplete="off" placeholder="cs_…" /></label>
           </div>
+          <label className="toggle small"><input type="checkbox" name="inAccounts" defaultChecked={wc.inAccounts !== false} /> Include shop orders in the nightly Xero/Sage sales (untick if your shop already sends its sales to your accounts)</label>
         </SecretForm>
         {woo && <ActionForm endpoint={api} action="woo-sync" className="row" okText="Done"><button className="btn sm ghost">Fetch the last two days now</button></ActionForm>}
         {await log(venue, "woocommerce")}
