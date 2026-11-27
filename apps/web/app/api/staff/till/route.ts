@@ -1,6 +1,7 @@
 import { closeTab, refundTillSale, ringUpSale } from "@round/db/till";
 import { venueById } from "@round/db/services";
 import { after } from "next/server";
+import { chargeRoomInMews } from "@/lib/connect";
 import { postRoomCharge } from "@/lib/partners";
 import { currentStaff, errorJson, json } from "@/lib/server";
 
@@ -34,7 +35,9 @@ export async function POST(req: Request) {
     });
     if (r.order.provider === "room" && !r.repeat)
       after(() =>
-        postRoomCharge(venue, { orderNumber: r.order.number, roomNumber: r.order.roomNumber ?? "", amountCents: r.order.amountPaidCents, lines: [] }).catch((e) => console.error("pms", e)),
+        chargeRoomInMews(venue, r.order.id, r.order.roomNumber ?? "")
+          .then((done) => done || postRoomCharge(venue, { orderNumber: r.order.number, roomNumber: r.order.roomNumber ?? "", amountCents: r.order.amountPaidCents, lines: [] }))
+          .catch((e) => console.error("pms", e)),
       );
     return json({ number: r.order.number, totalCents: r.order.amountPaidCents, changeCents: r.changeCents, repeat: r.repeat });
   } catch (e) {

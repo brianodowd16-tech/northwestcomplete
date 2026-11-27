@@ -36,7 +36,7 @@ import { systemDb, withTenant } from "./index";
 import * as t from "./schema";
 import { Forbidden, NotFound, type Venue } from "./services";
 
-export type IntegrationKind = "revolut" | "mypos" | "xero" | "delivery" | "pms" | "sage" | "payroll" | "deel" | "bizimply" | "meta" | "google_business" | "social" | "homeassistant" | "lifx" | "controls_webhook";
+export type IntegrationKind = "revolut" | "mypos" | "xero" | "delivery" | "pms" | "sage" | "payroll" | "deel" | "bizimply" | "meta" | "google_business" | "social" | "homeassistant" | "lifx" | "controls_webhook" | "woocommerce" | "trybe" | "mews" | "revolut_business" | "mypos_reports";
 
 export async function loadIntegration(venue: Venue, kind: IntegrationKind) {
   return withTenant(venue.tenantId, async (tx) => {
@@ -245,7 +245,7 @@ export function venuesWithXero() {
 
 // ---------------------------------------------------------------- sync records (Xero, Sage, payroll)
 
-export type SyncTarget = "xero" | "sage" | "payroll" | "deel" | "bizimply";
+export type SyncTarget = "xero" | "sage" | "payroll" | "deel" | "bizimply" | "woocommerce" | "trybe" | "mews" | "revolut_business" | "mypos";
 
 /** Records one day (or pay period) sent to an outside system, counting attempts. */
 export async function recordSync(venue: Venue, target: SyncTarget, date: string, status: "done" | "nothing" | "error", ref: string | null, error: string | null) {

@@ -7,6 +7,7 @@ import { ActionForm } from "@/components/ActionForm";
 import { SecretForm } from "@/components/SecretForm";
 import { StaffNav } from "@/components/StaffNav";
 import { VenueTheme } from "@/components/VenueTheme";
+import { ConnectSections } from "./Connect";
 import { appUrl, requireStaffFor, sageApp, secretsKey } from "@/lib/server";
 
 export const dynamic = "force-dynamic";
@@ -205,6 +206,8 @@ export default async function Integrations({ params, searchParams }: { params: P
         </div>
         {bizLog.length > 0 && <table><tbody>{bizLog.map((h) => <tr key={h.id}><td>{h.businessDate}</td><td>{chip(h.status)}</td><td className="small muted">{h.error ?? h.invoiceId ?? ""}</td></tr>)}</tbody></table>}
       </section>
+
+      <ConnectSections venue={venue} api={api} />
 
       <ActionForm endpoint={api} action="bookings" className="panel stack">
         <h3>Table bookings</h3>

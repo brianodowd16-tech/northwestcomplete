@@ -1,5 +1,6 @@
 import { EVENT_KINDS } from "@round/core";
 import { whatsOn } from "@round/db/events";
+import { guestPartnerBookings } from "@round/db/connect";
 import { guestHub } from "@round/db/growth";
 import { liveVenues } from "@round/db/services";
 import Link from "next/link";
@@ -13,6 +14,7 @@ export default async function Me() {
   const guest = await currentGuest();
   const all = await liveVenues();
   const hub = guest ? await guestHub(guest.id) : [];
+  const spa = guest ? await guestPartnerBookings(guest.email, guest.name) : [];
   const mine = new Set(hub.map((h) => h.venue.id));
   const end = new Date();
   end.setHours(23, 59, 0, 0);
@@ -26,6 +28,17 @@ export default async function Me() {
         <Link className="btn sm" href="/me/groups">👥 Groups, nights out and splitting</Link>
         <Link className="btn sm ghost" href="/leaderboards">🏆 Leaderboards</Link>
       </div>
+      {spa.length > 0 && (
+        <section className="card stack" style={{ gap: 6 }}>
+          <span className="label">Your spa and activities</span>
+          {spa.map((b) => (
+            <div key={b.id} className="row small">
+              <span><b>{b.items.join(", ") || "Booking"}</b> · {b.venueName}</span>
+              <span className="muted num">{b.startsAt?.toLocaleString("en-IE", { timeZone: "Europe/Dublin", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
+            </div>
+          ))}
+        </section>
+      )}
       {hub.length > 0 && (
         <section className="stack" style={{ gap: 8 }}>
           <h3>Your rewards</h3>

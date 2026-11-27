@@ -6,6 +6,7 @@ import { reconcilePending, venueById } from "@round/db/services";
 import PgBoss from "pg-boss";
 import { refreshTopGames } from "./lib/sportsfeed";
 import { uploadBizimply } from "./lib/bizimply";
+import { backfillWoo, pullTrybe, reconcileMypos, reconcileRevolutBusiness } from "./lib/connect";
 import { sendDeel } from "./lib/deelsync";
 import { healthCheck, monthlyBilling, onboardingNudges, retention } from "./lib/autopilot";
 import { sendDueEmails } from "./lib/mail";
@@ -20,6 +21,8 @@ const XERO_NIGHTLY = "xero-nightly";
 const TOP_GAMES = "top-games";
 const PAYROLL = "payroll-send";
 const BIZIMPLY = "bizimply-sales";
+const PARTNERS = "partner-sync";
+const MONEY_CHECK = "money-reconcile";
 const HEALTH = "venue-health";
 const NUDGES = "onboarding-nudges";
 const BILLING = "monthly-billing";
@@ -89,6 +92,18 @@ async function bizimplyDaily() {
     }
 }
 
+/** Shop orders a webhook missed, and the next two weeks of spa bookings. */
+async function partnersHourly() {
+  for (const venue of await venuesWith("woocommerce")) if (venue.status === "live") await backfillWoo(venue);
+  for (const venue of await venuesWith("trybe")) await pullTrybe(venue);
+}
+
+/** Card money against myPOS's own report and the payouts in Revolut Business. Mismatches alert managers. */
+async function moneyDaily() {
+  for (const venue of await venuesWith("mypos_reports")) await reconcileMypos(venue);
+  for (const venue of await venuesWith("revolut_business")) await reconcileRevolutBusiness(venue);
+}
+
 /** Everything that must run every minute, each tracked on its own so one failure never blocks the others. */
 async function everyMinute() {
   const parts: [string, () => Promise<unknown>][] = [["payments", reconcile], ["emails", sendDueEmails], ["scenes", sceneTick]];
@@ -103,6 +118,8 @@ const SCHEDULE: [string, string, () => Promise<unknown>, { tz: string }?][] = [
   [HEALTH, "7 * * * *", healthCheck],
   [XERO_NIGHTLY, "15 3 * * *", accountsNightly, DUBLIN],
   [BIZIMPLY, "35 4 * * *", bizimplyDaily, DUBLIN], // before Bizimply's 6.30am pick-up
+  [PARTNERS, "23 * * * *", partnersHourly],
+  [MONEY_CHECK, "45 7 * * *", moneyDaily, DUBLIN], // after overnight settlements land
   [TOP_GAMES, "40 5 * * *", async () => `top games: ${await refreshTopGames()} listed`, DUBLIN],
   [PAYROLL, "20 6 * * *", payrollDaily, DUBLIN], // pay periods close at midnight
   [NUDGES, "5 10 * * *", onboardingNudges, DUBLIN],

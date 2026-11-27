@@ -1,3 +1,4 @@
+import { partnerBookings } from "@round/db/connect";
 import { venueBookings } from "@round/db/growth";
 import { ActionButton } from "@/components/ActionButton";
 import { StaffNav } from "@/components/StaffNav";
@@ -14,6 +15,7 @@ export default async function Bookings({ params }: { params: Promise<{ slug: str
   const start = new Date();
   start.setHours(0, 0, 0, 0);
   const list = await venueBookings(venue, start, new Date(start.getTime() + 2 * 86_400_000));
+  const spa = await partnerBookings(venue, start, new Date(start.getTime() + 2 * 86_400_000));
   const tz = venue.timezone;
   const covers = list.filter((b) => b.status !== "cancelled" && b.startsAt.getTime() < start.getTime() + 86_400_000).reduce((s, b) => s + b.partySize, 0);
   return (
@@ -54,6 +56,19 @@ export default async function Bookings({ params }: { params: Promise<{ slug: str
               ))}
             </tbody>
           </table>
+        </section>
+      )}
+      {spa.length > 0 && (
+        <section className="panel">
+          <h3>Spa and activities (Trybe)</h3>
+          <table><tbody>
+            {spa.map((b) => (
+              <tr key={b.id}>
+                <td className="num">{b.startsAt?.toLocaleString("en-IE", { timeZone: tz, weekday: "short", hour: "2-digit", minute: "2-digit" })}</td>
+                <td><b>{b.guestName}</b><div className="muted small">{b.items.join(", ")}{b.ref ? ` · ${b.ref}` : ""}</div></td>
+              </tr>
+            ))}
+          </tbody></table>
         </section>
       )}
     </div>

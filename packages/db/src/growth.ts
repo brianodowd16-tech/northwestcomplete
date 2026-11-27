@@ -164,7 +164,7 @@ export async function applyPrice(venue: Venue, menuItemId: string, priceCents: n
  * Paid on the platform; priced from the venue's own menu; both stations get dockets; stock goes down.
  * Idempotent by the platform's order id.
  */
-export async function ringUpDelivery(venue: Venue, input: { platform: string; externalId: string; customerName?: string; items: { plu?: string; name?: string; qty: number }[] }) {
+export async function ringUpDelivery(venue: Venue, input: { platform: string; externalId: string; customerName?: string; items: { plu?: string; name?: string; qty: number }[] }, opts: { skipUnknown?: boolean } = {}) {
   const platform = String(input.platform ?? "").toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 30);
   if (!platform || !input.externalId) throw new CartError("Missing platform or order id");
   return withTenant(venue.tenantId, async (tx) => {
@@ -175,7 +175,9 @@ export async function ringUpDelivery(venue: Venue, input: { platform: string; ex
     const find = (i: { plu?: string; name?: string }) =>
       menu.find((m) => (i.plu && m.externalItemId === i.plu) || (i.plu && m.id === i.plu)) ?? menu.find((m) => i.name && m.name.toLowerCase() === i.name.trim().toLowerCase());
     const unknown = input.items.filter((i) => !find(i)).map((i) => i.plu ?? i.name);
-    if (unknown.length) throw new CartError(`Not on the menu: ${unknown.join(", ")}`);
+    if (unknown.length && !opts.skipUnknown) throw new CartError(`Not on the menu: ${unknown.join(", ")}`);
+    input = { ...input, items: input.items.filter((i) => find(i)) }; // shops sell things that aren't on the menu (vouchers, merch)
+    if (!input.items.length) return { order: null, repeat: false };
     const priced = new Map(menu.map((m) => [m.id, { ...toPriced(m), soldOut: false }])); // the platform already accepted it
     const cart = priceCart(priced, input.items.map((i) => ({ menuItemId: find(i)!.id, qty: Number(i.qty) })), "delivery");
     const [order] = await tx

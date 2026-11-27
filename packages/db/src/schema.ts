@@ -106,7 +106,7 @@ export const venueIntegration = pgTable(
     id: id(),
     tenantId: tenantId(),
     venueId: uuid("venue_id").notNull().references(() => venue.id),
-    kind: text("kind", { enum: ["revolut", "mypos", "xero", "delivery", "pms", "sage", "payroll", "deel", "bizimply", "meta", "google_business", "social", "homeassistant", "lifx", "controls_webhook"] }).notNull(),
+    kind: text("kind", { enum: ["revolut", "mypos", "xero", "delivery", "pms", "sage", "payroll", "deel", "bizimply", "meta", "google_business", "social", "homeassistant", "lifx", "controls_webhook", "woocommerce", "trybe", "mews", "revolut_business", "mypos_reports"] }).notNull(),
     config: jsonb("config").notNull().$type<Record<string, unknown>>(),
     secretEnc: text("secret_enc"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -343,7 +343,7 @@ export const xeroSync = pgTable(
     tenantId: tenantId(),
     venueId: uuid("venue_id").notNull().references(() => venue.id),
     /** which system the day (or pay period, keyed by its first day) was sent to */
-    target: text("target", { enum: ["xero", "sage", "payroll", "deel", "bizimply"] }).notNull().default("xero"),
+    target: text("target", { enum: ["xero", "sage", "payroll", "deel", "bizimply", "woocommerce", "trybe", "mews", "revolut_business", "mypos"] }).notNull().default("xero"),
     businessDate: date("business_date").notNull(),
     status: text("status", { enum: ["done", "nothing", "error"] }).notNull(),
     invoiceId: text("invoice_id"),
@@ -1081,3 +1081,26 @@ export const TENANT_TABLES = [
   "agent_grant",
   "agent_action",
 ] as const;
+
+/** A booking made in a partner system (Trybe spa and activities), shown to staff and to the guest. Idempotent by the partner's id. */
+export const partnerBooking = pgTable(
+  "partner_booking",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    source: text("source", { enum: ["trybe"] }).notNull(),
+    externalId: text("external_id").notNull(),
+    ref: text("ref"),
+    status: text("status", { enum: ["confirmed", "cancelled"] }).notNull(),
+    guestName: text("guest_name").notNull(),
+    /** lower-case, to show the booking in the guest's own hub */
+    email: text("email"),
+    startsAt: timestamp("starts_at", { withTimezone: true }),
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    items: jsonb("items").notNull().default([]).$type<string[]>(),
+    totalCents: integer("total_cents").notNull().default(0),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("partner_booking_ext").on(t.venueId, t.source, t.externalId), index("partner_booking_when").on(t.venueId, t.startsAt), index("partner_booking_email").on(t.email)],
+);
