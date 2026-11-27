@@ -1,3 +1,4 @@
+import { cached } from "./cache";
 import {
   ageOn,
   assertCanAdvance,
@@ -44,7 +45,7 @@ export type Venue = typeof t.venue.$inferSelect;
 
 /** Platform lookup (no tenant yet): slug → venue. */
 export async function venueBySlug(slug: string): Promise<Venue> {
-  const [v] = await systemDb().select().from(t.venue).where(eq(t.venue.slug, slug));
+  const v = await cached(`venue:slug:${slug}`, 5_000, async () => (await systemDb().select().from(t.venue).where(eq(t.venue.slug, slug)))[0] ?? null);
   if (!v) throw new NotFound("Venue not found");
   return v;
 }
@@ -100,6 +101,10 @@ export function toPriced(m: typeof t.menuItem.$inferSelect): PricedMenuItem {
 }
 
 export async function menu(venue: Venue) {
+  return cached(`menu:${venue.id}`, 5_000, () => menuUncached(venue));
+}
+
+async function menuUncached(venue: Venue) {
   return withTenant(venue.tenantId, async (tx) => {
     const cats = await tx.select().from(t.menuCategory).where(eq(t.menuCategory.venueId, venue.id)).orderBy(asc(t.menuCategory.sort));
     const items = await tx

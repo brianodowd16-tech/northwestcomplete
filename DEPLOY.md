@@ -38,3 +38,25 @@ Keep secrets in the host's secret settings, never in the repo.
 - Open `https://complete.pub/api/health`: it should say `{"ok":true}`.
 - Sign up a venue at `https://complete.pub/start`, import a myPOS **test** configuration pack, place a test order, go live.
 - Each pilot venue imports its own myPOS configuration pack and sets its VAT number, then presses Go live.
+
+
+## Sizing for 10,000 users (measured Nov 2026)
+
+One app process serves a menu page in ~15–20 ms and sustains ~65 requests/second per CPU core. A
+load test (`scripts/loadtest.mjs`) with 150 simultaneous signed-in users across 3 processes ran
+5,424 requests, including 1,090 orders in 45 seconds, with **zero errors**, on a 4-core box that also
+ran Postgres and the load generator. For 10,000 registered guests (allow ~1,000 active at the
+Friday-night peak, ~150–300 requests/second):
+
+- **App:** 4 instances (2 vCPU, 1 GB each) behind the load balancer, `DB_POOL_MAX=10`. Any number of
+  instances is safe: rate limits, job locks and caches are shared or short-lived; each instance holds
+  one LISTEN connection for live screens.
+- **Postgres 16 (EU):** 4 vCPU / 16 GB, daily backups + point-in-time recovery.
+  Connections needed ≈ instances × (`DB_POOL_MAX` + `JOBS_POOL_MAX` + 1) + headroom; keep it under
+  `max_connections`. Above ~8 instances, put **PgBouncer (transaction mode)** in front and set
+  `DATABASE_URL` to PgBouncer and `DATABASE_URL_DIRECT` to Postgres (LISTEN and the job queue need a
+  direct connection; tenant settings are per transaction, so transaction pooling is safe).
+- **Caching:** venue and menu reads are cached 5 s per process, What's on 30 s; writes clear the
+  cache on the server that made them, other servers catch up within the TTL.
+- **Before launch:** run `scripts/loadtest.mjs` against staging at 2× expected peak and watch
+  `/api/health?deep=1` and `/ops`.

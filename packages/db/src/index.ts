@@ -1,3 +1,4 @@
+import { clearCache } from "./cache";
 import { sql } from "drizzle-orm";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import pg from "pg";
@@ -12,7 +13,7 @@ export type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 const g = globalThis as { __roundPool?: pg.Pool };
 
 export function pool(): pg.Pool {
-  g.__roundPool ??= new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 10 });
+  g.__roundPool ??= new pg.Pool({ connectionString: process.env.DATABASE_URL, max: Number(process.env.DB_POOL_MAX) || 10, idleTimeoutMillis: 30_000, connectionTimeoutMillis: 10_000 });
   return g.__roundPool;
 }
 
@@ -26,12 +27,29 @@ export function systemDb(): Db {
 }
 
 /** Runs `fn` in a transaction where RLS limits every query to one tenant. */
+// Writes to these tables clear the per-process read cache (see cache.ts) once they commit.
+const CACHED_TABLES = new Set<unknown>([schema.venue, schema.menuItem, schema.menuCategory, schema.venueEvent]);
+
 export async function withTenant<T>(tenantId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
-  return systemDb().transaction(async (tx) => {
-    await tx.execute(sql`set local role round_app`);
-    await tx.execute(sql`select set_config('app.tenant_id', ${tenantId}, true)`);
-    return fn(tx);
+  let touched = false;
+  const result = await systemDb().transaction(async (tx) => {
+    // One round trip: drop to the RLS role and set the tenant for this transaction only.
+    await tx.execute(sql`select set_config('role', 'round_app', true), set_config('app.tenant_id', ${tenantId}, true)`);
+    const watched = new Proxy(tx, {
+      get(target, prop, receiver) {
+        const v = Reflect.get(target, prop, receiver);
+        if ((prop === "insert" || prop === "update" || prop === "delete") && typeof v === "function")
+          return (table: unknown) => {
+            if (CACHED_TABLES.has(table)) touched = true;
+            return v.call(target, table);
+          };
+        return typeof v === "function" ? v.bind(target) : v;
+      },
+    });
+    return fn(watched);
   });
+  if (touched) clearCache();
+  return result;
 }
 
 export const EVENTS_CHANNEL = "round_events";

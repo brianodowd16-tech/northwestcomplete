@@ -14,7 +14,7 @@ function bus(): Bus {
   const emitter = new EventEmitter();
   emitter.setMaxListeners(0);
   const ready = (async () => {
-    const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
+    const client = new pg.Client({ connectionString: process.env.DATABASE_URL_DIRECT || process.env.DATABASE_URL }) // LISTEN needs a direct (session) connection, not PgBouncer;
     await client.connect();
     client.on("notification", (msg) => {
       if (!msg.payload) return;

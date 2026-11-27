@@ -111,7 +111,7 @@ const SCHEDULE: [string, string, () => Promise<unknown>, { tz: string }?][] = [
 ];
 
 export async function startJobs() {
-  const boss = new PgBoss({ connectionString: process.env.DATABASE_URL, schema: "pgboss" });
+  const boss = new PgBoss({ connectionString: process.env.DATABASE_URL_DIRECT || process.env.DATABASE_URL, schema: "pgboss", max: Number(process.env.JOBS_POOL_MAX) || 3 });
   boss.on("error", (e) => console.error("jobs", e));
   await boss.start();
   // Older per-minute queues were folded into MINUTE: drop their stored schedules.
@@ -125,4 +125,12 @@ export async function startJobs() {
   return boss;
 }
 
-startJobs().catch((e) => console.error("jobs failed to start", e));
+// If the database isn't reachable at boot (a deploy during a blip), keep retrying: payments,
+// emails and syncs must never silently stay off until the next restart.
+function boot(attempt = 1) {
+  startJobs().catch((e) => {
+    console.error(`jobs failed to start (attempt ${attempt}), retrying`, e instanceof Error ? e.message : e);
+    setTimeout(() => boot(attempt + 1), Math.min(60_000, 2_000 * attempt));
+  });
+}
+boot();

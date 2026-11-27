@@ -142,7 +142,7 @@ export const staffUser = pgTable("staff_user", {
   totpSecretEnc: text("totp_secret_enc"),
   totpLastStep: integer("totp_last_step"),
   mustChangePassword: boolean("must_change_password").notNull().default(false),
-});
+}, (t) => [index("staff_user_venue").on(t.venueId)]);
 
 export const menuCategory = pgTable("menu_category", {
   id: id(),
@@ -173,7 +173,7 @@ export const menuItem = pgTable("menu_item", {
   externalItemId: text("external_item_id"),
   sort: integer("sort").notNull().default(0),
   createdAt: createdAt(),
-});
+}, (t) => [index("menu_item_venue").on(t.venueId)]);
 
 export const customer = pgTable("customer", {
   id: id(),
@@ -201,7 +201,7 @@ export const otpCode = pgTable("otp_code", {
   codeHash: text("code_hash").notNull(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   attempts: integer("attempts").notNull().default(0),
-});
+}, (t) => [index("otp_code_phone").on(t.phone)]);
 
 export const membership = pgTable(
   "membership",
@@ -214,7 +214,7 @@ export const membership = pgTable(
     referredByMembershipId: uuid("referred_by_membership_id"),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex("membership_programme_customer").on(t.programmeId, t.customerId)],
+  (t) => [index("membership_customer").on(t.customerId), uniqueIndex("membership_programme_customer").on(t.programmeId, t.customerId)],
 );
 
 export const loyaltyLedger = pgTable(
@@ -229,7 +229,7 @@ export const loyaltyLedger = pgTable(
     orderId: uuid("order_id"),
     createdAt: createdAt(),
   },
-  (t) => [index("ledger_membership").on(t.membershipId)],
+  (t) => [index("ledger_order").on(t.orderId), index("ledger_membership").on(t.membershipId)],
 );
 
 export const orders = pgTable(
@@ -280,7 +280,7 @@ export const orders = pgTable(
     paidAt: timestamp("paid_at", { withTimezone: true }),
     createdAt: createdAt(),
   },
-  (t) => [index("orders_venue_created").on(t.venueId, t.createdAt)],
+  (t) => [index("orders_venue_paid").on(t.venueId, t.paidAt), index("orders_customer").on(t.customerId, t.createdAt), index("orders_session").on(t.sessionId), index("orders_tab").on(t.tabId), index("orders_venue_created").on(t.venueId, t.createdAt)],
 );
 
 export const orderLine = pgTable("order_line", {
@@ -298,7 +298,7 @@ export const orderLine = pgTable("order_line", {
   containsAlcohol: boolean("contains_alcohol").notNull(),
   /** The guest's note for the kitchen or bar ("no onions"). */
   note: text("note"),
-});
+}, (t) => [index("order_line_order").on(t.orderId)]);
 
 export const docket = pgTable(
   "docket",
@@ -330,7 +330,7 @@ export const webhookEvent = pgTable("webhook_event", {
   processedAt: timestamp("processed_at", { withTimezone: true }),
   error: text("error"),
   receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [index("webhook_event_order").on(t.provider, t.providerOrderId)]);
 
 /** One row per venue per trading day pushed to Xero, so the nightly job never posts a day twice. */
 export const xeroSync = pgTable(
@@ -815,7 +815,7 @@ export const groupMember = pgTable(
     joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
     leftAt: timestamp("left_at", { withTimezone: true }),
   },
-  (t) => [uniqueIndex("group_member_unique").on(t.groupId, t.customerId)],
+  (t) => [index("group_member_customer").on(t.customerId), uniqueIndex("group_member_unique").on(t.groupId, t.customerId)],
 );
 
 export const groupMessage = pgTable(
@@ -900,7 +900,7 @@ export const billSplit = pgTable("bill_split", {
   lines: jsonb("lines").$type<{ id: string; name: string; cents: number; ticket?: boolean }[]>().notNull().default([]),
   cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
   createdAt: createdAt(),
-});
+}, (t) => [index("bill_split_group").on(t.groupId)]);
 
 export const billShare = pgTable(
   "bill_share",

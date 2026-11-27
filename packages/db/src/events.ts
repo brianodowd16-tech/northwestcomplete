@@ -1,3 +1,4 @@
+import { cached } from "./cache";
 import { EventError, occurrences, parseFplCode, validateEvent, type EventInput, type StoredEvent } from "@round/core";
 import { and, asc, eq, gte, lt, sql } from "drizzle-orm";
 import { systemDb } from "./index";
@@ -7,6 +8,11 @@ import type { Venue } from "./services";
 
 /** Everything on at the venue between `from` and `to`: its own events (weekly ones expanded) plus, if switched on, the day's top games. */
 export async function whatsOn(venue: Venue, from: Date, to: Date) {
+  const minute = (d: Date) => Math.floor(d.getTime() / 60_000);
+  return cached(`events:${venue.id}:${minute(from)}:${minute(to)}`, 30_000, () => whatsOnUncached(venue, from, to));
+}
+
+async function whatsOnUncached(venue: Venue, from: Date, to: Date) {
   const rows = await withTenant(venue.tenantId, (tx) => tx.select().from(t.venueEvent).where(eq(t.venueEvent.venueId, venue.id)));
   const own = occurrences(rows as StoredEvent[], from, to, venue.timezone);
   if (!venue.autoSports) return own.map((o) => ({ ...o, auto: false }));
