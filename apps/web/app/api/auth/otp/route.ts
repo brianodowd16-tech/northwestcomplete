@@ -10,7 +10,8 @@ export async function POST(req: Request) {
     const p = normalisePhone(phone ?? "");
     if (!p) return json({ error: "Enter a valid mobile number" }, 400);
     // Every text costs money: limit per number and per connection (stops SMS-pumping fraud).
-    if (!await allow(`otp-phone:${p}`, 3, 15 * 60_000) || !await allow(`otp-ip:${await clientIp()}`, 10, 60 * 60_000))
+    // Per phone stops SMS fraud; the per-network cap is high because a busy pub's guests share one Wi-Fi address.
+    if (!await allow(`otp-phone:${p}`, 3, 15 * 60_000) || !await allow(`otp-ip:${await clientIp()}`, 120, 60 * 60_000))
       return json({ error: "Too many codes requested. Wait a few minutes and try again." }, 429);
     const code = await requestOtp(p, sessionSecret());
     const prod = process.env.NODE_ENV === "production";
