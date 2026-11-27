@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     const b = (await req.json()) as { deviceId?: string; action?: string; value?: unknown; sceneId?: string };
     if (b.sceneId) {
       const r = await runScene(venue, String(b.sceneId), { staff });
-      return r.failed ? json({ error: `${r.ok} done, ${r.failed} didn't respond` }, 502) : json({ message: "Scene set" });
+      return r.failed ? json({ error: `${r.ok} done, ${r.failed} didn't respond` }, 424) : json({ message: "Scene set" });
     }
     await runAction(venue, staff, String(b.deviceId ?? ""), String(b.action ?? ""), b.value);
     return json({ ok: true });
