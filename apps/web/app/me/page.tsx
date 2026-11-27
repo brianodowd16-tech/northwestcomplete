@@ -6,6 +6,9 @@ import { liveVenues } from "@round/db/services";
 import Link from "next/link";
 import { eur } from "@/components/format";
 import { currentGuest } from "@/lib/server";
+import { SponsorCard } from "@/components/SponsorCard";
+import { TIERS } from "@round/core";
+import { currentTier } from "@round/db/membership";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +18,7 @@ export default async function Me() {
   const all = await liveVenues();
   const hub = guest ? await guestHub(guest.id) : [];
   const spa = guest ? await guestPartnerBookings(guest.email, guest.name) : [];
+  const tier = guest ? await currentTier(guest.id) : null;
   const mine = new Set(hub.map((h) => h.venue.id));
   const end = new Date();
   end.setHours(23, 59, 0, 0);
@@ -27,7 +31,9 @@ export default async function Me() {
       <div className="row wrap" style={{ justifyContent: "flex-start", gap: 6 }}>
         <Link className="btn sm" href="/me/groups">👥 Groups, nights out and splitting</Link>
         <Link className="btn sm ghost" href="/leaderboards">🏆 Leaderboards</Link>
+        <Link className="btn sm ghost" href="/me/membership">{tier ? `⭐ ${TIERS[tier.tier].name}` : "⭐ Gold & Platinum"}</Link>
       </div>
+      <SponsorCard placement="hub" />
       {spa.length > 0 && (
         <section className="card stack" style={{ gap: 6 }}>
           <span className="label">Your spa and activities</span>

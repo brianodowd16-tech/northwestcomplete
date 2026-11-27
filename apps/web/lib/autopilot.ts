@@ -45,10 +45,10 @@ export async function onboardingNudges(now = new Date()) {
   return sent;
 }
 
-function invoiceText(v: Venue, number: string, period: string, s: Statement) {
+function invoiceText(v: Venue, number: string, period: string, s: Statement & { pointsOwedToVenueCents?: number }) {
   const e = (c: number) => formatEur(c);
   const pay = process.env.BILLING_PAY_INSTRUCTIONS || "Payment details are on your account page; reply to this email with any question.";
-  return `Invoice ${number} from Complete to ${v.name}${v.vatNumber ? ` (VAT ${v.vatNumber})` : ""} for ${period}.\n\nSubscription: ${e(s.subscriptionCents)}\nApp payments: ${e(s.appGrossCents)} less refunds ${e(s.appRefundsCents)} = ${e(s.netAppCents)}\nApp fee (${(s.appFeeBps / 100).toFixed(2)}%): ${e(s.appFeeCents)}\nTotal before VAT: ${e(s.feesExVatCents)}\nVAT (23%): ${e(s.vatCents)}\nTotal: ${e(s.totalCents)}\n\n${pay}\n\nComplete · complete.pub`;
+  return `Invoice ${number} from Complete to ${v.name}${v.vatNumber ? ` (VAT ${v.vatNumber})` : ""} for ${period}.\n\nSubscription: ${e(s.subscriptionCents)}\nApp payments: ${e(s.appGrossCents)} less refunds ${e(s.appRefundsCents)} = ${e(s.netAppCents)}\nApp fee (${(s.appFeeBps / 100).toFixed(2)}%): ${e(s.appFeeCents)}\nTotal before VAT: ${e(s.feesExVatCents)}\nVAT (23%): ${e(s.vatCents)}\nTotal: ${e(s.totalCents)}\n\n${s.pointsOwedToVenueCents ? `Complete Points your guests spent with you: ${e(s.pointsOwedToVenueCents)}. Complete pays you this by bank transfer within 10 days.\n\n` : ""}${pay}\n\nComplete · complete.pub`;
 }
 
 /** On the 1st: each live venue's invoice for the month just ended, issued and emailed once. */

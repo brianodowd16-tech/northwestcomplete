@@ -26,6 +26,7 @@ export function StaffNav({ slug, current, admin, other, setup }: { slug: string;
     ["payroll", "Payroll", `/office/${slug}/payroll`],
     ["planner", "Planner", `/office/${slug}/planner`],
     ["social", "Social", `/office/${slug}/social`],
+    ["enquiries", "Enquiries", `/office/${slug}/enquiries`],
     ["team", "Team", `/office/${slug}/team`],
     ["tables", "Tables", `/office/${slug}/tables`],
     ["devices", "Venue systems", `/office/${slug}/controls`],

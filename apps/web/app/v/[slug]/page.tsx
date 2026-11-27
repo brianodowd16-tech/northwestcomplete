@@ -4,6 +4,7 @@ import { eur } from "@/components/format";
 import { IconGlass, IconStar, IconTable } from "@/components/Icons";
 import { ActiveOrderCard } from "@/components/OrderCards";
 import { SongRequest } from "@/components/SongRequest";
+import { SponsorCard } from "@/components/SponsorCard";
 import { EVENT_KINDS } from "@round/core";
 import { whatsOn } from "@round/db/events";
 import { currentGuest, loadVenue } from "@/lib/server";
@@ -113,6 +114,7 @@ export default async function VenueHome({ params }: { params: Promise<{ slug: st
           </Link>
         </div>
       )}
+      <SponsorCard placement="venue" />
     </div>
   );
 }

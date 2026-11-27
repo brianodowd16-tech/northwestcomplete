@@ -25,6 +25,9 @@ export async function exportGuestData(customerId: string) {
     groups: groups.map((g) => ({ name: g.name, joined: g.joined, left: g.left })),
     messages: msgs.filter((m) => m.body),
     sharedBills: shares,
+    completeMembership: (await db.select().from(t.guestMembership).where(eq(t.guestMembership.customerId, customerId))).map((m) => ({ tier: m.tier, period: m.period, from: m.startsAt, until: m.endsAt, status: m.status })),
+    completePoints: (await db.select().from(t.walletLedger).where(eq(t.walletLedger.customerId, customerId))).map((l) => ({ kind: l.kind, delta: l.delta, reason: l.reason, at: l.createdAt })),
+    sponsorEnquiries: (await db.select().from(t.sponsorLead).where(eq(t.sponsorLead.customerId, customerId))).map((l) => ({ name: l.name, email: l.email, phone: l.phone, date: l.eventDate, guests: l.guests, message: l.message, sentAt: l.createdAt })),
     memberships: ms.map((m) => ({
       venue: [...venues.values()].find((v) => v.programmeId === m.programmeId)?.name ?? "",
       joined: m.createdAt,

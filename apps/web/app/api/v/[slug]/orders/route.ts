@@ -7,6 +7,7 @@ interface Body {
   qrToken?: string;
   lines: { menuItemId: string; qty: number; note?: string }[];
   useCredit: boolean;
+  useWallet?: boolean;
   tipCents?: number;
   useDouble: boolean;
   idempotencyKey: string;
@@ -34,6 +35,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
         creditRequestedCents: b.useCredit ? Number.MAX_SAFE_INTEGER : 0,
         useDouble: b.useDouble === true,
         idempotencyKey: `${guest.id}:${b.idempotencyKey}`,
+        useWallet: b.useWallet === true,
         appUrl: appUrl(),
       },
       await providerFor(venue),

@@ -169,6 +169,13 @@
       "when": 1795797601019,
       "tag": "0023_chubby_blacklash",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795816376059,
+      "tag": "0024_mysterious_rattler",
+      "breakpoints": true
     }
   ]
 }

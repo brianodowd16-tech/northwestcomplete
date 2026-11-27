@@ -1,3 +1,4 @@
+import { allSponsorships, sponsorReport } from "@round/db/sponsors";
 import { opsOverview } from "@round/db/platform";
 import { networkPosts } from "@round/db/social";
 import { OpsPostButton } from "@/components/OpsPostButton";
@@ -15,6 +16,7 @@ const ago = (d: Date | null) => {
 /** Every venue at a glance for Complete's own team (protected by middleware.ts). */
 export default async function Ops() {
   const o = await opsOverview();
+  const spons = await Promise.all((await allSponsorships()).map(async (x) => ({ ...x, rows: await sponsorReport(x.s.id) })));
   const net = await networkPosts();
   const live = o.venues.filter((v) => v.status === "live");
   const setup = o.venues.filter((v) => v.status === "setup");
@@ -71,6 +73,18 @@ export default async function Ops() {
               <td className="small" style={{ whiteSpace: "pre-wrap" }}>{p.text.slice(0, 220)}{p.text.length > 220 ? "…" : ""}</td>
               <td className="small">{p.scheduledFor.toLocaleString("en-IE", { timeZone: "Europe/Dublin", weekday: "short", hour: "2-digit", minute: "2-digit" })}</td>
               <td className="r">{p.status === "draft" ? <OpsPostButton id={p.id} /> : <span className="chip plain">{p.status}</span>}</td>
+            </tr>
+          ))}</tbody></table>
+        )}
+      </section>
+      <section className="panel stack">
+        <h3>Sponsorships</h3>
+        {spons.length === 0 ? <div className="empty">None.</div> : (
+          <table><tbody>{spons.map(({ s, venueName, rows }) => (
+            <tr key={s.id}>
+              <td><b>{s.title}</b> <span className="muted small">{venueName} · {s.placements.join(", ")} · until {s.endsAt.toLocaleDateString("en-IE")}</span></td>
+              <td className="small num">{rows.reduce((a, r) => a + r.impressions, 0)} views · {rows.reduce((a, r) => a + r.clicks, 0)} clicks · {rows.reduce((a, r) => a + r.leads, 0)} enquiries (30 days)</td>
+              <td className="r"><span className={`chip ${s.active ? "ok" : "plain"}`}>{s.active ? "Live" : "Paused"}</span></td>
             </tr>
           ))}</tbody></table>
         )}

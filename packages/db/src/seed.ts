@@ -202,6 +202,20 @@ export async function seed(db: Db, opts: { stock?: boolean } = {}) {
           ]
         : [{ tenantId, venueId: ven.id, name: "Woodland celebration", description: "Three-course wood-fired dinner under the trees, private dining area and a glass of bubbles on arrival.", pricePerPersonCents: 4500, minGuests: 12, maxGuests: 60, depositPerPersonCents: 1000, vatRate: 9 as const, minNoticeDays: 7 }],
     );
+    if (key === "drum")
+      await db.insert(t.sponsorship).values({
+        slug: "drumhierny-weddings",
+        sponsorVenueId: ven.id,
+        title: "Weddings at Drumhierny",
+        headline: "Get married in the woods",
+        body: "Drumhierny Woodland Hideaway is Complete's wedding partner: ceremonies under the trees, wood-fired feasts, cabins and treehouses for your guests, all on one private estate in Leitrim.",
+        ctaLabel: "Plan your wedding",
+        platinumPerk: "Platinum members: a private showround with dinner for two, and a complimentary night in a treehouse for the couple when you book your wedding.",
+        placements: ["landing", "hub", "venue", "platinum"],
+        startsAt: new Date(Date.now() - 86_400_000),
+        endsAt: new Date(Date.now() + 365 * 86_400_000),
+        feeCents: 0,
+      });
     const tables = await db
       .insert(t.venueTable)
       .values(Array.from({ length: 20 }, (_, i) => ({ tenantId, venueId: ven.id, number: i + 1, qrToken: randomBytes(6).toString("base64url") })))

@@ -15,6 +15,7 @@ export function SongRequest({ slug, priceCents, signedIn }: { slug: string; pric
   const [title, setTitle] = useState("");
   const [busy, setBusy] = useState(false);
   const [mine, setMine] = useState<Mine[]>([]);
+  const [usePts, setUsePts] = useState(true);
   const load = () => fetch(`/api/v/${slug}/songs`, { cache: "no-store" }).then((r) => r.json()).then((d) => setMine(d.mine ?? [])).catch(() => {});
   useEffect(() => { if (signedIn) load(); }, [signedIn]); // eslint-disable-line react-hooks/exhaustive-deps
   useLive(slug, () => signedIn && load());
@@ -25,7 +26,7 @@ export function SongRequest({ slug, priceCents, signedIn }: { slug: string; pric
     setBusy(true);
     try {
       const isLink = /^https:\/\/open\.spotify\.com\//.test(title.trim());
-      const res = await fetch(`/api/v/${slug}/songs`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: isLink ? "Spotify track" : title, link: isLink ? title.trim() : undefined, idempotencyKey: crypto.randomUUID() }) });
+      const res = await fetch(`/api/v/${slug}/songs`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: isLink ? "Spotify track" : title, link: isLink ? title.trim() : undefined, useWallet: usePts, idempotencyKey: crypto.randomUUID() }) });
       const d = (await res.json()) as { error?: string; orderId: string; checkout: CheckoutInfo | null };
       if (!res.ok) throw new Error(d.error ?? "Couldn't send that");
       const c = d.checkout;
@@ -57,6 +58,7 @@ export function SongRequest({ slug, priceCents, signedIn }: { slug: string; pric
         <button className="btn sm" disabled={busy}>{busy ? "…" : "Pay & send"}</button>
       </form>
       {mine.map((s) => <div key={s.id} className="row small"><span>{s.title}</span><span className="muted">{s.position ? `#${s.position} in the queue` : STATUS[s.status] ?? s.status}</span></div>)}
+      {signedIn && <label className="toggle small"><input type="checkbox" checked={usePts} onChange={(e) => setUsePts(e.target.checked)} /> Use my Complete Points if I have them</label>}
       <span className="muted small">Goes straight to the bar. If they can&apos;t play it tonight you get a full refund.</span>
     </section>
   );

@@ -7,6 +7,7 @@ import PgBoss from "pg-boss";
 import { refreshTopGames } from "./lib/sportsfeed";
 import { uploadBizimply } from "./lib/bizimply";
 import { backfillWoo, pullTrybe, reconcileMypos, reconcileRevolutBusiness } from "./lib/connect";
+import { grantMonthlyBonuses } from "@round/db/membership";
 import { sendDeel } from "./lib/deelsync";
 import { healthCheck, monthlyBilling, onboardingNudges, retention } from "./lib/autopilot";
 import { sendDueEmails } from "./lib/mail";
@@ -23,6 +24,7 @@ const PAYROLL = "payroll-send";
 const BIZIMPLY = "bizimply-sales";
 const PARTNERS = "partner-sync";
 const MONEY_CHECK = "money-reconcile";
+const MEMBER_BONUS = "member-bonus";
 const HEALTH = "venue-health";
 const NUDGES = "onboarding-nudges";
 const BILLING = "monthly-billing";
@@ -120,6 +122,7 @@ const SCHEDULE: [string, string, () => Promise<unknown>, { tz: string }?][] = [
   [BIZIMPLY, "35 4 * * *", bizimplyDaily, DUBLIN], // before Bizimply's 6.30am pick-up
   [PARTNERS, "23 * * * *", partnersHourly],
   [MONEY_CHECK, "45 7 * * *", moneyDaily, DUBLIN], // after overnight settlements land
+  [MEMBER_BONUS, "12 6 * * *", async () => `memberships: ${await grantMonthlyBonuses()} checked`, DUBLIN],
   [TOP_GAMES, "40 5 * * *", async () => `top games: ${await refreshTopGames()} listed`, DUBLIN],
   [PAYROLL, "20 6 * * *", payrollDaily, DUBLIN], // pay periods close at midnight
   [NUDGES, "5 10 * * *", onboardingNudges, DUBLIN],

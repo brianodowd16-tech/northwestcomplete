@@ -1,5 +1,6 @@
 import { liveVenues, venueTables } from "@round/db/services";
 import Link from "next/link";
+import { SponsorCard } from "@/components/SponsorCard";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ const FEATURES: [string, string][] = [
   ["Bar and kitchen screens", "Drinks to the bar, food to the kitchen, with ID checks built in."],
   ["Xero every night", "One tidy invoice a day, split by VAT rate."],
   ["Google reviews", "Every paying guest is asked to review you, the way Google allows."],
+  ["Gold and Platinum guests", "Guests top up Complete Points and spend them at any venue on Complete. You're paid for every point spent with you."],
 ];
 
 export default async function Home() {
@@ -64,6 +66,8 @@ export default async function Home() {
           </div>
         ))}
       </section>
+
+      <SponsorCard placement="landing" />
 
       <section className="panel stack">
         <h2 style={{ fontSize: 22 }}>Live in an afternoon</h2>

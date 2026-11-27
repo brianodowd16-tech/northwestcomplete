@@ -6,6 +6,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { hashPassword, invoiceNumber, invoicePeriod, retryDelayMs, sageMapped, venueAlerts, type AlertSpec, type SageMapping } from "@round/core";
 import { and, asc, count, desc, eq, gte, inArray, isNull, lt, lte, ne, sql } from "drizzle-orm";
 import { systemDb, withTenant } from "./index";
+import { walletSettlement } from "./membership";
 import * as t from "./schema";
 import { setupStatus } from "./onboarding";
 import { billingStatement, type Venue } from "./services";
@@ -244,7 +245,9 @@ export async function setupMissing(venue: Venue): Promise<string[]> {
 /** Issues Complete's invoice to a venue for a month, once. Returns it, and whether it's new. */
 export async function issueInvoice(venue: Venue, year: number, month: number) {
   const period = invoicePeriod(year, month);
-  const st = await billingStatement(venue, year, month);
+  // Complete Points spent at the venue that month: Complete owes the venue this (paid separately by bank transfer).
+  const pointsOwedToVenueCents = await walletSettlement(venue.id, new Date(Date.UTC(year, month - 1, 1)), new Date(Date.UTC(year, month, 1)));
+  const st = { ...(await billingStatement(venue, year, month)), pointsOwedToVenueCents };
   return withTenant(venue.tenantId, async (tx) => {
     const [row] = await tx
       .insert(t.billingInvoice)

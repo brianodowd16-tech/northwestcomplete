@@ -269,6 +269,9 @@ export const orders = pgTable(
     vat9Cents: integer("vat9_cents").notNull(),
     vat23Cents: integer("vat23_cents").notNull(),
     creditUsedCents: integer("credit_used_cents").notNull().default(0),
+    /** Complete Points spent on this order: bought points (any item) and bonus points (never alcohol). Complete settles these to the venue monthly. */
+    walletPaidCents: integer("wallet_paid_cents").notNull().default(0),
+    walletBonusCents: integer("wallet_bonus_cents").notNull().default(0),
     amountPaidCents: integer("amount_paid_cents").notNull(),
     refundedCents: integer("refunded_cents").notNull().default(0),
     useDouble: boolean("use_double").notNull().default(false),
@@ -1162,4 +1165,119 @@ export const partyBooking = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("party_booking_venue_time").on(t.venueId, t.startsAt), uniqueIndex("party_booking_deposit").on(t.depositOrderId)],
+);
+
+// ---------------------------------------------------------------- Complete membership and points (guest-level, across venues)
+
+/** A guest's Gold or Platinum membership of Complete itself (not a venue programme). */
+export const guestMembership = pgTable(
+  "guest_membership",
+  {
+    id: id(),
+    customerId: uuid("customer_id").notNull().references(() => customer.id),
+    tier: text("tier", { enum: ["gold", "platinum"] }).notNull(),
+    period: text("period", { enum: ["monthly", "annual"] }).notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    status: text("status", { enum: ["active", "cancelled"] }).notNull().default("active"),
+    paymentId: uuid("payment_id"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("guest_membership_customer").on(t.customerId, t.endsAt)],
+);
+
+/** Complete Points. A guest's balance is the sum of their lines, by kind; never stored. */
+export const walletLedger = pgTable(
+  "wallet_ledger",
+  {
+    id: id(),
+    customerId: uuid("customer_id").notNull().references(() => customer.id),
+    /** paid = bought at face value (any item); bonus = given free (never alcohol) */
+    kind: text("kind", { enum: ["paid", "bonus"] }).notNull(),
+    delta: integer("delta").notNull(),
+    reason: text("reason", { enum: ["purchase", "purchase_bonus", "tier_monthly", "redeem", "reversal", "refund", "adjustment"] }).notNull(),
+    venueId: uuid("venue_id"),
+    orderId: uuid("order_id"),
+    paymentId: uuid("payment_id"),
+    /** makes each grant or spend happen once (e.g. tier_monthly:{membership}:{month}) */
+    refKey: text("ref_key").notNull().unique(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("wallet_ledger_customer").on(t.customerId), index("wallet_ledger_venue").on(t.venueId, t.createdAt)],
+);
+
+/** Payments to Complete itself (memberships, points), through Complete's own merchant account. */
+export const completePayment = pgTable("complete_payment", {
+  id: id(),
+  customerId: uuid("customer_id").notNull().references(() => customer.id),
+  kind: text("kind", { enum: ["tier", "points"] }).notNull(),
+  amountCents: integer("amount_cents").notNull(),
+  meta: jsonb("meta").notNull().$type<{ tier?: "gold" | "platinum"; period?: "monthly" | "annual"; cents?: number }>(),
+  status: text("status", { enum: ["pending_payment", "paid", "cancelled", "refunded"] }).notNull().default("pending_payment"),
+  provider: text("provider").notNull(),
+  providerOrderId: text("provider_order_id").unique(),
+  providerToken: text("provider_token"),
+  idempotencyKey: text("idempotency_key").notNull().unique(),
+  paidAt: timestamp("paid_at", { withTimezone: true }),
+  createdAt: createdAt(),
+});
+
+// ---------------------------------------------------------------- sponsorship
+
+/** A sponsor's placements in the app, e.g. Drumhierny Woodland Hideaway as the wedding partner. */
+export const sponsorship = pgTable("sponsorship", {
+  id: id(),
+  slug: text("slug").notNull().unique(),
+  sponsorVenueId: uuid("sponsor_venue_id").notNull().references(() => venue.id),
+  title: text("title").notNull(),
+  headline: text("headline").notNull(),
+  body: text("body").notNull(),
+  ctaLabel: text("cta_label").notNull().default("Enquire"),
+  /** the sponsor's offer shown to Platinum members */
+  platinumPerk: text("platinum_perk").notNull().default(""),
+  /** where it shows: landing, hub, venue (every venue page), platinum */
+  placements: jsonb("placements").notNull().default([]).$type<string[]>(),
+  startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+  endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+  /** what the sponsor pays Complete a month, for the operator's records */
+  feeCents: integer("fee_cents").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  createdAt: createdAt(),
+});
+
+/** Daily counts per placement, for the sponsor's report. No personal data. */
+export const sponsorStat = pgTable(
+  "sponsor_stat",
+  {
+    id: id(),
+    sponsorshipId: uuid("sponsorship_id").notNull().references(() => sponsorship.id),
+    date: date("date").notNull(),
+    placement: text("placement").notNull(),
+    impressions: integer("impressions").notNull().default(0),
+    clicks: integer("clicks").notNull().default(0),
+    leads: integer("leads").notNull().default(0),
+  },
+  (t) => [uniqueIndex("sponsor_stat_day").on(t.sponsorshipId, t.date, t.placement)],
+);
+
+/** A wedding (or other) enquiry for the sponsor, sent only with the person's consent. The sponsor venue's data. */
+export const sponsorLead = pgTable(
+  "sponsor_lead",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    sponsorshipId: uuid("sponsorship_id").notNull().references(() => sponsorship.id),
+    customerId: uuid("customer_id"),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    phone: text("phone").notNull().default(""),
+    eventDate: date("event_date"),
+    guests: integer("guests"),
+    message: text("message").notNull().default(""),
+    consentAt: timestamp("consent_at", { withTimezone: true }).notNull(),
+    status: text("status", { enum: ["new", "contacted", "booked", "closed"] }).notNull().default("new"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("sponsor_lead_venue").on(t.venueId, t.createdAt)],
 );

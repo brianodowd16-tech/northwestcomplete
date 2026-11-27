@@ -2,8 +2,9 @@ import { CartError, spotifyLink, vatFromGross } from "@round/core";
 import type { PaymentProvider } from "@round/core";
 import { and, asc, desc, eq, gte, inArray, sql } from "drizzle-orm";
 import { publish, systemDb as db, topics, withTenant } from "./index";
+import { reverseWalletTx, spendWalletTx } from "./wallet";
 import * as t from "./schema";
-import { Forbidden, NotFound, ensureMembership, startCheckout, type Customer, type Staff, type Venue } from "./services";
+import { completeOrder, Forbidden, NotFound, ensureMembership, startCheckout, type Customer, type Staff, type Venue } from "./services";
 
 /** Most a venue can charge for one song request, in cents. */
 export const MAX_SONG_CENTS = 2000;
@@ -18,7 +19,7 @@ export async function setSongPrice(venue: Venue, cents: number | null) {
  * A guest pays the venue for a song request. Paid through the venue's own checkout like any order;
  * on the verified payment notification it lands on the bar's queue (see completeOrder). Earns no loyalty.
  */
-export async function requestPaidSong(venue: Venue, customer: Customer, input: { title: string; link?: string; idempotencyKey: string }, provider: PaymentProvider, appUrl: string) {
+export async function requestPaidSong(venue: Venue, customer: Customer, input: { title: string; link?: string; idempotencyKey: string; useWallet?: boolean }, provider: PaymentProvider, appUrl: string) {
   if (venue.status === "suspended") throw new Forbidden(`${venue.name} isn't taking requests right now`);
   const price = venue.songRequestCents;
   if (!price) throw new Forbidden(`${venue.name} isn't taking paid song requests`);
@@ -45,9 +46,17 @@ export async function requestPaidSong(venue: Venue, customer: Customer, input: {
       .returning();
     await tx.insert(t.orderLine).values({ tenantId: venue.tenantId, orderId: o.id, menuItemId: null, name: `Song request: ${title}`.slice(0, 140), qty: 1, unitPriceCents: price, grossCents: price, vatRate: 23, vatCents: vat, station: "bar", containsAlcohol: false });
     await tx.insert(t.songRequest).values({ tenantId: venue.tenantId, venueId: venue.id, customerId: customer.id, title, link: link?.url ?? null, status: "pending_payment", orderId: o.id });
+    if (input.useWallet) {
+      const w = await spendWalletTx(tx, { customerId: customer.id, venueId: venue.id, orderId: o.id, dueCents: price, nonAlcoholDueCents: price });
+      if (w.totalCents) return (await tx.update(t.orders).set({ walletPaidCents: w.paidCents, walletBonusCents: w.bonusCents, amountPaidCents: price - w.totalCents }).where(eq(t.orders.id, o.id)).returning())[0];
+    }
     return o;
   });
   if (order.status !== "pending_payment") return { order, checkout: null };
+  if (order.amountPaidCents === 0) {
+    await completeOrder(venue.tenantId, order.id); // paid in full with points
+    return { order, checkout: null };
+  }
   // A repeated request reuses its widget token; hosted checkouts rebuild their form.
   if (order.providerToken) return { order, checkout: { provider: provider.name, token: order.providerToken, publicKey: provider.publicKey, redirect: null } };
   return startCheckout(venue, customer, order, provider, appUrl);
@@ -113,6 +122,7 @@ export async function declineSong(staff: Staff, id: string, provider: PaymentPro
     await withTenant(v.tenantId, async (tx) => {
       await tx.update(t.orders).set({ status: "refunded", refundedCents: sql`${t.orders.amountPaidCents}`, refundedAt: new Date() }).where(and(eq(t.orders.id, s.orderId!), eq(t.orders.status, "paid")));
       await tx.update(t.songRequest).set({ status: "refunded" }).where(eq(t.songRequest.id, id));
+      await reverseWalletTx(tx, s.orderId!);
       await tx.insert(t.auditLog).values({ tenantId: v.tenantId, actor: `staff:${staff.id}`, action: "song_refunded", entity: `order:${s.orderId}`, detail: { songId: id } });
       await publish(tx, topics.venue(v.id), { kind: "songs" });
       await publish(tx, topics.order(s.orderId!), { kind: "order" });

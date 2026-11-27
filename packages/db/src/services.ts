@@ -33,6 +33,7 @@ import {
 import { and, asc, desc, eq, gte, inArray, isNull, lt, ne, sql } from "drizzle-orm";
 import { randomBytes } from "node:crypto";
 import { publish, systemDb, topics, withTenant, type Tx } from "./index";
+import { reverseWalletTx, spendWalletTx } from "./wallet";
 import * as t from "./schema";
 import { depleteForOrder, restockForOrder } from "./inventory";
 
@@ -294,6 +295,8 @@ export interface CreateOrderInput {
   appUrl: string;
   /** orders an AI assistant prepares wait for the guest to approve them, even when fully paid by credit */
   holdForApproval?: boolean;
+  /** pay with Complete Points first (bought points any item, bonus points never alcohol); tips stay on the card */
+  useWallet?: boolean;
 }
 
 export type Order = typeof t.orders.$inferSelect;
@@ -358,7 +361,7 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
     const tip = venue.tipsEnabled ? Math.max(0, Math.round(input.tipCents ?? 0)) : 0;
     checkTip(tip, cart.grossCents - credit);
 
-    const [order] = await tx
+    let [order] = await tx
       .insert(t.orders)
       .values({
         tenantId: venue.tenantId,
@@ -396,6 +399,17 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
         note: notes.get(l.menuItem.id) ?? null,
       })),
     );
+    if (input.useWallet) {
+      const w = await spendWalletTx(tx, { customerId: customer.id, venueId: venue.id, orderId: order.id, dueCents: cart.grossCents - credit, nonAlcoholDueCents: split.rewardableCents });
+      if (w.totalCents) {
+        // Points-funded amounts earn nothing at the venue (like loyalty credit).
+        [order] = await tx
+          .update(t.orders)
+          .set({ walletPaidCents: w.paidCents, walletBonusCents: w.bonusCents, amountPaidCents: order.amountPaidCents - w.totalCents, rewardableCents: Math.max(0, order.rewardableCents - w.totalCents) })
+          .where(eq(t.orders.id, order.id))
+          .returning();
+      }
+    }
     return { order, isNew: true, cart };
   });
 
@@ -622,7 +636,10 @@ export async function reconcilePending(providerFor: (venueId: string) => Promise
     .where(and(eq(t.orders.status, "pending_payment"), lt(t.orders.createdAt, new Date(Date.now() - olderThanMs))));
   let settled = 0;
   const cancel = (o: Order) =>
-    withTenant(o.tenantId, (tx) => tx.update(t.orders).set({ status: "cancelled" }).where(and(eq(t.orders.id, o.id), eq(t.orders.status, "pending_payment"))));
+    withTenant(o.tenantId, async (tx) => {
+      const r = await tx.update(t.orders).set({ status: "cancelled" }).where(and(eq(t.orders.id, o.id), eq(t.orders.status, "pending_payment"))).returning();
+      if (r.length) await reverseWalletTx(tx, o.id); // abandoned: the points go back
+    });
   for (const o of stale) {
     const abandoned = Date.now() - o.createdAt.getTime() > ABANDON_AFTER_MS;
     try {
@@ -813,6 +830,7 @@ export async function refuseId(staff: Staff, docketId: string, provider: Payment
       .where(and(eq(t.orders.id, paid.id), eq(t.orders.status, "paid")))
       .returning();
     if (!o) return;
+    await reverseWalletTx(tx, o.id);
     const entries = await tx.select().from(t.loyaltyLedger).where(eq(t.loyaltyLedger.orderId, o.id));
     if (o.membershipId) await writeLedger(tx, staff.tenantId, o.membershipId, reverseEntries(entries, o.id));
     await restockForOrder(tx, staff.tenantId, o.venueId, o.id); // refused at the bar: nothing was served

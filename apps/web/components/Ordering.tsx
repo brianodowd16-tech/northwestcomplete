@@ -69,6 +69,12 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member,
   const [cart, setCart] = useState<Cart>({});
   const [sheet, setSheet] = useState<"review" | "pay" | null>(null);
   const [useCredit, setUseCredit] = useState(true);
+  const [wallet, setWallet] = useState<{ paid: number; bonus: number } | null>(null);
+  const [useWallet, setUseWallet] = useState(false);
+  useEffect(() => {
+    if (!member) return;
+    fetch("/api/me/membership").then((r) => (r.ok ? r.json() : null)).then((d) => d && setWallet(d.balances)).catch(() => {});
+  }, [member]);
   const [useDouble, setUseDouble] = useState(false);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [tipPct, setTipPct] = useState(0);
@@ -142,8 +148,12 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member,
   const nonAlcohol = lines.filter((l) => !l.item.containsAlcohol).reduce((s, l) => s + l.item.priceCents * l.qty, 0);
   const credit = member && useCredit ? Math.min(member.creditCents, nonAlcohol) : 0;
   const tipCents = service.tips ? Math.floor(((gross - credit) * tipPct * 2) / 100 + 1) >> 1 : 0;
-  const toPay = gross - credit + tipCents;
-  const points = member ? Math.floor(((nonAlcohol - credit) * member.pointsPerEuro) / 100) * (useDouble && member.doubles > 0 ? 2 : 1) : 0;
+  // Complete Points: bonus points never on alcohol, bought points on anything; tips stay on the card.
+  const wBonus = wallet && useWallet ? Math.min(wallet.bonus, Math.max(0, nonAlcohol - credit)) : 0;
+  const wPaid = wallet && useWallet ? Math.min(wallet.paid, gross - credit - wBonus) : 0;
+  const walletUsed = wBonus + wPaid;
+  const toPay = gross - credit - walletUsed + tipCents;
+  const points = member ? Math.floor((Math.max(0, nonAlcohol - credit - walletUsed) * member.pointsPerEuro) / 100) * (useDouble && member.doubles > 0 ? 2 : 1) : 0;
   const count = lines.reduce((s, l) => s + l.qty, 0);
   const hasAlcohol = lines.some((l) => l.item.containsAlcohol);
 
@@ -202,7 +212,7 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member,
       const res = await fetch(`/api/v/${slug}/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channel: mode, qrToken, lines: lines.map((l) => ({ menuItemId: l.item.id, qty: l.qty, note: notes[l.item.id] || undefined })), useCredit, useDouble, tipCents, idempotencyKey: key }),
+        body: JSON.stringify({ channel: mode, qrToken, lines: lines.map((l) => ({ menuItemId: l.item.id, qty: l.qty, note: notes[l.item.id] || undefined })), useCredit, useWallet, useDouble, tipCents, idempotencyKey: key }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Couldn't place the order");
@@ -392,6 +402,14 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member,
                 <input type="checkbox" checked={useCredit} onChange={(e) => setUseCredit(e.target.checked)} />
               </label>
             )}
+            {wallet && wallet.paid + wallet.bonus > 0 && (
+              <label className="switch">
+                <span>
+                  Pay with Complete Points <span className="muted small">({eur(wallet.paid + wallet.bonus)}{hasAlcohol && wallet.bonus ? "; bonus points not on alcohol" : ""})</span>
+                </span>
+                <input type="checkbox" checked={useWallet} onChange={(e) => setUseWallet(e.target.checked)} />
+              </label>
+            )}
             {member && member.doubles > 0 && (
               <label className="switch">
                 <span>
@@ -425,6 +443,12 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member,
                   <span className="num">−{eur(credit)}</span>
                 </div>
               )}
+              {walletUsed > 0 && (
+                <div className="sumrow small">
+                  <span>Complete Points</span>
+                  <span className="num">−{eur(walletUsed)}</span>
+                </div>
+              )}
               {tipCents > 0 && (
                 <div className="sumrow small">
                   <span>Tip for the staff</span>
@@ -440,7 +464,7 @@ export function Ordering({ slug, mode, qrToken, tableNumber, categories, member,
             {member ? <div className="chip ok" style={{ alignSelf: "flex-start" }}>You&apos;ll earn {points} points</div> : <div className="muted small">Sign in to order and earn points. Your basket is kept.</div>}
             {error && <div className="error">{error}</div>}
             <button className="btn block" onClick={placeOrder} disabled={busy || count === 0} style={{ padding: 15 }}>
-              {!member ? "Sign in to order" : busy ? "Placing order…" : toPay === 0 ? "Place order with credit" : `Pay ${eur(toPay)}`}
+              {!member ? "Sign in to order" : busy ? "Placing order…" : toPay === 0 ? (walletUsed ? "Place order with points" : "Place order with credit") : `Pay ${eur(toPay)}`}
             </button>
           </div>
         </div>
