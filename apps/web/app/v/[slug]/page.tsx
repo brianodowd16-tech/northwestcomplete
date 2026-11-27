@@ -3,6 +3,7 @@ import Link from "next/link";
 import { eur } from "@/components/format";
 import { IconGlass, IconStar, IconTable } from "@/components/Icons";
 import { ActiveOrderCard } from "@/components/OrderCards";
+import { SongRequest } from "@/components/SongRequest";
 import { EVENT_KINDS } from "@round/core";
 import { whatsOn } from "@round/db/events";
 import { currentGuest, loadVenue } from "@/lib/server";
@@ -51,6 +52,7 @@ export default async function VenueHome({ params }: { params: Promise<{ slug: st
         </section>
       )}
 
+      {venue.songRequestCents ? <SongRequest slug={venue.slug} priceCents={venue.songRequestCents} signedIn={!!guest} /> : null}
       <section className="tiles2">
         <div className="atile rise">
           <span className="ico">

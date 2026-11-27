@@ -83,7 +83,7 @@ export async function recommendationsFor(venue: Venue, customerId: string | null
       .where(and(eq(t.orders.venueId, venue.id), eq(t.orders.status, "paid"), gte(t.orders.paidAt, since)))
       .orderBy(desc(t.orders.paidAt))
       .limit(500);
-    const lines = orders.length ? await tx.select().from(t.orderLine).where(inArray(t.orderLine.orderId, orders.map((o) => o.id))) : [];
+    const lines = (orders.length ? await tx.select().from(t.orderLine).where(inArray(t.orderLine.orderId, orders.map((o) => o.id))) : []).flatMap((l) => (l.menuItemId ? [{ ...l, menuItemId: l.menuItemId }] : []));
     const byOrder = new Map<string, string[]>();
     for (const l of lines) byOrder.set(l.orderId, [...(byOrder.get(l.orderId) ?? []), l.menuItemId]);
     const pairCount = new Map<string, number>();

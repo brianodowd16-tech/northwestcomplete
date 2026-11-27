@@ -413,9 +413,14 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
     return { order, checkout: { provider: provider.name, token: order.providerToken, publicKey: provider.publicKey, redirect: null } };
   }
 
+  return startCheckout(venue, customer, order, provider, input.appUrl);
+}
+
+/** Opens the venue's checkout for a pending order (its own myPOS or Revolut account). */
+export async function startCheckout(venue: Venue, customer: Customer, order: Order, provider: PaymentProvider, appUrl: string): Promise<CreatedOrderResult> {
   const lines = await withTenant(venue.tenantId, (tx) => tx.select().from(t.orderLine).where(eq(t.orderLine.orderId, order.id)));
   const names = customer.name.trim().split(/\s+/);
-  const orderUrl = `${input.appUrl}/v/${venue.slug}/order/${order.id}`;
+  const orderUrl = `${appUrl}/v/${venue.slug}/order/${order.id}`;
   const p = await provider.createOrder({
     amountCents: order.amountPaidCents,
     currency: "EUR",
@@ -427,7 +432,7 @@ export async function createOrder(input: CreateOrderInput, provider: PaymentProv
     ],
     discountCents: order.creditUsedCents,
     customer: { email: customer.email, firstName: names[0] || "Guest", lastName: names.slice(1).join(" ") || names[0] || "Guest" },
-    urls: { ok: orderUrl, cancel: `${orderUrl}?cancelled=1`, notify: `${input.appUrl}/api/webhooks/${provider.name}/${venue.slug}` },
+    urls: { ok: orderUrl, cancel: `${orderUrl}?cancelled=1`, notify: `${appUrl}/api/webhooks/${provider.name}/${venue.slug}` },
   });
   const updated = await withTenant(venue.tenantId, async (tx) => {
     const [u] = await tx
@@ -491,6 +496,13 @@ export async function completeOrder(tenantId: string, orderId: string, txnRef?: 
       .where(and(eq(t.orders.id, orderId), eq(t.orders.status, "pending_payment")))
       .returning();
     if (!order) return false;
+    // A paid song request: no docket, no loyalty, no stock. It goes straight to the bar's song queue.
+    const [song] = await tx.update(t.songRequest).set({ status: "requested" }).where(and(eq(t.songRequest.orderId, order.id), eq(t.songRequest.status, "pending_payment"))).returning();
+    if (song) {
+      await publish(tx, topics.venue(order.venueId), { kind: "songs" });
+      await publish(tx, topics.order(order.id), { kind: "order" });
+      return true;
+    }
 
     const lines = await tx.select().from(t.orderLine).where(eq(t.orderLine.orderId, order.id));
     if (!order.customerId || !order.membershipId) throw new Error("completeOrder is for app orders"); // till sales are paid when rung up

@@ -193,7 +193,7 @@ async function insertMovements(tx: Tx, rows: (typeof t.stockMovement.$inferInser
 
 /** Called when an order is paid (inside its transaction): take each recipe out of stock. */
 export async function depleteForOrder(tx: Tx, tenantId: string, venueId: string, orderId: string) {
-  const lines = await tx.select().from(t.orderLine).where(eq(t.orderLine.orderId, orderId));
+  const lines = (await tx.select().from(t.orderLine).where(eq(t.orderLine.orderId, orderId))).flatMap((l) => (l.menuItemId ? [{ ...l, menuItemId: l.menuItemId }] : []));
   if (!lines.length) return;
   const recipe = await tx.select().from(t.recipeLine).where(inArray(t.recipeLine.menuItemId, lines.map((l) => l.menuItemId)));
   if (!recipe.length) return;

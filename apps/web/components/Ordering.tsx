@@ -37,7 +37,7 @@ const TIP_OPTIONS = [0, 10, 12.5, 15];
 
 type Cart = Record<string, number>;
 
-interface CheckoutInfo {
+export interface CheckoutInfo {
   provider: "mock" | "revolut" | "mypos";
   token: string | null;
   publicKey: string | null;
@@ -47,7 +47,7 @@ interface CheckoutInfo {
 }
 
 /** Sends the guest to a hosted checkout with an auto-submitting form, as the provider requires. */
-function submitHostedCheckout(r: { action: string; fields: [string, string][] }) {
+export function submitHostedCheckout(r: { action: string; fields: [string, string][] }) {
   const form = document.createElement("form");
   form.method = "POST";
   form.action = r.action;

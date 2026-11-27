@@ -93,6 +93,8 @@ export const venue = pgTable("venue", {
   shareNetwork: boolean("share_network").notNull().default(false),
   /** guests in group sessions can send song requests to the staff Music list */
   songRequests: boolean("song_requests").notNull().default(true),
+  /** price of a paid song request any guest can send to the bar (null = paid requests off) */
+  songRequestCents: integer("song_request_cents"),
   liveAt: timestamp("live_at", { withTimezone: true }),
   createdAt: createdAt(),
 });
@@ -287,7 +289,8 @@ export const orderLine = pgTable("order_line", {
   id: id(),
   tenantId: tenantId(),
   orderId: uuid("order_id").notNull().references(() => orders.id),
-  menuItemId: uuid("menu_item_id").notNull().references(() => menuItem.id),
+  /** null for lines that aren't menu items (a paid song request) */
+  menuItemId: uuid("menu_item_id").references(() => menuItem.id),
   name: text("name").notNull(),
   qty: integer("qty").notNull(),
   unitPriceCents: integer("unit_price_cents").notNull(),
@@ -874,10 +877,14 @@ export const songRequest = pgTable(
     customerId: uuid("customer_id"),
     title: text("title").notNull(),
     link: text("link"),
-    status: text("status", { enum: ["requested", "played", "declined"] }).notNull().default("requested"),
+    /** pending_payment → requested (paid) → queued (accepted at the bar) → played; or declined / refunded */
+    status: text("status", { enum: ["pending_payment", "requested", "queued", "played", "declined", "refunded"] }).notNull().default("requested"),
+    /** the guest's payment, for paid requests */
+    orderId: uuid("order_id"),
+    queuedAt: timestamp("queued_at", { withTimezone: true }),
     createdAt: createdAt(),
   },
-  (t) => [index("song_request_venue").on(t.venueId, t.createdAt)],
+  (t) => [index("song_request_venue").on(t.venueId, t.createdAt), uniqueIndex("song_request_order").on(t.orderId)],
 );
 
 /**

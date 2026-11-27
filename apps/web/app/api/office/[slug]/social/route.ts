@@ -1,5 +1,6 @@
 import { IRISH_COUNTIES } from "@round/core";
 import { saveVenueCommunity } from "@round/db/groups";
+import { setSongPrice } from "@round/db/songs";
 import { disconnectSocial, manualPost, planVenuePosts, saveSocialRules, updateVenuePost } from "@round/db/social";
 import { managerFor } from "@/lib/office";
 import { appUrl, errorJson, json, secretsKey } from "@/lib/server";
@@ -14,6 +15,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
       case "community": {
         const county = b.county && (IRISH_COUNTIES as readonly string[]).includes(b.county) ? b.county : null;
         await saveVenueCommunity(m.venue, { county, shareNetwork: b.shareNetwork === "on", songRequests: b.songRequests === "on" });
+        const price = String(b.songPrice ?? "").trim();
+        await setSongPrice(m.venue, price ? Math.round(Number(price.replace(",", ".")) * 100) : null);
         return json({ message: "Saved" });
       }
       case "rules":

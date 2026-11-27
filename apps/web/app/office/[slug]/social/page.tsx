@@ -119,6 +119,8 @@ export default async function Social({ params, searchParams }: { params: Promise
         </label>
         <label className="toggle"><input type="checkbox" name="shareNetwork" defaultChecked={venue.shareNetwork} /> Feature us in Complete&apos;s weekly &quot;Out in {venue.county ?? "your county"}&quot; posts with other venues</label>
         <label className="toggle"><input type="checkbox" name="songRequests" defaultChecked={venue.songRequests} /> Groups out here can send song requests (staff see them under Music)</label>
+        <label className="field">Paid song requests: price per song in € (blank = off)<input name="songPrice" inputMode="decimal" placeholder="2.00" defaultValue={venue.songRequestCents ? (venue.songRequestCents / 100).toFixed(2) : ""} /></label>
+        <span className="muted small">Any guest can pay to request a song. It pops up on the bar screen with Accept &amp; queue; declining refunds it. Paid into your own account, no points earned.</span>
         <span className="muted small">Co-host an event with another venue on Complete (in What&apos;s on) and it&apos;s posted on both venues&apos; accounts, with Instagram collaboration when both are connected.</span>
         <button className="btn sm" style={{ alignSelf: "flex-start" }}>Save</button>
       </ActionForm>
