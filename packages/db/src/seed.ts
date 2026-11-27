@@ -194,6 +194,14 @@ export async function seed(db: Db, opts: { stock?: boolean } = {}) {
       .values({ tenantId, programmeId: prog.id, slug: v.slug, name: v.name, tagline: v.tagline, town: v.town, brandColor: v.brandColor, vatNumber: "IE0000000X", fplCode: key === "mjo" ? "mjo2627" : null, bookingSeatsPerSlot: key === "mjo" ? 40 : 0, kind: key === "drum" ? "hotel" : "bar", county: key === "drum" ? "Leitrim" : null, shareNetwork: key === "drum" })
       .returning();
     await db.insert(t.subscription).values({ tenantId, venueId: ven.id, monthlyFeeCents: 9900, appFeeBps: 100 });
+    await db.insert(t.partyPackage).values(
+      key === "mjo"
+        ? [
+            { tenantId, venueId: ven.id, name: "Party package", description: "Hot finger food buffet (chicken wings, cocktail sausages, chips, veggie spring rolls), your own reserved area and a drink on arrival.", pricePerPersonCents: 3000, minGuests: 20, maxGuests: 80, depositPerPersonCents: 500, vatRate: 9 as const, minNoticeDays: 3 },
+            { tenantId, venueId: ven.id, name: "Match day package", description: "Reserved tables in front of the big screen and a plate of wings or chips each.", pricePerPersonCents: 1500, minGuests: 8, maxGuests: 40, depositPerPersonCents: 0, vatRate: 9 as const, minNoticeDays: 1 },
+          ]
+        : [{ tenantId, venueId: ven.id, name: "Woodland celebration", description: "Three-course wood-fired dinner under the trees, private dining area and a glass of bubbles on arrival.", pricePerPersonCents: 4500, minGuests: 12, maxGuests: 60, depositPerPersonCents: 1000, vatRate: 9 as const, minNoticeDays: 7 }],
+    );
     const tables = await db
       .insert(t.venueTable)
       .values(Array.from({ length: 20 }, (_, i) => ({ tenantId, venueId: ven.id, number: i + 1, qrToken: randomBytes(6).toString("base64url") })))

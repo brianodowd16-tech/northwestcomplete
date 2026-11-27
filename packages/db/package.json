@@ -24,7 +24,8 @@
     "./passkeys": "./src/passkeys.ts",
     "./briefing": "./src/briefing.ts",
     "./songs": "./src/songs.ts",
-    "./connect": "./src/connect.ts"
+    "./connect": "./src/connect.ts",
+    "./parties": "./src/parties.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",

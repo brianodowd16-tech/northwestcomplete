@@ -162,6 +162,13 @@
       "when": 1795797194300,
       "tag": "0022_condemned_selene",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1795797601019,
+      "tag": "0023_chubby_blacklash",
+      "breakpoints": true
     }
   ]
 }

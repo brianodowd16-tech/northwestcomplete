@@ -503,6 +503,13 @@ export async function completeOrder(tenantId: string, orderId: string, txnRef?: 
       await publish(tx, topics.order(order.id), { kind: "order" });
       return true;
     }
+    // A party deposit: the booking goes to staff to confirm. No docket, no loyalty, no stock.
+    const [party] = await tx.update(t.partyBooking).set({ status: "requested" }).where(and(eq(t.partyBooking.depositOrderId, order.id), eq(t.partyBooking.status, "pending_payment"))).returning();
+    if (party) {
+      await publish(tx, topics.venue(order.venueId), { kind: "bookings" });
+      await publish(tx, topics.order(order.id), { kind: "order" });
+      return true;
+    }
 
     const lines = await tx.select().from(t.orderLine).where(eq(t.orderLine.orderId, order.id));
     if (!order.customerId || !order.membershipId) throw new Error("completeOrder is for app orders"); // till sales are paid when rung up

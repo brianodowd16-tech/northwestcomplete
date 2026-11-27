@@ -1104,3 +1104,62 @@ export const partnerBooking = pgTable(
   },
   (t) => [uniqueIndex("partner_booking_ext").on(t.venueId, t.source, t.externalId), index("partner_booking_when").on(t.venueId, t.startsAt), index("partner_booking_email").on(t.email)],
 );
+
+/** A party or group package a venue sells, e.g. "Buffet and a drink on arrival, €30 a head, 20 people minimum". */
+export const partyPackage = pgTable(
+  "party_package",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    name: text("name").notNull(),
+    /** what's included, shown to guests */
+    description: text("description").notNull().default(""),
+    pricePerPersonCents: integer("price_per_person_cents").notNull(),
+    minGuests: integer("min_guests").notNull().default(1),
+    maxGuests: integer("max_guests").notNull().default(200),
+    /** paid online when a guest books (0 = nothing to pay until the night) */
+    depositPerPersonCents: integer("deposit_per_person_cents").notNull().default(0),
+    /** VAT on the package: 9 for food-led, 23 when it's mainly drink */
+    vatRate: smallint("vat_rate").notNull().default(9).$type<9 | 23>(),
+    /** booked at least this many days ahead */
+    minNoticeDays: integer("min_notice_days").notNull().default(2),
+    active: boolean("active").notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [index("party_package_venue").on(t.venueId)],
+);
+
+/**
+ * A party reservation. Guests book in the app (deposit through the venue's own checkout) or staff take
+ * one by phone. Staff confirm or decline; declining refunds the deposit at the provider first.
+ */
+export const partyBooking = pgTable(
+  "party_booking",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    venueId: uuid("venue_id").notNull().references(() => venue.id),
+    packageId: uuid("package_id").notNull().references(() => partyPackage.id),
+    /** the guest's account, when booked in the app */
+    customerId: uuid("customer_id"),
+    /** staff member who took it by phone or in person */
+    staffId: uuid("staff_id"),
+    contactName: text("contact_name").notNull(),
+    contactPhone: text("contact_phone").notNull().default(""),
+    contactEmail: text("contact_email").notNull().default(""),
+    occasion: text("occasion").notNull().default(""),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    guests: integer("guests").notNull(),
+    /** price per person and total at the time of booking */
+    pricePerPersonCents: integer("price_per_person_cents").notNull(),
+    totalCents: integer("total_cents").notNull(),
+    depositCents: integer("deposit_cents").notNull().default(0),
+    depositOrderId: uuid("deposit_order_id"),
+    notes: text("notes").notNull().default(""),
+    /** pending_payment → requested → confirmed / declined / cancelled → completed */
+    status: text("status", { enum: ["pending_payment", "requested", "confirmed", "declined", "cancelled", "completed"] }).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("party_booking_venue_time").on(t.venueId, t.startsAt), uniqueIndex("party_booking_deposit").on(t.depositOrderId)],
+);

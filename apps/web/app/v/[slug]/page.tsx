@@ -69,6 +69,10 @@ export default async function VenueHome({ params }: { params: Promise<{ slug: st
           <span className="muted small">Order drinks now, pick up when they&apos;re ready.</span>
         </Link>
       </section>
+      <Link href={`/v/${venue.slug}/party`} className="card row rise" style={{ textDecoration: "none", color: "inherit" }}>
+        <span><b>🎉 Parties and groups</b><span className="muted small" style={{ display: "block" }}>Birthdays, work dos, match days: food and drink packages</span></span>
+        <span className="muted">›</span>
+      </Link>
 
       {summary ? (
         <Link href={`/v/${venue.slug}/rewards`} className="card rise" style={{ textDecoration: "none" }}>
